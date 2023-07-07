@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "balanced-budget-90f1f": {
+      "hosting": {
+        "app": [
+          "balanced-budget-90f1f"
+        ]
+      }
+    }
+  },
+  "projects": {
+    "default": "balanced-budget-90f1f"
+  }
+}
