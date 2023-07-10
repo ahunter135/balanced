@@ -7,6 +7,7 @@ import { ExploreContainerComponentModule } from '../explore-container/explore-co
 
 import { Tab1PageRoutingModule } from './tab1-routing.module';
 import { DraggableComponent } from '../components/draggable/draggable.component';
+import { ComponentsModule } from '../components/components.module';
 
 @NgModule({
   imports: [
@@ -14,8 +15,9 @@ import { DraggableComponent } from '../components/draggable/draggable.component'
     CommonModule,
     FormsModule,
     ExploreContainerComponentModule,
-    Tab1PageRoutingModule
+    Tab1PageRoutingModule,
+    ComponentsModule,
   ],
-  declarations: [Tab1Page, DraggableComponent]
+  declarations: [Tab1Page, DraggableComponent],
 })
 export class Tab1PageModule {}

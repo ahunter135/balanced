@@ -11,6 +11,7 @@ declare var Plaid: any;
 export class Tab1Page {
   user = {} as any;
   institutionName = '';
+  transactions = [] as any;
   constructor(private http: HttpService) {}
 
   ngOnInit() {
@@ -89,6 +90,8 @@ export class Tab1Page {
       )
       .subscribe((resp) => {
         console.log(resp);
+        this.transactions = resp.added;
+        this.sortTransactions();
         this.user.last_transaction_retrieval = new Date().toISOString();
         updateDoc(
           doc(getFirestore(), 'users/', 'fGdpBS7gMTMxqJe7IOcfMgJ3L3i2'),
@@ -111,5 +114,13 @@ export class Tab1Page {
         console.log(resp);
         this.institutionName = resp.name;
       });
+  }
+
+  async sortTransactions() {
+    this.transactions.sort((a: any, b: any) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return dateB.getTime() - dateA.getTime();
+    });
   }
 }

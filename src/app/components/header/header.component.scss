@@ -1,0 +1,27 @@
+#top-toolbar {
+  height: 75px;
+  #month-picker {
+    margin: 15px 15px 15px 15px;
+    .month {
+      font-family: "Impact";
+      font-size: 40px;
+      color: white;
+    }
+    .year {
+      font-size: 30px;
+      color: white;
+      padding-left: 10px;
+      font-weight: 300;
+    }
+  }
+
+  ion-icon {
+    color: white;
+  }
+}
+
+#bottom-toolbar {
+  ion-segment {
+    width: 90%;
+  }
+}

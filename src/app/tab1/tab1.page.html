@@ -1,17 +1,31 @@
-<ion-header [translucent]="true">
-  <ion-toolbar color="primary">
-    <ion-title>
-      Todays Date Dropdown
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
+<app-header></app-header>
 
 <ion-content [fullscreen]="true">
+  <div id="budget-remaining-container">
+    <span><strong>$500.59</strong> left to budget</span>
+  </div>
+  <div id="planned-income-container">
+    <span id="planned-income"
+      ><span class="title">Planned Income</span>
+      <strong>$12,453.42</strong></span
+    >
+  </div>
   <ion-button (click)="link()" *ngIf="!user.access_token">Link</ion-button>
-  <ion-button (click)="retrieveTransactions()" *ngIf="user.access_token">Get Transactions</ion-button>
+  <ion-button (click)="retrieveTransactions()" *ngIf="user.access_token"
+    >Get Transactions</ion-button
+  >
   <p>You are connected to {{institutionName}}</p>
   <p>Last Transaction Pull: {{user.last_transaction_retrieval | date}}</p>
-  <app-draggable>
-    <div style="height: 75px; width: 75px; border-radius: 50%; background-color: red;"></div>
-  </app-draggable>
+  <div id="app-draggable-container">
+    <app-draggable>
+      <div id="transaction-counter">
+        <span class="counter-number">123</span>
+      </div>
+    </app-draggable>
+  </div>
+  <ion-list>
+    <ion-item *ngFor="let item of transactions">
+      {{item.name}}<br />{{item.amount | currency}}<br />{{item.date}}
+    </ion-item>
+  </ion-list>
 </ion-content>
