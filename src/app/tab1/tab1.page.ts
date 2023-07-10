@@ -10,7 +10,7 @@ declare var Plaid: any;
 })
 export class Tab1Page {
   user = {} as any;
-  institutionName = "";
+  institutionName = '';
   constructor(private http: HttpService) {}
 
   ngOnInit() {
@@ -18,16 +18,22 @@ export class Tab1Page {
   }
 
   async getUserData() {
-    this.user = (await getDoc(doc(getFirestore(), 'users', "fGdpBS7gMTMxqJe7IOcfMgJ3L3i2"))).data();
+    this.user = (
+      await getDoc(doc(getFirestore(), 'users', 'fGdpBS7gMTMxqJe7IOcfMgJ3L3i2'))
+    ).data();
     console.log(this.user);
-    this.getInstitutionName();
+    if (this.user.access_token) {
+      this.getInstitutionName();
+    }
   }
 
   async link() {
     this.http
       .post(
         'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/createPlaidLinkToken',
-        {}
+        {
+          user_id: 'fGdpBS7gMTMxqJe7IOcfMgJ3L3i2',
+        }
       )
       .subscribe((resp) => {
         console.log(resp);
@@ -50,10 +56,13 @@ export class Tab1Page {
              */
                 const accessToken = resp.access_token;
                 const institution = resp.item_id;
-                updateDoc(doc(getFirestore(), "users/", "fGdpBS7gMTMxqJe7IOcfMgJ3L3i2"), {
-                  access_token: accessToken,
-                  institution
-                });
+                updateDoc(
+                  doc(getFirestore(), 'users/', 'fGdpBS7gMTMxqJe7IOcfMgJ3L3i2'),
+                  {
+                    access_token: accessToken,
+                    institution,
+                  }
+                );
               });
           },
           onLoad: () => {
@@ -75,11 +84,19 @@ export class Tab1Page {
       .post(
         'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/getTransactionData',
         {
-          accessToken: this.user.access_token
+          accessToken: this.user.access_token,
         }
-      ).subscribe((resp) => {
+      )
+      .subscribe((resp) => {
         console.log(resp);
-      })
+        this.user.last_transaction_retrieval = new Date().toISOString();
+        updateDoc(
+          doc(getFirestore(), 'users/', 'fGdpBS7gMTMxqJe7IOcfMgJ3L3i2'),
+          {
+            last_transaction_retrieval: new Date().toISOString(),
+          }
+        );
+      });
   }
 
   async getInstitutionName() {
@@ -87,11 +104,12 @@ export class Tab1Page {
       .post(
         'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/getInstitutionName',
         {
-          accessToken: this.user.access_token
+          accessToken: this.user.access_token,
         }
-      ).subscribe((resp) => {
+      )
+      .subscribe((resp) => {
         console.log(resp);
         this.institutionName = resp.name;
-      })
+      });
   }
 }
