@@ -4,6 +4,7 @@ import { HttpService } from '../services/http.service';
 import { User } from '../interfaces/user';
 import { Category } from '../interfaces/category';
 import { UserService } from '../services/user.service';
+import { CalculationService } from '../services/calculation.service';
 
 @Component({
   selector: 'app-tab1',
@@ -14,10 +15,16 @@ export class Tab1Page {
   user = {} as User;
   institutionName = '';
   transactions = [] as any;
-  constructor(private http: HttpService, private userService: UserService) {}
+  constructor(
+    private http: HttpService,
+    private userService: UserService,
+    private calculator: CalculationService
+  ) {}
 
   ngOnInit() {
-    this.getUserData();
+    this.getUserData().then(() => {
+      this.calculator.startCalculations();
+    });
   }
 
   async getUserData() {

@@ -13,7 +13,10 @@
 
   <app-category cardTitle="Income"></app-category>
   <span *ngFor="let item of user.categories">
-    <app-category [cardTitle]="item.text"></app-category>
+    <app-category
+      [cardTitle]="item.text"
+      [subcategories]="item.subcategories"
+    ></app-category>
   </span>
 
   <div id="app-draggable-container">

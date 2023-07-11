@@ -1,0 +1,25 @@
+#segment {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  ion-segment {
+    width: 90%;
+    margin-top: 25px;
+  }
+}
+
+ion-toolbar {
+  ion-title {
+    color: white;
+  }
+  ion-button {
+    color: white;
+  }
+}
+ion-input {
+  text-align: end;
+}
+ion-datetime-button::part(native) {
+  background: #fff;
+  padding-right: 5px;
+}

@@ -1,0 +1,103 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="modalCtrl.dismiss()">Cancel</ion-button>
+    </ion-buttons>
+    <ion-title>Add Transaction</ion-title>
+    <ion-buttons slot="end">
+      <ion-button>Done</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <div id="segment">
+    <ion-segment value="expense">
+      <ion-segment-button value="expense">
+        <ion-label>Expense</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="income">
+        <ion-label>Income</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+
+  <ion-card>
+    <ion-card-content>
+      <ion-list>
+        <ion-item>
+          <ion-label>Date</ion-label>
+          <ion-datetime-button
+            [(ngModel)]="newTransaction.date"
+            slot="end"
+            datetime="datetime"
+          ></ion-datetime-button>
+        </ion-item>
+        <ion-item>
+          <ion-label>Amount</ion-label>
+          <app-currency-input slot="end"></app-currency-input>
+        </ion-item>
+        <ion-item>
+          <ion-label>Transaction</ion-label>
+          <ion-input
+            [(ngModel)]="newTransaction.name"
+            placeholder="Name"
+            slot="end"
+            type="text"
+          ></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label>Merchant</ion-label>
+          <ion-input
+            [(ngModel)]="newTransaction.merchant_name"
+            placeholder="Name"
+            slot="end"
+            type="text"
+          ></ion-input>
+        </ion-item>
+      </ion-list>
+      <ion-modal [keepContentsMounted]="true">
+        <ng-template>
+          <ion-datetime
+            id="datetime"
+            presentation="date"
+            [preferWheel]="true"
+          ></ion-datetime>
+        </ng-template>
+      </ion-modal>
+    </ion-card-content>
+  </ion-card>
+  <ion-card>
+    <ion-card-content>
+      <ion-list lines="none">
+        <ion-item button id="open-modal">
+          <ion-label>Budget Category</ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-modal
+    #modal
+    trigger="open-modal"
+    [presentingElement]="presentingElement"
+  >
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>Pick a Category</ion-title>
+          <ion-buttons slot="start">
+            <ion-button (click)="modal.dismiss()">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>
+        <span *ngFor="let cat of categories">
+          <app-category
+            [cardTitle]="cat.text"
+            [isChecklist]="true"
+          ></app-category>
+        </span>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>
