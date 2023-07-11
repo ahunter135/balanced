@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
 import { getFirestore, updateDoc, doc, getDoc } from '@angular/fire/firestore';
 import { HttpService } from '../services/http.service';
-declare var Plaid: any;
+import { User } from '../interfaces/user';
+import { Category } from '../interfaces/category';
+import { UserService } from '../services/user.service';
 
 @Component({
   selector: 'app-tab1',
@@ -9,118 +11,38 @@ declare var Plaid: any;
   styleUrls: ['tab1.page.scss'],
 })
 export class Tab1Page {
-  user = {} as any;
+  user = {} as User;
   institutionName = '';
   transactions = [] as any;
-  constructor(private http: HttpService) {}
+  constructor(private http: HttpService, private userService: UserService) {}
 
   ngOnInit() {
     this.getUserData();
   }
 
   async getUserData() {
-    this.user = (
-      await getDoc(doc(getFirestore(), 'users', 'fGdpBS7gMTMxqJe7IOcfMgJ3L3i2'))
-    ).data();
-    console.log(this.user);
-    if (this.user.access_token) {
-      this.getInstitutionName();
+    let userDoc = await getDoc(
+      doc(
+        getFirestore(),
+        'users',
+        this.userService.getActiveUser()?.uid as string
+      )
+    );
+
+    if (userDoc.exists()) {
+      const categories = userDoc.data()['categories'];
+      categories.sort((a: Category, b: Category) => {
+        if (a.index > b.index) {
+          return 1;
+        } else if (a.index < b.index) {
+          return -1;
+        } else {
+          return 0;
+        }
+      });
+      this.user = userDoc.data() as User;
+      this.user.categories = categories;
+      console.log(this.user);
     }
-  }
-
-  async link() {
-    this.http
-      .post(
-        'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/createPlaidLinkToken',
-        {
-          user_id: 'fGdpBS7gMTMxqJe7IOcfMgJ3L3i2',
-        }
-      )
-      .subscribe((resp) => {
-        console.log(resp);
-        const handler = Plaid.create({
-          token: resp.link_token,
-          onSuccess: (public_token: string, metadata: any) => {
-            this.http
-              .post(
-                'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/exchangePublicToken',
-                { public_token }
-              )
-              .subscribe((resp) => {
-                console.log(resp);
-                /** 
-              {
-                access_token: "access-sandbox-477ca4f5-493b-486b-b18e-9e339f501da6" This is the required access token to make requests
-                error: null
-                item_id: "yQkDd5JLpVIK14D4WR5JCVDvKwDzDztyvaBD5" This is the financial institution
-              }
-             */
-                const accessToken = resp.access_token;
-                const institution = resp.item_id;
-                updateDoc(
-                  doc(getFirestore(), 'users/', 'fGdpBS7gMTMxqJe7IOcfMgJ3L3i2'),
-                  {
-                    access_token: accessToken,
-                    institution,
-                  }
-                );
-              });
-          },
-          onLoad: () => {
-            // This fires when the Plaid Prompt shows up for the first time
-          },
-          onExit: (err: any, metadata: any) => {},
-          onEvent: (eventName: any, metadata: any) => {
-            // This fires any time something happens within the Plaid Prompt
-          },
-          //required for OAuth; if not using OAuth, set to null or omit:
-          receivedRedirectUri: null,
-        });
-        handler.open();
-      });
-  }
-
-  async retrieveTransactions() {
-    this.http
-      .post(
-        'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/getTransactionData',
-        {
-          accessToken: this.user.access_token,
-        }
-      )
-      .subscribe((resp) => {
-        console.log(resp);
-        this.transactions = resp.added;
-        this.sortTransactions();
-        this.user.last_transaction_retrieval = new Date().toISOString();
-        updateDoc(
-          doc(getFirestore(), 'users/', 'fGdpBS7gMTMxqJe7IOcfMgJ3L3i2'),
-          {
-            last_transaction_retrieval: new Date().toISOString(),
-          }
-        );
-      });
-  }
-
-  async getInstitutionName() {
-    this.http
-      .post(
-        'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/getInstitutionName',
-        {
-          accessToken: this.user.access_token,
-        }
-      )
-      .subscribe((resp) => {
-        console.log(resp);
-        this.institutionName = resp.name;
-      });
-  }
-
-  async sortTransactions() {
-    this.transactions.sort((a: any, b: any) => {
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
-      return dateB.getTime() - dateA.getTime();
-    });
   }
 }

@@ -27,4 +27,8 @@ export class LoginPage implements OnInit {
       alert(error);
     }
   }
+
+  async goToCreate() {
+    this.router.navigate(['create-account']);
+  }
 }

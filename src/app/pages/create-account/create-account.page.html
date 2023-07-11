@@ -7,6 +7,12 @@
 
     <div id="login-form">
       <ion-input
+        label="Full Name"
+        labelPlacement="stacked"
+        [(ngModel)]="user.name"
+        type="text"
+      ></ion-input>
+      <ion-input
         label="Email"
         labelPlacement="stacked"
         [(ngModel)]="user.email"
@@ -18,8 +24,10 @@
         [(ngModel)]="user.password"
         type="password"
       ></ion-input>
-      <ion-button (click)="login()" expand="block">Login</ion-button>
-      <p (click)="goToCreate()">Need an account? Sign up Here</p>
+      <ion-button (click)="signUp()" expand="block"
+        >Let's Get Balanced</ion-button
+      >
+      <p routerLink="..">Back to Login</p>
     </div>
   </div>
 </ion-content>

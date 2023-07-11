@@ -10,12 +10,12 @@
       <strong>$12,453.42</strong></span
     >
   </div>
-  <ion-button (click)="link()" *ngIf="!user.access_token">Link</ion-button>
-  <ion-button (click)="retrieveTransactions()" *ngIf="user.access_token"
-    >Get Transactions</ion-button
-  >
-  <p>You are connected to {{institutionName}}</p>
-  <p>Last Transaction Pull: {{user.last_transaction_retrieval | date}}</p>
+
+  <app-category cardTitle="Income"></app-category>
+  <span *ngFor="let item of user.categories">
+    <app-category [cardTitle]="item.text"></app-category>
+  </span>
+
   <div id="app-draggable-container">
     <app-draggable>
       <div id="transaction-counter">
@@ -23,9 +23,4 @@
       </div>
     </app-draggable>
   </div>
-  <ion-list>
-    <ion-item *ngFor="let item of transactions">
-      {{item.name}}<br />{{item.amount | currency}}<br />{{item.date}}
-    </ion-item>
-  </ion-list>
 </ion-content>

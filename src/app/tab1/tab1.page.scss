@@ -39,16 +39,16 @@
 }
 #app-draggable-container {
   position: fixed;
-  bottom: 90px;
-  left: 42%;
+  bottom: 70px;
+  left: 45%;
   transform: translateX(-50%);
 
   #transaction-counter {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 75px;
-    width: 75px;
+    height: 50px;
+    width: 50px;
     border-radius: 50%;
     background-color: #00eabb;
   }

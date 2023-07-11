@@ -45,15 +45,9 @@ export class DraggableComponent implements OnInit {
             draggableRect.y < targetRect.y + targetRect.height &&
             draggableRect.y + draggableRect.height > targetRect.y
           ) {
-            // The two elements are overlapping
-            console.log(
-              `Hovering over the target element with id ${targetElement.id}`
-            );
+            targetElement.classList.add('is-hovering');
           } else {
-            // The two elements are not overlapping
-            console.log(
-              `Not hovering over the target element with id ${targetElement.id}`
-            );
+            targetElement.classList.remove('is-hovering');
           }
         });
       },
@@ -72,10 +66,7 @@ export class DraggableComponent implements OnInit {
             draggableRect.y < targetRect.y + targetRect.height &&
             draggableRect.y + draggableRect.height > targetRect.y
           ) {
-            // The two elements are overlapping
-            console.log(
-              `Ended gesture while hovering over the target element with id ${targetElement.id}`
-            );
+            targetElement.classList.remove('is-hovering');
             // Here, you can perform your specific logic
           }
         });
