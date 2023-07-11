@@ -12,11 +12,11 @@
     </ion-buttons>
   </ion-toolbar>
   <ion-toolbar id="bottom-toolbar" color="primary">
-    <ion-segment value="default">
-      <ion-segment-button value="default">
+    <ion-segment value="planned" (ionChange)="segmentChanged($event)">
+      <ion-segment-button value="planned">
         <ion-label>Planned</ion-label>
       </ion-segment-button>
-      <ion-segment-button value="segment">
+      <ion-segment-button value="remaining">
         <ion-label>Remaining</ion-label>
       </ion-segment-button>
     </ion-segment>

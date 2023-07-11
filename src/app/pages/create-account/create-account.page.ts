@@ -4,6 +4,7 @@ import { doc, getFirestore, setDoc } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { User } from 'src/app/interfaces/user';
 import { AlertService } from 'src/app/services/alert.service';
+import { v4 as uuid } from 'uuid';
 
 @Component({
   selector: 'app-create-account',
@@ -26,23 +27,63 @@ export class CreateAccountPage implements OnInit {
 
       const newUser: User = {
         email: this.user.email,
-        id: userSignUp.user.uid,
+        uid: userSignUp.user.uid,
         subscribed: false,
         categories: [
-          { text: 'housing', index: 0, subcategories: [] },
-          { text: 'giving', index: 1, subcategories: [] },
-          { text: 'savings', index: 2, subcategories: [] },
-          { text: 'transportation', index: 3, subcategories: [] },
-          { text: 'food', index: 4, subcategories: [] },
-          { text: 'lifestyle', index: 5, subcategories: [] },
-          { text: 'insurance', index: 6, subcategories: [] },
-          { text: 'debt', index: 7, subcategories: [] },
+          {
+            text: 'housing',
+            index: 0,
+            subcategories: [],
+            id: uuid(),
+          },
+          {
+            text: 'giving',
+            index: 1,
+            subcategories: [],
+            id: uuid(),
+          },
+          {
+            text: 'savings',
+            index: 2,
+            subcategories: [],
+            id: uuid(),
+          },
+          {
+            text: 'transportation',
+            index: 3,
+            subcategories: [],
+            id: uuid(),
+          },
+          {
+            text: 'food',
+            index: 4,
+            subcategories: [],
+            id: uuid(),
+          },
+          {
+            text: 'lifestyle',
+            index: 5,
+            subcategories: [],
+            id: uuid(),
+          },
+          {
+            text: 'insurance',
+            index: 6,
+            subcategories: [],
+            id: uuid(),
+          },
+          {
+            text: 'debt',
+            index: 7,
+            subcategories: [],
+            id: uuid(),
+          },
         ],
         name: this.user.name,
         transaction_sync_cursor: '',
       };
 
-      await setDoc(doc(getFirestore(), 'users', newUser.id), newUser);
+      await setDoc(doc(getFirestore(), 'users', newUser.uid), newUser);
       this.router.navigateByUrl('');
     } catch (error) {
       this.alertService.createAndShowToast(error as string);

@@ -5,7 +5,7 @@
     </ion-buttons>
     <ion-title>Add Transaction</ion-title>
     <ion-buttons slot="end">
-      <ion-button>Done</ion-button>
+      <ion-button (click)="add()">Add</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -91,10 +91,11 @@
         </ion-toolbar>
       </ion-header>
       <ion-content>
-        <span *ngFor="let cat of categories">
+        <span *ngFor="let cat of user.categories">
           <app-category
             [cardTitle]="cat.text"
             [isChecklist]="true"
+            [subcategories]="cat.subcategories"
           ></app-category>
         </span>
       </ion-content>

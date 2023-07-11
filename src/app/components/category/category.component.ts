@@ -1,6 +1,23 @@
-import { Component, Input, OnInit } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  ViewChild,
+} from '@angular/core';
+import {
+  DocumentData,
+  collection,
+  getDocs,
+  getFirestore,
+  query,
+  where,
+} from '@angular/fire/firestore';
 import { Subcategory } from 'src/app/interfaces/subcategory';
 import { Transaction } from 'src/app/interfaces/transaction';
+import { UserService } from 'src/app/services/user.service';
+import { v4 as uuid } from 'uuid';
 
 @Component({
   selector: 'app-category',
@@ -11,14 +28,93 @@ export class CategoryComponent implements OnInit {
   @Input() cardTitle: string;
   @Input() subcategories: Array<Subcategory>;
   @Input() isChecklist: boolean = false;
+  @Input() currentView: string = 'planned';
+
+  @Output() addNewSubEvent = new EventEmitter();
+  @Output() requestSaveOfSubs = new EventEmitter();
+  @ViewChild('fieldsContainer') fieldsContainer: any;
   transactions = [] as Array<Transaction>;
-  constructor() {}
+  checker: any;
+  constructor(private userService: UserService) {}
 
   ngOnInit() {
+    console.log(this.subcategories);
     if (this.cardTitle === 'income') {
       // Get and Show Income
     } else {
       // Get all relevent transactions
+      this.getTransactionsThenCalculate();
     }
+
+    this.checkDOMChange();
+  }
+
+  addNewSub() {
+    this.addNewSubEvent.emit();
+  }
+
+  checkDOMChange() {
+    this.checker = setTimeout(() => {
+      const newSubAdded = document.getElementsByClassName('new-sub');
+      if (newSubAdded.length > 0) {
+        (newSubAdded[0].childNodes[0] as HTMLIonInputElement).setFocus();
+      }
+      this.checkDOMChange();
+    }, 100);
+  }
+
+  stopTimeout() {
+    clearTimeout(this.checker);
+  }
+
+  shouldWeSaveOrRemove() {
+    for (let i = 0; i < this.subcategories.length; i++) {
+      if (this.subcategories[i].isEditing) {
+        this.subcategories[i].isEditing = false;
+        if (this.subcategories[i].text.length == 0) {
+          this.subcategories.splice(i, 1);
+        } else {
+          // Stuff was typed, lets add it to the DB
+          this.requestSaveOfSubs.emit();
+        }
+      }
+    }
+  }
+
+  async openBudgetItem(index: number) {
+    console.log('HERE');
+  }
+
+  async getTransactionsThenCalculate() {
+    for (let i = 0; i < this.subcategories.length; i++) {
+      console.log(this.subcategories[i].id);
+      let transactions = await getDocs(
+        query(
+          collection(
+            getFirestore(),
+            'users',
+            this.userService.getActiveUser()?.uid as string,
+            'transactions'
+          ),
+          where('category', '==', this.subcategories[i].id)
+        )
+      );
+
+      const transactionsList = [] as Array<Transaction>;
+      transactions.forEach((ele: any) => {
+        transactionsList.push(ele.data() as Transaction);
+      });
+      this.calculate(transactionsList, this.subcategories[i]);
+    }
+  }
+
+  calculate(transactions: Array<Transaction>, subcategory: Subcategory) {
+    let planned_amount = subcategory.planned_amount;
+    for (let i = 0; i < transactions.length; i++) {
+      const transaction = transactions[i];
+      const cost = transaction.amount;
+      planned_amount -= cost;
+    }
+    subcategory.actual_amount = planned_amount / 100;
   }
 }

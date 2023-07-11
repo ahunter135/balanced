@@ -4,12 +4,48 @@
   </ion-card-header>
   <ion-card-content>
     <ion-list lines="none">
-      <ion-item class="target" *ngFor="let sub of subcategories">
-        <ion-label>{{ sub.text }}</ion-label>
-        <ion-note slot="end">{{ sub.amount }}</ion-note>
-      </ion-item>
-      <ion-item>
-        <ion-label class="add-new">
+      <span *ngIf="!isChecklist">
+        <ion-item
+          class="target"
+          *ngFor="let sub of subcategories; let i = index"
+          [button]="!sub.isEditing"
+          detail="false"
+        >
+          <span
+            *ngIf="!sub.isEditing"
+            class="saved-sub"
+            (click)="openBudgetItem(i)"
+          >
+            <ion-label>{{ sub.text }}</ion-label>
+            <ion-note style="text-align: end">{{
+              currentView === "planned"
+                ? (sub.planned_amount / 100 | currency)
+                : (sub.actual_amount | currency)
+            }}</ion-note>
+          </span>
+          <span *ngIf="sub.isEditing" class="new-sub">
+            <ion-input
+              placeholder="Name"
+              [(ngModel)]="sub.text"
+              (ionFocus)="stopTimeout()"
+              (ionBlur)="shouldWeSaveOrRemove()"
+            ></ion-input>
+            <ion-note style="text-align: end">{{
+              currentView === "planned"
+                ? (sub.planned_amount / 100 | currency)
+                : (sub.actual_amount | currency)
+            }}</ion-note>
+          </span>
+        </ion-item>
+      </span>
+      <span *ngIf="isChecklist">
+        <ion-item class="target" *ngFor="let sub of subcategories">
+          <ion-checkbox labelPlacement="start">{{ sub.text }}</ion-checkbox>
+        </ion-item>
+      </span>
+
+      <ion-item *ngIf="!isChecklist">
+        <ion-label class="add-new" (click)="addNewSub()">
           <ion-icon name="add"></ion-icon> Add New Category
         </ion-label>
       </ion-item>

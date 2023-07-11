@@ -1,4 +1,4 @@
-<app-header></app-header>
+<app-header (viewChanged)="viewChanged($event)"></app-header>
 
 <ion-content [fullscreen]="true">
   <div id="budget-remaining-container">
@@ -11,11 +11,19 @@
     >
   </div>
 
-  <app-category cardTitle="Income"></app-category>
-  <span *ngFor="let item of user.categories">
+  <app-category
+    cardTitle="Income"
+    [currentView]="currentView"
+    (addNewSubEvent)="addNewSub(true, 0)"
+    (requestSaveOfSubs)="saveAllSubs()"
+  ></app-category>
+  <span *ngFor="let item of user.categories; let i = index">
     <app-category
       [cardTitle]="item.text"
       [subcategories]="item.subcategories"
+      [currentView]="currentView"
+      (addNewSubEvent)="addNewSub(false, i)"
+      (requestSaveOfSubs)="saveAllSubs()"
     ></app-category>
   </span>
 

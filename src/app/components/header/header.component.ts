@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { AddTransactionComponent } from 'src/app/modals/add-transaction/add-transaction.component';
 
@@ -8,6 +8,7 @@ import { AddTransactionComponent } from 'src/app/modals/add-transaction/add-tran
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent implements OnInit {
+  @Output() viewChanged = new EventEmitter();
   constructor(private modalController: ModalController) {}
 
   ngOnInit() {}
@@ -18,5 +19,9 @@ export class HeaderComponent implements OnInit {
     });
 
     modal.present();
+  }
+
+  segmentChanged(ev: any) {
+    this.viewChanged.emit(ev.detail.value);
   }
 }
