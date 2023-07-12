@@ -1,0 +1,49 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="modalCtrl.dismiss()">Close</ion-button>
+    </ion-buttons>
+    <ion-title>{{ subcategory.text }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ion-card>
+    <ion-card-content>
+      <ion-item
+        lines="none"
+        *ngIf="category.text == 'income'"
+        style="text-align: center"
+      >
+        <ion-label
+          >{{ subcategory.actual_amount | currency }}
+          received of
+          {{ subcategory.actual_amount | currency }}</ion-label
+        >
+      </ion-item>
+      <ion-item lines="none" *ngIf="category.text != 'income'">
+        <ion-label
+          >{{ subcategory.actual_amount | currency }}
+          spent of
+          {{ subcategory.planned_amount / 100 | currency }}</ion-label
+        >
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+  <ion-card>
+    <ion-card-header>
+      <ion-card-subtitle>Transactions</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item *ngFor="let item of transactions">
+          <ion-label
+            >{{ item.date | date : "MMM. d" }} - {{ item.name }}</ion-label
+          >
+          <ion-note slot="end">{{
+            parseAmount(item.amount) / 100 | currency
+          }}</ion-note>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

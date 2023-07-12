@@ -1,8 +1,8 @@
 <ion-header>
   <ion-toolbar id="top-toolbar" color="primary">
-    <div id="month-picker">
-      <span class="month">July</span>
-      <span class="year">2023</span>
+    <div id="month-picker" (click)="dateClicked()">
+      <span class="month">{{ chosenMonth }}</span>
+      <span class="year">{{ chosenYear }}</span>
       <span><ion-icon name="chevron-down" slot="icon-only"></ion-icon></span>
     </div>
     <ion-buttons slot="end">
@@ -12,9 +12,9 @@
     </ion-buttons>
   </ion-toolbar>
   <ion-toolbar id="bottom-toolbar" color="primary">
-    <ion-segment value="planned" (ionChange)="segmentChanged($event)">
-      <ion-segment-button value="planned">
-        <ion-label>Planned</ion-label>
+    <ion-segment value="budgeted" (ionChange)="segmentChanged($event)">
+      <ion-segment-button value="budgeted">
+        <ion-label>Budgeted</ion-label>
       </ion-segment-button>
       <ion-segment-button value="remaining">
         <ion-label>Remaining</ion-label>

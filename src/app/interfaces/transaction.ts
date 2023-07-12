@@ -5,7 +5,6 @@ export interface Transaction {
   amount: number;
   category: string;
   date: Date;
-  location: string;
   name: string;
   merchant_name: string;
   pending: boolean;

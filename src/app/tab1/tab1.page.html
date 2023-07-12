@@ -1,4 +1,10 @@
-<app-header (viewChanged)="viewChanged($event)"></app-header>
+<app-header
+  [chosenMonth]="chosenDate.month"
+  [chosenYear]="chosenDate.year"
+  (viewChanged)="viewChanged($event)"
+  (transactionAdded)="transactionAdded()"
+  (requestDateChange)="requestDateChange()"
+></app-header>
 
 <ion-content [fullscreen]="true">
   <div id="budget-remaining-container">
@@ -10,28 +16,43 @@
       <strong>$12,453.42</strong></span
     >
   </div>
-
-  <app-category
-    cardTitle="Income"
-    [currentView]="currentView"
-    (addNewSubEvent)="addNewSub(true, 0)"
-    (requestSaveOfSubs)="saveAllSubs()"
-  ></app-category>
   <span *ngFor="let item of user.categories; let i = index">
     <app-category
-      [cardTitle]="item.text"
+      [category]="item"
       [subcategories]="item.subcategories"
       [currentView]="currentView"
       (addNewSubEvent)="addNewSub(false, i)"
       (requestSaveOfSubs)="saveAllSubs()"
+      (subcategorySelected)="subcategorySelected($event)"
     ></app-category>
   </span>
 
-  <div id="app-draggable-container">
-    <app-draggable>
-      <div id="transaction-counter">
-        <span class="counter-number">123</span>
+  <div
+    id="app-draggable-container"
+    *ngIf="userService.getPendingTransactions().length > 0"
+    (click)="revealPendingTransactions()"
+  >
+    <div id="transaction-counter">
+      <span class="counter-number"
+        >{{userService.getPendingTransactions().length}}</span
+      >
+    </div>
+  </div>
+  <div
+    class="card-container"
+    [ngClass]="{ 'slide-up': isCardContainerVisible }"
+  >
+    <!-- Content of card container -->
+    <div id="scrollable-container">
+      <div
+        id="card"
+        *ngFor="let item of userService.getPendingTransactions(); let i = index"
+        (click)="openTransactionSorter(i)"
+      >
+        <div id="date">{{item.date | date:'MMM. d'}}</div>
+        <span id="amount">{{parseAmount(item.amount) / 100 | currency}}</span>
+        <div id="name">{{item.merchant_name || item.name}}</div>
       </div>
-    </app-draggable>
+    </div>
   </div>
 </ion-content>

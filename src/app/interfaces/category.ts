@@ -5,4 +5,5 @@ export interface Category {
   index: number;
   subcategories: Array<Subcategory>;
   id: string;
+  editable: boolean;
 }

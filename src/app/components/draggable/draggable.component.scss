@@ -1,4 +1,6 @@
 .draggable {
-    position: absolute;
-    touch-action: none; /* Disable default touch interactions */
-  }
+  position: absolute;
+  touch-action: none;
+  display: flex;
+  flex-direction: row;
+}

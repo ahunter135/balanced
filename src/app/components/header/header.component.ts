@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { AddTransactionComponent } from 'src/app/modals/add-transaction/add-transaction.component';
 
@@ -9,6 +9,10 @@ import { AddTransactionComponent } from 'src/app/modals/add-transaction/add-tran
 })
 export class HeaderComponent implements OnInit {
   @Output() viewChanged = new EventEmitter();
+  @Output() transactionAdded = new EventEmitter();
+  @Output() requestDateChange = new EventEmitter();
+  @Input() chosenMonth: String;
+  @Input() chosenYear: String;
   constructor(private modalController: ModalController) {}
 
   ngOnInit() {}
@@ -19,9 +23,17 @@ export class HeaderComponent implements OnInit {
     });
 
     modal.present();
+
+    modal.onDidDismiss().then((resp: any) => {
+      this.transactionAdded.emit();
+    });
   }
 
   segmentChanged(ev: any) {
     this.viewChanged.emit(ev.detail.value);
+  }
+
+  dateClicked() {
+    this.requestDateChange.emit();
   }
 }

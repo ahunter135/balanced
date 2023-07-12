@@ -1,6 +1,9 @@
 <ion-card>
   <ion-card-header>
-    <ion-card-subtitle>{{ cardTitle }}</ion-card-subtitle>
+    <ion-card-subtitle id="subtitle"
+      ><span id="title">{{ category.text }}</span
+      ><span id="category" *ngIf="!isChecklist">{{ currentView }}</span>
+    </ion-card-subtitle>
   </ion-card-header>
   <ion-card-content>
     <ion-list lines="none">
@@ -18,7 +21,7 @@
           >
             <ion-label>{{ sub.text }}</ion-label>
             <ion-note style="text-align: end">{{
-              currentView === "planned"
+              currentView === "budgeted"
                 ? (sub.planned_amount / 100 | currency)
                 : (sub.actual_amount | currency)
             }}</ion-note>
@@ -31,7 +34,7 @@
               (ionBlur)="shouldWeSaveOrRemove()"
             ></ion-input>
             <ion-note style="text-align: end">{{
-              currentView === "planned"
+              currentView === "budgeted"
                 ? (sub.planned_amount / 100 | currency)
                 : (sub.actual_amount | currency)
             }}</ion-note>
@@ -39,8 +42,13 @@
         </ion-item>
       </span>
       <span *ngIf="isChecklist">
-        <ion-item class="target" *ngFor="let sub of subcategories">
-          <ion-checkbox labelPlacement="start">{{ sub.text }}</ion-checkbox>
+        <ion-item
+          class="target"
+          *ngFor="let sub of subcategories; let i = index"
+          button
+          (click)="selectSubCategory(i)"
+        >
+          <ion-label labelPlacement="start">{{ sub.text }}</ion-label>
         </ion-item>
       </span>
 

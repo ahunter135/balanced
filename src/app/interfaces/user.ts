@@ -6,5 +6,4 @@ export interface User {
   name: string;
   subscribed: boolean;
   categories: Array<Category>;
-  transaction_sync_cursor: string;
 }

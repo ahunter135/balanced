@@ -19,7 +19,6 @@ export class AddTransactionComponent implements OnInit {
     id: uuid(),
     amount: 0,
     category: '',
-    location: '',
     name: '',
     merchant_name: '',
     pending: false,
@@ -31,7 +30,6 @@ export class AddTransactionComponent implements OnInit {
     public modalCtrl: ModalController,
     private userService: UserService
   ) {
-    console.log(this.newTransaction);
     this.newTransaction.date = new Date();
     this.newTransactionForm = new FormGroup({
       amount: new FormControl(this.newTransaction.amount),
@@ -52,15 +50,19 @@ export class AddTransactionComponent implements OnInit {
   }
 
   add() {
-    setDoc(
-      doc(
-        getFirestore(),
-        'users',
-        this.user.uid,
-        'transactions',
-        this.newTransaction.id
-      ),
-      { ...this.newTransaction }
-    );
+    try {
+      setDoc(
+        doc(
+          getFirestore(),
+          'users',
+          this.user.uid,
+          'transactions',
+          this.newTransaction.id
+        ),
+        { ...this.newTransaction }
+      );
+    } catch (error) {
+      this.modalCtrl.dismiss();
+    }
   }
 }

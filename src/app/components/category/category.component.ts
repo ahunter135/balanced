@@ -14,6 +14,7 @@ import {
   query,
   where,
 } from '@angular/fire/firestore';
+import { Category } from 'src/app/interfaces/category';
 import { Subcategory } from 'src/app/interfaces/subcategory';
 import { Transaction } from 'src/app/interfaces/transaction';
 import { UserService } from 'src/app/services/user.service';
@@ -25,26 +26,23 @@ import { v4 as uuid } from 'uuid';
   styleUrls: ['./category.component.scss'],
 })
 export class CategoryComponent implements OnInit {
-  @Input() cardTitle: string;
+  @Input() category: Category;
   @Input() subcategories: Array<Subcategory>;
   @Input() isChecklist: boolean = false;
   @Input() currentView: string = 'planned';
 
   @Output() addNewSubEvent = new EventEmitter();
   @Output() requestSaveOfSubs = new EventEmitter();
+  @Output() subcategorySelected = new EventEmitter();
+
   @ViewChild('fieldsContainer') fieldsContainer: any;
   transactions = [] as Array<Transaction>;
   checker: any;
   constructor(private userService: UserService) {}
 
   ngOnInit() {
-    console.log(this.subcategories);
-    if (this.cardTitle === 'income') {
-      // Get and Show Income
-    } else {
-      // Get all relevent transactions
-      this.getTransactionsThenCalculate();
-    }
+    // Get all relevent transactions
+    this.getTransactionsThenCalculate();
 
     this.checkDOMChange();
   }
@@ -82,12 +80,14 @@ export class CategoryComponent implements OnInit {
   }
 
   async openBudgetItem(index: number) {
-    console.log('HERE');
+    this.subcategorySelected.emit({
+      sub: this.subcategories[index],
+      cat: this.category,
+    });
   }
 
   async getTransactionsThenCalculate() {
     for (let i = 0; i < this.subcategories.length; i++) {
-      console.log(this.subcategories[i].id);
       let transactions = await getDocs(
         query(
           collection(
@@ -104,17 +104,23 @@ export class CategoryComponent implements OnInit {
       transactions.forEach((ele: any) => {
         transactionsList.push(ele.data() as Transaction);
       });
+      console.log(transactionsList);
       this.calculate(transactionsList, this.subcategories[i]);
     }
   }
 
   calculate(transactions: Array<Transaction>, subcategory: Subcategory) {
     let planned_amount = subcategory.planned_amount;
+    let total = 0;
     for (let i = 0; i < transactions.length; i++) {
       const transaction = transactions[i];
       const cost = transaction.amount;
-      planned_amount -= cost;
+      total -= cost;
     }
-    subcategory.actual_amount = planned_amount / 100;
+    subcategory.actual_amount = total / 100;
+  }
+
+  selectSubCategory(index: number) {
+    this.subcategorySelected.emit(this.subcategories[index]);
   }
 }
