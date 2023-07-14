@@ -1,0 +1,11 @@
+.header {
+  text-align: center;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: start;
+  ion-input {
+    width: 50px;
+    text-align: start;
+  }
+}

@@ -9,23 +9,20 @@
 <ion-content>
   <ion-card>
     <ion-card-content>
-      <ion-item
-        lines="none"
-        *ngIf="category.text == 'income'"
-        style="text-align: center"
-      >
-        <ion-label
-          >{{ subcategory.actual_amount | currency }}
-          received of
-          {{ subcategory.actual_amount | currency }}</ion-label
-        >
+      <ion-item lines="none" *ngIf="category.text == 'income'" class="header">
+        <ion-label>{{ subcategory.actual_amount | currency }} </ion-label
+        ><ion-label>received of</ion-label
+        ><ion-input
+          placeholder="$0.00"
+          [(ngModel)]="subcategory.planned_amount"
+          type="decimal"
+          (ionBlur)="saveNewAmount()"
+        ></ion-input>
       </ion-item>
       <ion-item lines="none" *ngIf="category.text != 'income'">
-        <ion-label
-          >{{ subcategory.actual_amount | currency }}
-          spent of
-          {{ subcategory.planned_amount / 100 | currency }}</ion-label
-        >
+        <ion-label>{{ subcategory.actual_amount | currency }}</ion-label
+        ><ion-label>spent of</ion-label
+        ><ion-input placeholder="$0.00" type="decimal"></ion-input>
       </ion-item>
     </ion-card-content>
   </ion-card>

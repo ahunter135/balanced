@@ -23,7 +23,9 @@ export class Tab1Page {
     year: '',
   };
   isCardContainerVisible: boolean = false;
-
+  plannedIncome: number = 0;
+  leftToBudget: number = 0;
+  remainingToSpend: number = 0;
   constructor(
     public userService: UserService,
     private pickerCtrl: PickerController,
@@ -74,7 +76,40 @@ export class Tab1Page {
 
       // Store the user in the service for use throughout the app
       this.userService.setActiveUser(this.user);
+      this.calculatePlannedAndBudget(categories);
     }
+  }
+
+  calculatePlannedAndBudget(categories: Array<any>) {
+    let total = 0;
+    for (let i = 0; i < categories.length; i++) {
+      if (categories[i].text == 'income') {
+        for (let j = 0; j < categories[i].subcategories.length; j++) {
+          total += parseInt(categories[i].subcategories[j].planned_amount);
+        }
+      }
+    }
+
+    this.plannedIncome = total;
+    total = 0;
+    for (let i = 0; i < categories.length; i++) {
+      if (categories[i].text != 'income') {
+        for (let j = 0; j < categories[i].subcategories.length; j++) {
+          total += parseInt(categories[i].subcategories[j].planned_amount);
+        }
+      }
+    }
+    this.leftToBudget = this.plannedIncome - total;
+
+    total = 0;
+    for (let i = 0; i < categories.length; i++) {
+      if (categories[i].text != 'income') {
+        for (let j = 0; j < categories[i].subcategories.length; j++) {
+          total += parseInt(categories[i].subcategories[j].actual_amount);
+        }
+      }
+    }
+    this.remainingToSpend = this.plannedIncome - total;
   }
 
   /**

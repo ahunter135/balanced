@@ -13,6 +13,7 @@ import { ModalController, NavParams } from '@ionic/angular';
 import { Category } from 'src/app/interfaces/category';
 import { Subcategory } from 'src/app/interfaces/subcategory';
 import { Transaction } from 'src/app/interfaces/transaction';
+import { User } from 'src/app/interfaces/user';
 import { UserService } from 'src/app/services/user.service';
 
 @Component({
@@ -24,6 +25,7 @@ export class ViewSubCategoryComponent implements OnInit {
   subcategory: Subcategory;
   category: Category;
   transactions: Array<Transaction> = [];
+  user: User;
   constructor(
     public modalCtrl: ModalController,
     private navParams: NavParams,
@@ -33,8 +35,6 @@ export class ViewSubCategoryComponent implements OnInit {
   ngOnInit() {
     this.subcategory = this.navParams.get('subcategory');
     this.category = this.navParams.get('category');
-    console.log(this.subcategory);
-    console.log(this.category);
 
     this.getData();
   }
@@ -59,37 +59,30 @@ export class ViewSubCategoryComponent implements OnInit {
   }
 
   async saveNewAmount() {
-    let userDoc = await getDoc(
+    this.user = this.userService.getActiveUser() as User;
+    for (let i = 0; i < this.user.categories.length; i++) {
+      if (this.user.categories[i].id == this.category.id) {
+        for (let j = 0; j < this.user.categories[i].subcategories.length; j++) {
+          if (
+            this.user.categories[i].subcategories[j].id == this.subcategory.id
+          ) {
+            this.user.categories[i].subcategories[j].planned_amount =
+              this.subcategory.planned_amount * 100;
+            break;
+          }
+        }
+      }
+    }
+    updateDoc(
       doc(
         getFirestore(),
         'users',
         this.userService.getActiveUser()?.uid as string
-      )
-    );
-
-    if (userDoc.exists()) {
-      let categories: Array<Category> = userDoc.data()['categories'];
-      for (let i = 0; i < categories.length; i++) {
-        if (categories[i].id == this.category.id) {
-          for (let j = 0; j < categories[i].subcategories.length; j++) {
-            if (categories[i].subcategories[j].id == this.subcategory.id) {
-              categories[i].subcategories[j] = this.subcategory;
-              break;
-            }
-          }
-        }
+      ),
+      {
+        categories: this.user.categories,
       }
-      updateDoc(
-        doc(
-          getFirestore(),
-          'users',
-          this.userService.getActiveUser()?.uid as string
-        ),
-        {
-          categories,
-        }
-      );
-    }
+    );
   }
 
   parseAmount(amount: number) {

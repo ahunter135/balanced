@@ -32,6 +32,7 @@ export class TransactionSorterComponent implements OnInit {
   }
 
   async save() {
+    // Update the transaction doc
     await updateDoc(
       doc(
         getFirestore(),
@@ -44,6 +45,31 @@ export class TransactionSorterComponent implements OnInit {
         ...this.newTransaction,
       }
     );
+
+    // Update the subcategory actual_amount
+    for (let i = 0; i < this.user.categories.length; i++) {
+      for (let j = 0; j < this.user.categories[i].subcategories.length; j++) {
+        if (
+          this.user.categories[i].subcategories[j].id ==
+          this.newTransaction.category
+        ) {
+          this.user.categories[i].subcategories[j].actual_amount +=
+            this.newTransaction.amount;
+          break;
+        }
+      }
+    }
+    updateDoc(
+      doc(
+        getFirestore(),
+        'users',
+        this.userService.getActiveUser()?.uid as string
+      ),
+      {
+        categories: this.user.categories,
+      }
+    );
+    // Update the local pendingTransactions array
     const pendingTransactions = this.userService.getPendingTransactions();
     for (let i = 0; i < pendingTransactions.length; i++) {
       if (pendingTransactions[i].id === this.newTransaction.id) {
