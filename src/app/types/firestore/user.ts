@@ -4,7 +4,14 @@ export type User = FirestoreDocument & {
   email: string;
   name: string;
   subscribed: boolean;
-  categories: Array<Category>;
+  categories?: Array<Category>; // optional because these may or may not be attached to the user at all times
+}
+
+export type Category = FirestoreDocument & {
+  text: string;
+  index: number;
+  subcategories?: Array<Subcategory>; // optional may not be attached at all times
+  editable: boolean;
 }
 
 export type Subcategory = FirestoreDocument & {
@@ -24,9 +31,10 @@ export type Transaction = FirestoreDocument & {
   pending: boolean;
 }
 
-export type Category = FirestoreDocument & {
-  text: string;
-  index: number;
-  subcategories: Array<Subcategory>;
-  editable: boolean;
+export type LinkedAccount = FirestoreDocument & {
+  access_token: string;
+  institution: string;
+  institution_name: string;
+  last_transaction_retrieval: Date;
+  transaction_sync_cursor: string;
 }

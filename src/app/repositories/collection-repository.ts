@@ -1,15 +1,18 @@
-import { IRepository } from './interfaces/repository';
+import { ICollectionRepository } from './interfaces/repository';
 import { FirestoreDocument, FirestoreDocumentQueryResult } from '../types/firestore/doc-data';
-import { CollectionReference, DocumentData, Query, addDoc, collection, deleteDoc, doc, getDoc, getDocs, getFirestore, setDoc } from 'firebase/firestore';
+import { CollectionReference, DocumentData, Query, QuerySnapshot, addDoc, deleteDoc, doc, getDoc, getDocs, getFirestore, setDoc } from 'firebase/firestore';
+import { Firestore } from '@angular/fire/firestore';
 
-export class CollectionRepository<T extends FirestoreDocument> implements IRepository<T> {
+export class CollectionRepository<T extends FirestoreDocument> implements ICollectionRepository<T> {
 
   collectionRef: CollectionReference<DocumentData>;
+  readonly db: Firestore;
 
   constructor(
-    collectionRef: CollectionReference<DocumentData>,
+    collectionRef?: CollectionReference<DocumentData>,
   ) {
-    this.collectionRef = collectionRef;
+    if (collectionRef) this.collectionRef = collectionRef;
+    this.db = getFirestore();
   }
 
   async get(id: string): Promise<T | undefined> {
@@ -29,7 +32,7 @@ export class CollectionRepository<T extends FirestoreDocument> implements IRepos
   }
 
   async getByQuery(query: Query): Promise<FirestoreDocumentQueryResult<T>> {
-    const result = await getDocs(query);
+    const result: QuerySnapshot = await getDocs(query);
     return {
       size: result.size,
       docs: this.mapDocsToData(result.docs)

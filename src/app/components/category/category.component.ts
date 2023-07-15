@@ -7,18 +7,14 @@ import {
   ViewChild,
 } from '@angular/core';
 import {
-  DocumentData,
-  collection,
-  getDocs,
-  getFirestore,
-  query,
-  where,
-} from '@angular/fire/firestore';
-import { Category } from 'src/app/interfaces/category';
-import { Subcategory } from 'src/app/interfaces/subcategory';
-import { Transaction } from 'src/app/interfaces/transaction';
+  Category,
+  Subcategory,
+  Transaction
+} from 'src/app/types/firestore/user';
 import { UserService } from 'src/app/services/user.service';
-import { v4 as uuid } from 'uuid';
+import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
+import { query, where } from 'firebase/firestore';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-category',
@@ -38,7 +34,10 @@ export class CategoryComponent implements OnInit {
   @ViewChild('fieldsContainer') fieldsContainer: any;
   transactions = [] as Array<Transaction>;
   checker: any;
-  constructor(private userService: UserService) {}
+  constructor(
+    private transactionRepositoryService: TransactionsRepositoryService,
+    private authService: AuthService,
+  ) {}
 
   ngOnInit() {
     // Get all relevent transactions
@@ -88,24 +87,15 @@ export class CategoryComponent implements OnInit {
 
   async getTransactionsThenCalculate() {
     for (let i = 0; i < this.subcategories.length; i++) {
-      let transactions = await getDocs(
+      let transactions = await this.transactionRepositoryService.getByQuery(
         query(
-          collection(
-            getFirestore(),
-            'users',
-            this.userService.getActiveUser()?.uid as string,
-            'transactions'
-          ),
+          TransactionsRepositoryService.makeCollectionRef(this.authService.currentUserId!),
           where('category', '==', this.subcategories[i].id)
         )
       );
 
-      const transactionsList = [] as Array<Transaction>;
-      transactions.forEach((ele: any) => {
-        transactionsList.push(ele.data() as Transaction);
-      });
-      console.log(transactionsList);
-      this.calculate(transactionsList, this.subcategories[i]);
+      console.log(transactions.docs);
+      this.calculate(transactions.docs, this.subcategories[i]);
     }
   }
 

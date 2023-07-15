@@ -1,12 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { IonRouterOutlet, ModalController } from '@ionic/angular';
-import { Transaction } from 'src/app/interfaces/transaction';
+import {
+  Transaction,
+  Category,
+  User,
+} from 'src/app/types/firestore/user';
 import { FormControl, FormGroup } from '@angular/forms';
-import { Category } from 'src/app/interfaces/category';
 import { UserService } from 'src/app/services/user.service';
-import { User } from 'src/app/interfaces/user';
 import { doc, getFirestore, setDoc } from '@angular/fire/firestore';
 import { v4 as uuid } from 'uuid';
+import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
 @Component({
   selector: 'app-add-transaction',
   templateUrl: './add-transaction.component.html',
@@ -26,11 +29,12 @@ export class AddTransactionComponent implements OnInit {
   presentingElement: any;
   categories = [] as Array<Category>;
   user: User;
+
   constructor(
     public modalCtrl: ModalController,
-    private userService: UserService
+    private userService: UserService,
+    private transactionRepository: TransactionsRepositoryService,
   ) {
-    this.newTransaction.date = new Date();
     this.newTransactionForm = new FormGroup({
       amount: new FormControl(this.newTransaction.amount),
     });
@@ -51,16 +55,7 @@ export class AddTransactionComponent implements OnInit {
 
   add() {
     try {
-      setDoc(
-        doc(
-          getFirestore(),
-          'users',
-          this.user.uid,
-          'transactions',
-          this.newTransaction.id
-        ),
-        { ...this.newTransaction }
-      );
+      this.transactionRepository.add(this.user.id!, this.newTransaction, this.newTransaction.id);
     } catch (error) {
       this.modalCtrl.dismiss();
     }
