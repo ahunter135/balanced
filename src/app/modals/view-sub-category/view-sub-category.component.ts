@@ -14,6 +14,7 @@ import { Category } from 'src/app/interfaces/category';
 import { Subcategory } from 'src/app/interfaces/subcategory';
 import { Transaction } from 'src/app/interfaces/transaction';
 import { User } from 'src/app/interfaces/user';
+import { UserRepositoryService } from 'src/app/repositories/user-repository.service';
 import { UserService } from 'src/app/services/user.service';
 
 @Component({
@@ -29,7 +30,8 @@ export class ViewSubCategoryComponent implements OnInit {
   constructor(
     public modalCtrl: ModalController,
     private navParams: NavParams,
-    private userService: UserService
+    private userService: UserService,
+    private userRepository: UserRepositoryService,
   ) {}
 
   ngOnInit() {
@@ -46,7 +48,7 @@ export class ViewSubCategoryComponent implements OnInit {
         collection(
           getFirestore(),
           'users',
-          this.userService.getActiveUser()?.uid as string,
+          (await this.userRepository.getCurrentFirestoreUser())?.uid as string,
           'transactions'
         ),
         where('category', '==', this.subcategory.id)

@@ -10,6 +10,7 @@ import { UserService } from 'src/app/services/user.service';
 import { doc, getFirestore, setDoc } from '@angular/fire/firestore';
 import { v4 as uuid } from 'uuid';
 import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
+import { UserRepositoryService } from 'src/app/repositories/user-repository.service';
 @Component({
   selector: 'app-add-transaction',
   templateUrl: './add-transaction.component.html',
@@ -32,8 +33,8 @@ export class AddTransactionComponent implements OnInit {
 
   constructor(
     public modalCtrl: ModalController,
-    private userService: UserService,
     private transactionRepository: TransactionsRepositoryService,
+    private userRepository: UserRepositoryService,
   ) {
     this.newTransactionForm = new FormGroup({
       amount: new FormControl(this.newTransaction.amount),
@@ -47,7 +48,7 @@ export class AddTransactionComponent implements OnInit {
     this.presentingElement = await this.modalCtrl.getTop();
 
     // Get Budget Categories
-    this.user = this.userService.getActiveUser() as User;
+    this.user = this.userRepository.getCurrentFirestoreUser() as User;
   }
   amountChanged(event: number) {
     this.newTransaction['amount'] = event;

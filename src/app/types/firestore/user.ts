@@ -1,3 +1,4 @@
+import { NumberMonthYear } from "../dates/dates";
 import { FirestoreDocument } from "./doc-data";
 
 export type User = FirestoreDocument & {
@@ -16,6 +17,7 @@ export type Category = FirestoreDocument & {
 
 export type Subcategory = FirestoreDocument & {
   text: string;
+  date: NumberMonthYear,
   index: number;
   planned_amount: number;
   actual_amount: number;

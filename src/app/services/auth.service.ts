@@ -7,26 +7,32 @@ import { UserRepositoryService } from '../repositories/user-repository.service';
 import { CreateAccountOthers } from '../types/firestore/auth';
 import { getDefaultCategories } from '../helpers/firestore/auth-helpers';
 import { CategoryRepositoryService } from '../repositories/category-repository.service';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  currentUserId: string | undefined;
+  private _currentUserIdCached: string | null;
+  get currentUserId(): string | null { return this._currentUserIdCached; }
+
+  currentAuthUser: Observable<User | null> = new Observable((observer) => {
+    onAuthStateChanged(this.auth, (user: User | null) => {
+      if (user) {
+        this._currentUserIdCached = user.uid;
+      } else {
+        this._currentUserIdCached = null;
+      }
+      observer.next(user);
+    });
+  });
 
   constructor(
     private auth: Auth,
     private userRepository: UserRepositoryService,
     private categoryRepository: CategoryRepositoryService,
   ) {
-    onAuthStateChanged(this.auth, (user: User | null) => {
-      if (user) {
-        this.currentUserId = user.uid;
-      } else {
-        this.currentUserId = undefined;
-      }
-    });
   }
 
   async login(email: string, password: string): Promise<void> {
@@ -57,15 +63,6 @@ export class AuthService {
 
   async getCurrentAuthUser(): Promise<User | null> {
     return this.auth.currentUser;
-  }
-
-  async getCurrentFirestoreUser(): Promise<FirestoreUser | undefined> {
-    const authUser = await this.getCurrentAuthUser();
-    if (!authUser) {
-      return undefined;
-    }
-
-    return this.userRepository.get(authUser.uid);
   }
 
   private async createUserStuff(email: string, password: string, other: CreateAccountOthers): Promise<FirestoreUser> {

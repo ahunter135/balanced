@@ -27,7 +27,7 @@
       [category]="item"
       [subcategories]="item.subcategories"
       [currentView]="currentView"
-      (addNewSubEvent)="addNewSub(false, i)"
+      (addNewSubEvent)="addNewSub(item)"
       (requestSaveOfSubs)="saveAllSubs()"
       (subcategorySelected)="subcategorySelected($event)"
     ></app-category>

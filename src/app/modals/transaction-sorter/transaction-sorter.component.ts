@@ -12,6 +12,7 @@ import { TransactionsRepositoryService } from 'src/app/repositories/transactions
 import { AuthService } from 'src/app/services/auth.service';
 import { CategoryRepositoryService } from 'src/app/repositories/category-repository.service';
 import { SubcategoryRepositoryService } from 'src/app/repositories/subcategory-repository.service';
+import { UserRepositoryService } from 'src/app/repositories/user-repository.service';
 @Component({
   selector: 'app-transaction-sorter',
   templateUrl: './transaction-sorter.component.html',
@@ -26,19 +27,19 @@ export class TransactionSorterComponent implements OnInit {
 
   constructor(
     public modalCtrl: ModalController,
-    private authService: AuthService,
     private userService: UserService,
     private navParams: NavParams,
     private transactionRepository: TransactionsRepositoryService,
     private categoryRepository: CategoryRepositoryService,
     private subcategoryRepository: SubcategoryRepositoryService,
+    private userRepository: UserRepositoryService,
   ) {}
 
   async ngOnInit() {
     this.newTransaction = this.navParams.get('transaction');
     console.log(this.newTransaction);
     // Get Budget Categories
-    this.user = (await this.authService.getCurrentFirestoreUser()) as User;
+    this.user = (await this.userRepository.getCurrentFirestoreUser()) as User;
     this.user.categories = [];
     this.user.categories = (await this.categoryRepository.getAllFromParent(this.user.id!)).docs;
     // TODO: REFACTOR THIS TO MATCH NEW DATA

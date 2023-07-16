@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { User } from '@angular/fire/auth';
-import { User as UserInt } from '../interfaces/user';
+import { User as FirestoreUser, Transaction } from 'src/app/types/firestore/user';
 import {
   DocumentData,
   QuerySnapshot,
@@ -15,24 +15,14 @@ import {
   where,
 } from '@angular/fire/firestore';
 import { HttpService } from './http.service';
-import { Transaction } from '../interfaces/transaction';
 import { forkJoin, lastValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
-  private activeUser: User | UserInt | null;
   private pendingTransactions: Array<Transaction> = [];
   constructor(private http: HttpService) {}
-
-  public getActiveUser() {
-    return this.activeUser;
-  }
-
-  public setActiveUser(user: User | UserInt | null) {
-    this.activeUser = user;
-  }
 
   public getPendingTransactions() {
     return this.pendingTransactions;
@@ -41,7 +31,7 @@ export class UserService {
     this.pendingTransactions = transactions;
   }
 
-  public async getUserTransactionsFromPlaid(user: UserInt) {
+  public async getUserTransactionsFromPlaid(user: FirestoreUser) {
     this.pendingTransactions = [
       {
         amount: -430795,
