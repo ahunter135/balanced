@@ -42,36 +42,6 @@ export class UserService {
   }
 
   public async getUserTransactionsFromPlaid(user: UserInt) {
-    this.pendingTransactions = [
-      {
-        amount: -430795,
-        category: '',
-        date: new Date(),
-        id: '1X3OBxpkMria3EmVAJxzF9QQg8ex7EIQdY0Yj',
-        merchant_name: '',
-        name: 'Deposit ACH PAYZER LLC TYPE: PAYROLL ID: 1454513694 CO: PAYZER LLC Entry Class Code: PPD',
-        pending: true,
-      },
-      {
-        amount: -430795,
-        category: '',
-        date: new Date(),
-        id: '1X3OBxpkMria3EmVAJxzF9QQg8ex7EIQdY0Yj',
-        merchant_name: '',
-        name: 'Deposit ACH PAYZER LLC TYPE: PAYROLL ID: 1454513694 CO: PAYZER LLC Entry Class Code: PPD',
-        pending: true,
-      },
-      {
-        amount: -430795,
-        category: '',
-        date: new Date(),
-        id: '1X3OBxpkMria3EmVAJxzF9QQg8ex7EIQdY0Yj',
-        merchant_name: '',
-        name: 'Deposit ACH PAYZER LLC TYPE: PAYROLL ID: 1454513694 CO: PAYZER LLC Entry Class Code: PPD',
-        pending: true,
-      },
-    ];
-    return;
     let new_transactions: Array<Transaction>;
     // Step 1: Get the users linked accounts
     const linkedAccountsSnapshot: any = await getDocs(
@@ -130,7 +100,6 @@ export class UserService {
           }
         );
       });
-
       // Step 2: We need to grab existing transactions that are pending
       await this.getExistingPendingTransactions();
 
@@ -139,7 +108,6 @@ export class UserService {
 
       // Done
       // we now have all existing pending and newly added pending transactions
-      console.log(this.pendingTransactions);
       this.sortTransactions(this.pendingTransactions);
     });
   }
@@ -229,5 +197,19 @@ export class UserService {
     pendingDocsSnapshot.forEach((element) => {
       this.pendingTransactions.push(element.data() as Transaction);
     });
+  }
+
+  generateRandomId() {
+    // Generate a random number and convert it to a hexadecimal string
+    const randomNumber = Math.floor(Math.random() * 1000000);
+    const randomHex = randomNumber.toString(16);
+
+    // Get the current timestamp and convert it to a hexadecimal string
+    const timestamp = Date.now().toString(16);
+
+    // Concatenate the timestamp and random number to create the ID
+    const randomId = timestamp + randomHex;
+
+    return randomId;
   }
 }

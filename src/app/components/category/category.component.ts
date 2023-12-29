@@ -14,6 +14,7 @@ import {
   query,
   where,
 } from '@angular/fire/firestore';
+import { IonInput } from '@ionic/angular';
 import { Category } from 'src/app/interfaces/category';
 import { Subcategory } from 'src/app/interfaces/subcategory';
 import { Transaction } from 'src/app/interfaces/transaction';
@@ -30,11 +31,11 @@ export class CategoryComponent implements OnInit {
   @Input() subcategories: Array<Subcategory>;
   @Input() isChecklist: boolean = false;
   @Input() currentView: string = 'planned';
-
+  @Input() chosenDate: any;
   @Output() addNewSubEvent = new EventEmitter();
   @Output() requestSaveOfSubs = new EventEmitter();
   @Output() subcategorySelected = new EventEmitter();
-
+  @ViewChild('nameInput', { static: false }) nameInput: IonInput;
   @ViewChild('fieldsContainer') fieldsContainer: any;
   transactions = [] as Array<Transaction>;
   checker: any;
@@ -49,6 +50,11 @@ export class CategoryComponent implements OnInit {
 
   addNewSub() {
     this.addNewSubEvent.emit();
+  }
+
+  triggerIonBlur() {
+    // Manually trigger the ionBlur event
+    this.shouldWeSaveOrRemove();
   }
 
   checkDOMChange() {
@@ -104,7 +110,6 @@ export class CategoryComponent implements OnInit {
       transactions.forEach((ele: any) => {
         transactionsList.push(ele.data() as Transaction);
       });
-      console.log(transactionsList);
       this.calculate(transactionsList, this.subcategories[i]);
     }
   }
@@ -115,7 +120,7 @@ export class CategoryComponent implements OnInit {
     for (let i = 0; i < transactions.length; i++) {
       const transaction = transactions[i];
       const cost = transaction.amount;
-      total -= cost;
+      total += cost;
     }
     subcategory.actual_amount = total / 100;
   }

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
 import { getFirestore, updateDoc, doc, getDoc } from '@angular/fire/firestore';
 import { User } from '../interfaces/user';
 import { Category } from '../interfaces/category';
@@ -12,6 +12,7 @@ import { ViewSubCategoryComponent } from '../modals/view-sub-category/view-sub-c
   selector: 'app-tab1',
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class Tab1Page {
   user = {} as User;
@@ -71,9 +72,10 @@ export class Tab1Page {
           return 0;
         }
       });
+      console.log(categories);
       this.user = userDoc.data() as User;
       this.user.categories = categories;
-
+      console.log('HERE');
       // Store the user in the service for use throughout the app
       this.userService.setActiveUser(this.user);
       this.calculatePlannedAndBudget(categories);
@@ -120,22 +122,19 @@ export class Tab1Page {
    * @param index - category cards are stored as an array, so need to know which was clicked
    */
   addNewSub(isIncome: boolean, index: number) {
-    if (isIncome) {
-    } else {
-      const newSub: Subcategory = {
-        text: '',
-        index: this.user.categories[index].subcategories.length,
-        planned_amount: 0,
-        actual_amount: 0,
-        id: uuid(),
-        isEditing: true,
-      };
+    const newSub: Subcategory = {
+      text: '',
+      index: this.user.categories[index].subcategories.length,
+      planned_amount: 0,
+      actual_amount: 0,
+      id: uuid(),
+      isEditing: true,
+    };
 
-      this.user.categories[index].subcategories = [
-        ...this.user.categories[index].subcategories,
-        newSub,
-      ];
-    }
+    this.user.categories[index].subcategories = [
+      ...this.user.categories[index].subcategories,
+      newSub,
+    ];
   }
 
   /**
@@ -167,29 +166,47 @@ export class Tab1Page {
    */
   async requestDateChange() {
     // Array of month names
+    let selectedIndex = [];
     const monthNames = [
-      { text: 'January', value: 1 },
-      { text: 'February', value: 2 },
-      { text: 'March', value: 3 },
-      { text: 'April', value: 4 },
-      { text: 'May', value: 5 },
-      { text: 'June', value: 6 },
-      { text: 'July', value: 7 },
-      { text: 'August', value: 8 },
-      { text: 'September', value: 9 },
-      { text: 'October', value: 10 },
-      { text: 'November', value: 11 },
-      { text: 'December', value: 12 },
+      { text: 'January', value: 1, selected: false },
+      { text: 'February', value: 2, selected: false },
+      { text: 'March', value: 3, selected: false },
+      { text: 'April', value: 4, selected: false },
+      { text: 'May', value: 5, selected: false },
+      { text: 'June', value: 6, selected: false },
+      { text: 'July', value: 7, selected: false },
+      { text: 'August', value: 8, selected: false },
+      { text: 'September', value: 9, selected: false },
+      { text: 'October', value: 10, selected: false },
+      { text: 'November', value: 11, selected: false },
+      { text: 'December', value: 12, selected: false },
     ];
 
+    for (let i = 0; i < monthNames.length; i++) {
+      if (monthNames[i].text == this.chosenDate.month) {
+        selectedIndex[0] = i;
+        break;
+      }
+    }
+
+    console.log(monthNames);
     // Array of years spanning from last 2 years to 2 years from now
     const currentYear = new Date().getFullYear();
     const startYear = currentYear - 2;
     const endYear = currentYear + 2;
 
     const years = [];
+    let index = 0;
     for (let year = startYear; year <= endYear; year++) {
-      years.push({ text: year.toString(), value: year });
+      years.push({
+        text: year.toString(),
+        value: year,
+        selected: false,
+      });
+      if (year.toString() == this.chosenDate.year) {
+        selectedIndex[1] = index;
+      }
+      index++;
     }
 
     const picker = await this.pickerCtrl.create({
@@ -220,7 +237,8 @@ export class Tab1Page {
         },
       ],
     });
-
+    picker.columns[0].selectedIndex = selectedIndex[0];
+    picker.columns[1].selectedIndex = selectedIndex[1];
     await picker.present();
   }
 
@@ -250,17 +268,47 @@ export class Tab1Page {
     modal.present();
   }
 
-  async subcategorySelected(ev: any) {
+  async subcategorySelected(ev: any, isIncome = false) {
     const modal = await this.modalCtrl.create({
       component: ViewSubCategoryComponent,
       componentProps: {
         subcategory: ev.sub,
+        isIncome,
         category: ev.cat,
       },
       initialBreakpoint: 0.6,
       breakpoints: [0, 0.6, 0.8, 1],
     });
 
+    modal.onDidDismiss().then(() => {
+      this.calculatePlannedAndBudget(this.user.categories);
+    });
     modal.present();
+  }
+
+  formatCurrency(
+    number: number,
+    currencyCode: string = 'USD',
+    locale: string = 'en-US'
+  ): string {
+    // Use Intl.NumberFormat to format the number as currency
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: currencyCode,
+    }).format(number);
+  }
+
+  getLeftToBudget() {
+    const amount = this.leftToBudget / 100;
+
+    if (amount < 0) {
+      return `<span class='over-budget'>${this.formatCurrency(
+        -1 * amount
+      )}</span> over budget`;
+    } else {
+      return `<span class='on-budget'>${this.formatCurrency(
+        amount
+      )}</span> left to budget`;
+    }
   }
 }

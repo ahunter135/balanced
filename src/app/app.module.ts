@@ -23,9 +23,15 @@ import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { provideFunctions, getFunctions } from '@angular/fire/functions';
 import { HttpClientModule } from '@angular/common/http';
 import { CurrencyPipe } from '@angular/common';
+import { CurrencyInputDirective } from './directives/currency-input.directive';
+import {
+  NgxCurrencyDirective,
+  NgxCurrencyInputMode,
+  provideEnvironmentNgxCurrency,
+} from 'ngx-currency';
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [AppComponent, CurrencyInputDirective],
   imports: [
     BrowserModule,
     IonicModule.forRoot({ mode: 'ios' }),
@@ -36,8 +42,23 @@ import { CurrencyPipe } from '@angular/common';
     provideFirestore(() => getFirestore()),
     provideFunctions(() => getFunctions()),
     HttpClientModule,
+    NgxCurrencyDirective,
   ],
   providers: [
+    provideEnvironmentNgxCurrency({
+      align: 'right',
+      allowNegative: true,
+      allowZero: true,
+      decimal: ',',
+      precision: 2,
+      prefix: 'R$ ',
+      suffix: '',
+      thousands: '.',
+      nullable: true,
+      min: null,
+      max: null,
+      inputMode: NgxCurrencyInputMode.Financial,
+    }),
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     ScreenTrackingService,
     UserTrackingService,

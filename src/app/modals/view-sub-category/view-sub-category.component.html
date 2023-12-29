@@ -10,19 +10,28 @@
   <ion-card>
     <ion-card-content>
       <ion-item lines="none" *ngIf="category.text == 'income'" class="header">
-        <ion-label>{{ subcategory.actual_amount | currency }} </ion-label
+        <ion-label>{{ subcategory.actual_amount * -1 | currency }} </ion-label
         ><ion-label>received of</ion-label
-        ><ion-input
+        ><input
           placeholder="$0.00"
-          [(ngModel)]="subcategory.planned_amount"
+          [(ngModel)]="planned_amount"
           type="decimal"
-          (ionBlur)="saveNewAmount()"
-        ></ion-input>
+          (blur)="saveNewAmount()"
+          currencyMask
+          [options]="{ prefix: '$ ', thousands: ',', decimal: '.' }"
+        />
       </ion-item>
-      <ion-item lines="none" *ngIf="category.text != 'income'">
+      <ion-item lines="none" *ngIf="category.text != 'income'" class="header">
         <ion-label>{{ subcategory.actual_amount | currency }}</ion-label
-        ><ion-label>spent of</ion-label
-        ><ion-input placeholder="$0.00" type="decimal"></ion-input>
+        ><ion-label>spent of</ion-label>
+        <input
+          placeholder="$0.00"
+          [(ngModel)]="planned_amount"
+          type="decimal"
+          (blur)="saveNewAmount()"
+          currencyMask
+          [options]="{ prefix: '$ ', thousands: ',', decimal: '.' }"
+        />
       </ion-item>
     </ion-card-content>
   </ion-card>

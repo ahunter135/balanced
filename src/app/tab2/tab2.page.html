@@ -1,19 +1,36 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title> Tab 2 </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="link()">Link</ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-button (click)="link()" *ngIf="!user.access_token">Link</ion-button>
-  <ion-button (click)="retrieveTransactions()" *ngIf="user.access_token"
-    >Get Transactions</ion-button
-  >
-  <p>You are connected to {{institutionName}}</p>
-  <p>Last Transaction Pull: {{user.last_transaction_retrieval | date}}</p>
+  <ion-item>
+    <ion-select
+      label="Institution"
+      label-placement="floating"
+      [(ngModel)]="selectedInstitute"
+    >
+      <ion-select-option [value]="acc" *ngFor="let acc of institutions"
+        >{{acc.name}}</ion-select-option
+      >
+    </ion-select>
+  </ion-item>
+
   <ion-list>
-    <ion-item *ngFor="let item of transactions">
-      {{item.name}}<br />{{item.amount | currency}}<br />{{item.date}}
-    </ion-item>
+    <ion-card
+      *ngFor="let item of transactions; index as i"
+      (click)="openTransactionSorter(i)"
+    >
+      <ion-card-header>
+        <ion-card-subtitle> {{item.name}} </ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        {{item.amount | currency}}<br />{{item.date}}
+      </ion-card-content>
+    </ion-card>
   </ion-list>
 </ion-content>

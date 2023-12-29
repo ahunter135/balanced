@@ -10,7 +10,7 @@
   </ion-toolbar>
 </ion-header>
 <ion-content>
-  <div id="segment">
+  <!-- <div id="segment">
     <ion-segment value="expense">
       <ion-segment-button value="expense">
         <ion-label>Expense</ion-label>
@@ -19,7 +19,7 @@
         <ion-label>Income</ion-label>
       </ion-segment-button>
     </ion-segment>
-  </div>
+  </div> -->
 
   <ion-card>
     <ion-card-content>
@@ -34,7 +34,7 @@
         </ion-item>
         <ion-item>
           <ion-label>Amount</ion-label>
-          <app-currency-input slot="end"></app-currency-input>
+          <p>{{ getAmount() | currency }}</p>
         </ion-item>
         <ion-item>
           <ion-label>Transaction</ion-label>
@@ -71,6 +71,8 @@
       <ion-list lines="none">
         <ion-item button id="open-modal">
           <ion-label>Budget Category</ion-label>
+          <br />
+          <p *ngIf="newTransaction.category">{{ selectedSub }}</p>
         </ion-item>
       </ion-list>
     </ion-card-content>

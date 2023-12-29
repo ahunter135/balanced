@@ -25,7 +25,9 @@ export class ViewSubCategoryComponent implements OnInit {
   subcategory: Subcategory;
   category: Category;
   transactions: Array<Transaction> = [];
+  isIncome: boolean;
   user: User;
+  planned_amount: any;
   constructor(
     public modalCtrl: ModalController,
     private navParams: NavParams,
@@ -35,7 +37,8 @@ export class ViewSubCategoryComponent implements OnInit {
   ngOnInit() {
     this.subcategory = this.navParams.get('subcategory');
     this.category = this.navParams.get('category');
-
+    console.log(this.subcategory);
+    this.planned_amount = this.subcategory.planned_amount / 100;
     this.getData();
   }
 
@@ -59,6 +62,7 @@ export class ViewSubCategoryComponent implements OnInit {
   }
 
   async saveNewAmount() {
+    let amount = this.planned_amount;
     this.user = this.userService.getActiveUser() as User;
     for (let i = 0; i < this.user.categories.length; i++) {
       if (this.user.categories[i].id == this.category.id) {
@@ -66,8 +70,16 @@ export class ViewSubCategoryComponent implements OnInit {
           if (
             this.user.categories[i].subcategories[j].id == this.subcategory.id
           ) {
-            this.user.categories[i].subcategories[j].planned_amount =
-              this.subcategory.planned_amount * 100;
+            const updatedSubcategory = Object.assign(
+              {},
+              this.user.categories[i].subcategories[j]
+            );
+
+            // Update the planned_amount in the copy
+            updatedSubcategory.planned_amount = amount * 100;
+
+            // Replace the original subcategory with the updated copy
+            this.user.categories[i].subcategories[j] = updatedSubcategory;
             break;
           }
         }
@@ -86,6 +98,6 @@ export class ViewSubCategoryComponent implements OnInit {
   }
 
   parseAmount(amount: number) {
-    return amount * -1;
+    return -1 * amount;
   }
 }

@@ -18,6 +18,7 @@ export class TransactionSorterComponent implements OnInit {
   presentingElement: any;
   categories = [] as Array<Category>;
   user: User;
+  selectedSub: string;
   constructor(
     public modalCtrl: ModalController,
     private navParams: NavParams,
@@ -83,7 +84,13 @@ export class TransactionSorterComponent implements OnInit {
 
   subcategorySelected(ev: any) {
     this.modalCtrl.dismiss();
+    console.log(ev);
+    this.selectedSub = ev.text;
     this.newTransaction.category = ev.id;
     this.newTransaction.pending = false;
+  }
+
+  getAmount() {
+    return (this.newTransaction.amount / 100) * -1;
   }
 }

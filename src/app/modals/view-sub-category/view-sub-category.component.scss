@@ -4,8 +4,14 @@
   flex-direction: row;
   align-items: center;
   justify-content: start;
-  ion-input {
-    width: 50px;
+  width: 100%;
+  input {
+    width: 100px;
+    border: none;
     text-align: start;
+    background-color: white;
+  }
+  input:focus {
+    border: none;
   }
 }

@@ -23,9 +23,11 @@ export class AddTransactionComponent implements OnInit {
     merchant_name: '',
     pending: false,
   };
+  transactionType: string = 'expense';
   presentingElement: any;
   categories = [] as Array<Category>;
   user: User;
+  selectedSub: string;
   constructor(
     public modalCtrl: ModalController,
     private userService: UserService
@@ -50,6 +52,10 @@ export class AddTransactionComponent implements OnInit {
   }
 
   add() {
+    let newTransactionObject = Object.assign({}, this.newTransaction);
+    if (this.transactionType == 'income') {
+      newTransactionObject.amount = -1 * newTransactionObject.amount;
+    }
     try {
       setDoc(
         doc(
@@ -57,12 +63,21 @@ export class AddTransactionComponent implements OnInit {
           'users',
           this.user.uid,
           'transactions',
-          this.newTransaction.id
+          newTransactionObject.id
         ),
-        { ...this.newTransaction }
+        { ...newTransactionObject }
       );
     } catch (error) {
+    } finally {
       this.modalCtrl.dismiss();
     }
+  }
+
+  subcategorySelected(ev: any) {
+    this.modalCtrl.dismiss();
+    console.log(ev);
+    this.selectedSub = ev.text;
+    this.newTransaction.category = ev.id;
+    this.newTransaction.pending = false;
   }
 }

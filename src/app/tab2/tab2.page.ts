@@ -1,6 +1,18 @@
 import { Component } from '@angular/core';
 import { HttpService } from '../services/http.service';
-import { updateDoc, doc, getFirestore } from '@angular/fire/firestore';
+import {
+  updateDoc,
+  doc,
+  getFirestore,
+  addDoc,
+  collection,
+  getDocs,
+  setDoc,
+} from '@angular/fire/firestore';
+import { UserService } from '../services/user.service';
+import { TransactionSorterComponent } from '../modals/transaction-sorter/transaction-sorter.component';
+import { ModalController } from '@ionic/angular';
+import { NgxCurrencyDirective } from 'ngx-currency';
 declare var Plaid: any;
 
 @Component({
@@ -11,13 +23,19 @@ declare var Plaid: any;
 export class Tab2Page {
   user = {} as any;
   transactions = [] as any;
-
+  institutions = [] as any;
   institutionName = '';
+  selectedInstitute: any;
 
-  constructor(private http: HttpService) {}
+  constructor(
+    private http: HttpService,
+    private userService: UserService,
+    private modalCtrl: ModalController
+  ) {}
 
   ngOnInit() {
-    this.getInstitutionName();
+    // this.getInstitutionName();
+    this.getInstitutions();
   }
 
   async retrieveTransactions() {
@@ -25,7 +43,7 @@ export class Tab2Page {
       .post(
         'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/getTransactionData',
         {
-          accessToken: this.user.access_token,
+          accessToken: this.selectedInstitute.access_token,
         }
       )
       .subscribe((resp) => {
@@ -34,7 +52,13 @@ export class Tab2Page {
         this.sortTransactions();
         this.user.last_transaction_retrieval = new Date().toISOString();
         updateDoc(
-          doc(getFirestore(), 'users/', 'fGdpBS7gMTMxqJe7IOcfMgJ3L3i2'),
+          doc(
+            getFirestore(),
+            'users/',
+            this.userService.getActiveUser()?.uid as string,
+            'linked_accounts',
+            this.selectedInstitute.id
+          ),
           {
             last_transaction_retrieval: new Date().toISOString(),
           }
@@ -49,12 +73,25 @@ export class Tab2Page {
     });
   }
 
+  async openTransactionSorter(index: number) {
+    const modal = await this.modalCtrl.create({
+      component: TransactionSorterComponent,
+      componentProps: {
+        transaction: this.transactions[index],
+      },
+      initialBreakpoint: 0.6,
+      breakpoints: [0, 0.6, 0.8, 1],
+    });
+
+    modal.present();
+  }
+
   async link() {
     this.http
       .post(
         'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/createPlaidLinkToken',
         {
-          user_id: 'fGdpBS7gMTMxqJe7IOcfMgJ3L3i2',
+          user_id: this.userService.getActiveUser()?.uid,
         }
       )
       .subscribe((resp) => {
@@ -67,7 +104,7 @@ export class Tab2Page {
                 'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/exchangePublicToken',
                 { public_token }
               )
-              .subscribe((resp) => {
+              .subscribe(async (resp) => {
                 console.log(resp);
                 /** 
               {
@@ -78,11 +115,21 @@ export class Tab2Page {
              */
                 const accessToken = resp.access_token;
                 const institution = resp.item_id;
-                updateDoc(
-                  doc(getFirestore(), 'users/', 'fGdpBS7gMTMxqJe7IOcfMgJ3L3i2'),
+                const id = this.userService.generateRandomId();
+                const name = await this.getInstitutionName(accessToken);
+                setDoc(
+                  doc(
+                    getFirestore(),
+                    'users/',
+                    this.userService.getActiveUser()?.uid as string,
+                    'linked_accounts',
+                    id
+                  ),
                   {
                     access_token: accessToken,
                     institution,
+                    name,
+                    id,
                   }
                 );
               });
@@ -101,17 +148,40 @@ export class Tab2Page {
       });
   }
 
-  async getInstitutionName() {
-    this.http
-      .post(
-        'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/getInstitutionName',
-        {
-          accessToken: this.user.access_token,
-        }
+  async getInstitutions() {
+    const linked_accounts = await getDocs(
+      collection(
+        getFirestore(),
+        'users',
+        this.userService.getActiveUser()?.uid as string,
+        'linked_accounts'
       )
-      .subscribe((resp) => {
-        console.log(resp);
-        this.institutionName = resp.name;
+    );
+    if (!linked_accounts.empty) {
+      linked_accounts.forEach((acc) => {
+        this.institutions.push(acc.data());
       });
+
+      this.selectedInstitute = this.institutions[0];
+      if (this.selectedInstitute) {
+        this.retrieveTransactions();
+      }
+    }
+  }
+  async getInstitutionName(token: string) {
+    return new Promise((resolve, reject) => {
+      this.http
+        .post(
+          'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/getInstitutionName',
+          {
+            accessToken: token,
+          }
+        )
+        .subscribe((resp) => {
+          console.log(resp);
+          this.institutionName = resp.name;
+          resolve(resp.name);
+        });
+    });
   }
 }
