@@ -8,15 +8,21 @@ import { AddTransactionComponent } from 'src/app/modals/add-transaction/add-tran
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent implements OnInit {
+  /* Events that page should handle */
   @Output() viewChanged = new EventEmitter();
   @Output() transactionAdded = new EventEmitter();
   @Output() requestDateChange = new EventEmitter();
+  /* Month and year to display, Locale */
   @Input() chosenMonth: String;
   @Input() chosenYear: String;
+
   constructor(private modalController: ModalController) {}
 
   ngOnInit() {}
 
+  /* Add a transaction manually. Opens a new AddTransactionComponent
+  * modal
+  */
   async addTransaction() {
     const modal = await this.modalController.create({
       component: AddTransactionComponent,

@@ -95,7 +95,7 @@
           <app-category
             [category]="cat"
             [isChecklist]="true"
-            [subcategories]="cat.subcategories"
+            [subcategories]="cat.subcategories || []"
           ></app-category>
         </span>
       </ion-content>

@@ -1,21 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  getFirestore,
-  query,
-  updateDoc,
-  where,
-} from '@angular/fire/firestore';
 import { ModalController, NavParams } from '@ionic/angular';
-import { Category } from 'src/app/interfaces/category';
-import { Subcategory } from 'src/app/interfaces/subcategory';
-import { Transaction } from 'src/app/interfaces/transaction';
-import { User } from 'src/app/interfaces/user';
+import { User, Transaction, Category, Subcategory } from 'src/app/types/firestore/user';
 import { UserRepositoryService } from 'src/app/repositories/user-repository.service';
-import { UserService } from 'src/app/services/user.service';
+import { query } from 'firebase/firestore';
+import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
+import { buildTransactionsQuery } from 'src/app/helpers/queries/transactions';
+import { dateTransactionSort } from 'src/app/helpers/sorters/user-related-sorters';
+import { SubcategoryRepositoryService } from 'src/app/repositories/subcategory-repository.service';
 
 @Component({
   selector: 'app-view-sub-category',
@@ -27,65 +18,53 @@ export class ViewSubCategoryComponent implements OnInit {
   category: Category;
   transactions: Array<Transaction> = [];
   user: User | undefined;
+
   constructor(
     public modalCtrl: ModalController,
     private navParams: NavParams,
-    private userService: UserService,
     private userRepository: UserRepositoryService,
+    private transactionRepository: TransactionsRepositoryService,
+    private subCategoryRepository: SubcategoryRepositoryService,
   ) {}
 
   ngOnInit() {
     this.subcategory = this.navParams.get('subcategory');
     this.category = this.navParams.get('category');
-
-    this.getData();
-  }
-
-  async getData() {
-    this.transactions = [];
-    let transactionsSnapshot = await getDocs(
-      query(
-        collection(
-          getFirestore(),
-          'users',
-          (await this.userRepository.getCurrentFirestoreUser())?.uid as string,
-          'transactions'
-        ),
-        where('category', '==', this.subcategory.id)
-      )
-    );
-
-    transactionsSnapshot.forEach((element) => {
-      this.transactions.push(element.data() as Transaction);
+    this.userRepository.getCurrentFirestoreUser().then(async (user) => {
+      this.user = user;
+      if (!user) return;
+      this.transactions = await this.getTransactions();
+      this.transactions.sort(dateTransactionSort);
     });
   }
 
+  /* IDEA: Should grab only some transactions, not all.
+   * Can do this easily, but later on if want to implement
+   */
+  async getTransactions(): Promise<Array<Transaction>> {
+    if (!this.user || !this.user.id) return [];
+
+    const q = buildTransactionsQuery(
+      this.user.id,
+      false,
+      null,
+      null,
+      this.subcategory.id
+    );
+    const querySnapshot = await this.transactionRepository.getByQuery(q);
+    return querySnapshot.docs;
+  }
+
+  /* Save new planned amount to the database */
   async saveNewAmount() {
-    this.user = this.userService.activeUser;
-    if (!this.user) {
-      return;
-    }
-    for (let i = 0; i < this.user.categories.length; i++) {
-      if (this.user.categories[i].id == this.category.id) {
-        for (let j = 0; j < this.user.categories[i].subcategories.length; j++) {
-          if (
-            this.user.categories[i].subcategories[j].id == this.subcategory.id
-          ) {
-            this.user.categories[i].subcategories[j].planned_amount =
-              this.subcategory.planned_amount * 100;
-            break;
-          }
-        }
-      }
-    }
-    updateDoc(
-      doc(
-        getFirestore(),
-        'users',
-        this.userService.getActiveUser()?.uid as string
-      ),
+    if (!this.user || !this.user.id) return;
+
+    this.subCategoryRepository.update(
+      this.user.id,
+      this.category.id!,
+      this.subcategory.id!,
       {
-        categories: this.user.categories,
+        planned_amount: this.subcategory.planned_amount * 100,
       }
     );
   }

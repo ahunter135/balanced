@@ -91,11 +91,11 @@
         </ion-toolbar>
       </ion-header>
       <ion-content>
-        <span *ngFor="let cat of user.categories">
+        <span *ngFor="let cat of categories">
           <app-category
             [category]="cat"
             [isChecklist]="true"
-            [subcategories]="cat.subcategories"
+            [subcategories]="cat.subcategories ?? []"
             (subcategorySelected)="subcategorySelected($event)"
           ></app-category>
         </span>

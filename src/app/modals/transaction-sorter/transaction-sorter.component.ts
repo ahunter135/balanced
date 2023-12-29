@@ -6,10 +6,7 @@ import {
 } from 'src/app/types/firestore/user';
 import { FormGroup } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
-import { UserService } from 'src/app/services/user.service';
-import { doc, getFirestore, updateDoc } from '@angular/fire/firestore';
 import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
-import { AuthService } from 'src/app/services/auth.service';
 import { CategoryRepositoryService } from 'src/app/repositories/category-repository.service';
 import { SubcategoryRepositoryService } from 'src/app/repositories/subcategory-repository.service';
 import { UserRepositoryService } from 'src/app/repositories/user-repository.service';
@@ -23,11 +20,10 @@ export class TransactionSorterComponent implements OnInit {
   newTransaction: Transaction;
   presentingElement: any;
   categories = [] as Array<Category>;
-  user: User;
+  user: User | undefined;
 
   constructor(
     public modalCtrl: ModalController,
-    private userService: UserService,
     private navParams: NavParams,
     private transactionRepository: TransactionsRepositoryService,
     private categoryRepository: CategoryRepositoryService,
@@ -39,50 +35,46 @@ export class TransactionSorterComponent implements OnInit {
     this.newTransaction = this.navParams.get('transaction');
     console.log(this.newTransaction);
     // Get Budget Categories
-    this.user = (await this.userRepository.getCurrentFirestoreUser()) as User;
-    this.user.categories = [];
-    this.user.categories = (await this.categoryRepository.getAllFromParent(this.user.id!)).docs;
-    // TODO: REFACTOR THIS TO MATCH NEW DATA
-    let promises = [];
-    for (let i = 0; i < this.user.categories.length; i++) {
-      this.user.categories[i].subcategories = [];
-      promises.push(
-        this.subcategoryRepository.getAllFromParent(this.user.id!, this.user.categories[i].id!).then((subcategories) => {
-          this.user.categories![i].subcategories = subcategories.docs;
-        })
-      );
+    this.user = await this.userRepository.getCurrentFirestoreUser();
+    if (!this.user) return; /* Should handle these guards better */
+
+    this.categories = (await this.categoryRepository.getAllFromParent(this.user.id!)).docs;
+    for (let i = 0; i < this.categories.length; i++) {
+      this.categories[i].subcategories = (await this.subcategoryRepository.getAllFromParent(this.user.id!, this.categories[i].id!)).docs;
     }
   }
 
   async save() {
+    if (!this.user || !this.user.id) return;
     // Update the transaction doc
     await this.transactionRepository.update(this.user.id!, this.newTransaction.id!, this.newTransaction);
-    const category = this.newTransaction.category;
+    const subcategoryId = this.newTransaction.category;
 
     // Update the subcategory actual_amount
-    for (let i = 0; i < this.user.categories.length; i++) {
-      for (let j = 0; j < this.user.categories[i].subcategories.length; j++) {
+    for (let i = 0; i < this.categories.length; i++) {
+      if (!this.categories[i].subcategories) continue;
+      for (let j = 0; j < this.categories[i].subcategories!.length; j++) {
         if (
-          this.user.categories[i].subcategories[j].id ==
+          this.categories[i].subcategories![j].id ==
           this.newTransaction.category
         ) {
-          this.user.categories[i].subcategories[j].actual_amount +=
-            this.newTransaction.amount;
+          this.subcategoryRepository.update(
+            this.user.id,
+            this.categories[i].id!,
+            subcategoryId,
+            {
+              actual_amount:
+                this.categories[i].subcategories![j].actual_amount +
+                this.newTransaction.amount,
+            }
+          );
           break;
         }
       }
     }
-    updateDoc(
-      doc(
-        getFirestore(),
-        'users',
-        this.userService.getActiveUser()?.uid as string
-      ),
-      {
-        categories: this.user.categories,
-      }
-    );
+
     // Update the local pendingTransactions array
+    /* TODO: Split this into a subscriber/publisher pattern
     const pendingTransactions = this.userService.getPendingTransactions();
     for (let i = 0; i < pendingTransactions.length; i++) {
       if (pendingTransactions[i].id === this.newTransaction.id) {
@@ -91,6 +83,7 @@ export class TransactionSorterComponent implements OnInit {
       }
     }
     this.userService.setPendingTransactions(pendingTransactions);
+    */
     this.modalCtrl.dismiss();
   }
 

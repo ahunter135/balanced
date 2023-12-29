@@ -23,6 +23,8 @@ export class AuthService {
         this._currentUserIdCached = user.uid;
       } else {
         this._currentUserIdCached = null;
+        /* Clear the cached user when the user logs out */
+        this.userRepository.onUserLoggedOut();
       }
       observer.next(user);
     });

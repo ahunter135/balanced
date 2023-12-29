@@ -1,6 +1,4 @@
 import { Component } from '@angular/core';
-import { User, getAuth, onAuthStateChanged } from '@angular/fire/auth';
-import { UserService } from './services/user.service';
 
 @Component({
   selector: 'app-root',
@@ -8,6 +6,6 @@ import { UserService } from './services/user.service';
   styleUrls: ['app.component.scss'],
 })
 export class AppComponent {
-  constructor(private userService: UserService) {
+  constructor() {
   }
 }

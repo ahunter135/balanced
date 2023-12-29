@@ -1,10 +1,6 @@
 import { Injectable } from '@angular/core';
-import { User } from '@angular/fire/auth';
 import { User as FirestoreUser, Transaction } from 'src/app/types/firestore/user';
 import {
-  DocumentData,
-  QuerySnapshot,
-  addDoc,
   collection,
   doc,
   getDocs,
@@ -22,18 +18,20 @@ import { AuthService } from './auth.service';
   providedIn: 'root',
 })
 export class UserService {
-  public activeUser: FirestoreUser;
   private pendingTransactions: Array<Transaction> = [];
+
   constructor(private http: HttpService, private authService: AuthService) {}
 
 
   public getPendingTransactions() {
     return this.pendingTransactions;
   }
+
   public setPendingTransactions(transactions: Array<Transaction>) {
     this.pendingTransactions = transactions;
   }
 
+  /* Replaced with functin in transaction.service.ts. Keeping for reference until new function is tested
   public async getUserTransactionsFromPlaid(user: FirestoreUser) {
     this.pendingTransactions = [
       {
@@ -136,6 +134,7 @@ export class UserService {
       this.sortTransactions(this.pendingTransactions);
     });
   }
+  */
 
   private sortTransactions(new_transactions: any) {
     new_transactions.sort((a: any, b: any) => {
@@ -178,7 +177,7 @@ export class UserService {
         doc(
           getFirestore(),
           'users',
-          this.activeUser['uid'] as string,
+          '', // UserId
           'transactions',
           transaction.id
         ),
@@ -213,7 +212,7 @@ export class UserService {
         collection(
           getFirestore(),
           'users',
-          this.activeUser['uid'] as string,
+          '', // UserId
           'transactions'
         ),
         where('pending', '==', true)

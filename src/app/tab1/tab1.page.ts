@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import {
   User,
   Category,
-  Subcategory
+  Subcategory,
+  Transaction
 } from 'src/app/types/firestore/user';
 import { UserService } from '../services/user.service';
 import { v4 as uuid } from 'uuid';
@@ -17,6 +18,8 @@ import { CategoryRepositoryService } from '../repositories/category-repository.s
 import { SubcategoryRepositoryService } from '../repositories/subcategory-repository.service';
 import { buildSubcategoryByDateQuery } from '../helpers/queries/subcategories';
 import { MONTH_NAMES_AND_VALUES, PICKER_YEAR_NAMES_AND_VALUES } from '../constants/dates/dates';
+import { TransactionsRepositoryService } from '../repositories/transactions-repository.service';
+import { TransactionService } from '../services/transaction.service';
 
 @Component({
   selector: 'app-tab1',
@@ -24,24 +27,27 @@ import { MONTH_NAMES_AND_VALUES, PICKER_YEAR_NAMES_AND_VALUES } from '../constan
   styleUrls: ['tab1.page.scss'],
 })
 export class Tab1Page {
-  user?: User;
-  institutionName = '';
-  transactions = [] as any;
-  currentView: string = 'budgeted';
+  /* Chosen year and month to display and budget for */
   private _chosenDate: LocaleStringMonthYear;
   private _chosenDateNumber: NumberMonthYear;
+
+  user?: User;
+  transactions: Array<Transaction> = [];
+
+  institutionName: string = '';
+  currentView: string = 'budgeted';
   isCardContainerVisible: boolean = false;
   plannedIncome: number = 0;
   leftToBudget: number = 0;
   remainingToSpend: number = 0;
+
   constructor(
     private userRepository: UserRepositoryService,
     private pickerCtrl: PickerController,
     private modalCtrl: ModalController,
     private categoryRepository: CategoryRepositoryService,
     private subcategoryRepository: SubcategoryRepositoryService,
-
-    private userService: UserService,
+    private transactionService: TransactionService,
   ) {
     // Set the app to load the current month
     // Storing as a number to easily compare
@@ -53,7 +59,16 @@ export class Tab1Page {
     // User data has been grabbed
     // Lets get their transactions that need to be budgeted
     if (this.user) {
-      this.userService.getUserTransactionsFromPlaid(this.user);
+      this.transactionService.getTransactions(
+        false, // pendingOnly
+        true,  // getFromPlaid
+        null,  // startDate TODO: Make this the first day of the month
+        null,  // endDate
+      ).then((transactions: Array<Transaction>) => {
+        this.transactions = transactions;
+      }).catch((err) => {
+        console.error(err);
+      });
       this.getUserCategories()
         .then((categories: Array<Category>) => {
           categories.sort(defaultCategorySort);
@@ -70,15 +85,18 @@ export class Tab1Page {
   }
 
   async getUserCategories(): Promise<Array<Category>> {
-    const queryResult = await this.categoryRepository.getAllFromParent(this.userRepository.getCurrentUserId());
-    await this.mutateUserSubcategories(queryResult.docs, this.chosenDateNumber);
-    this.calculatePlannedAndBudget(queryResult.docs);
+    /* We know user and id exist because we checked in ngOnInit */
+    const queryResult = await this.categoryRepository.getAllFromParent(this.user!.id!);
+    this.mutateUserSubcategories(queryResult.docs, this.chosenDateNumber).then(() => {
+      /* This depends on mutateUserSubcategories being done */
+      this.calculatePlannedAndBudget(queryResult.docs);
+    });
     return queryResult.docs;
   }
 
   async mutateUserSubcategories(categories: Category[], date: NumberMonthYear): Promise<void> {
     categories.map((doc: Category) => {
-      this.subcategoryRepository.getByQuery(buildSubcategoryByDateQuery(this.userRepository.getCurrentUserId(), doc.id!, date))
+      this.subcategoryRepository.getByQuery(buildSubcategoryByDateQuery(this.user!.id!, doc.id!, date))
         .then((subcategories) => {
           doc.subcategories = subcategories.docs;
           return doc;
@@ -126,34 +144,34 @@ export class Tab1Page {
    * @param index - category cards are stored as an array, so need to know which was clicked
    */
   addNewSub(item: Category) {
-    if (item.text == 'income') {
-    } else {
-      const newSub: Subcategory = {
-        text: '',
-        index: item.subcategories!.length,
-        planned_amount: 0,
-        date: {
-          month: this.chosenDateNumber.month,
-          year: this.chosenDateNumber.year,
-        },
-        actual_amount: 0,
-        id: uuid(),
-        isEditing: true,
-      };
+    if (item.text == 'income') return;
+    const newSub: Subcategory = {
+      text: '',
+      index: item.subcategories!.length,
+      planned_amount: 0,
+      date: {
+        month: this.chosenDateNumber.month,
+        year: this.chosenDateNumber.year,
+      },
+      actual_amount: 0,
+      id: uuid(),
+      isEditing: true,
+    };
 
-      item.subcategories!.push(newSub); // hopefully this mutates
-      this.subcategoryRepository.add(this.userRepository.getCurrentUserId(), item.id!, newSub, newSub.id);
-    }
+    item.subcategories!.push(newSub); // hopefully this mutates
+    this.subcategoryRepository.add(this.userRepository.getCurrentUserId()!, item.id!, newSub, newSub.id);
   }
 
   /**
    * Sub category was added, save to DB
    */
   async saveAllSubs() {
+    /* TODO: Figure out what this does
     if (!this.user?.categories) return;
     updateDoc(doc(getFirestore(), 'users', this.user['uid'] as string), {
       categories: [...this.user.categories],
     });
+    */
   }
 
   /**
@@ -166,6 +184,7 @@ export class Tab1Page {
 
   /**
    * Emitted from Header when a transaction gets pushed to DB. So lets refresh the users data
+  *  TODO: Fix this by passing transactin locally
    */
   async transactionAdded() {
     //this.getUserData();
@@ -212,6 +231,7 @@ export class Tab1Page {
    */
   getDataForNewMonth() {}
 
+  /* Lazy load the pending transactions */
   revealPendingTransactions() {
     this.isCardContainerVisible = !this.isCardContainerVisible;
   }
@@ -220,7 +240,9 @@ export class Tab1Page {
     return amount * -1;
   }
 
+  /* TODO: Figure out what this does */
   async openTransactionSorter(index: number) {
+    /*
     const modal = await this.modalCtrl.create({
       component: TransactionSorterComponent,
       componentProps: {
@@ -231,6 +253,7 @@ export class Tab1Page {
     });
 
     modal.present();
+    */
   }
 
   async subcategorySelected(ev: any) {

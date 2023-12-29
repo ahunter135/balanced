@@ -4,13 +4,14 @@ import {
   Transaction,
   Category,
   User,
+  Subcategory,
 } from 'src/app/types/firestore/user';
 import { FormControl, FormGroup } from '@angular/forms';
-import { UserService } from 'src/app/services/user.service';
-import { doc, getFirestore, setDoc } from '@angular/fire/firestore';
 import { v4 as uuid } from 'uuid';
 import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
 import { UserRepositoryService } from 'src/app/repositories/user-repository.service';
+import { CategoryRepositoryService } from 'src/app/repositories/category-repository.service';
+import { SubcategoryRepositoryService } from 'src/app/repositories/subcategory-repository.service';
 @Component({
   selector: 'app-add-transaction',
   templateUrl: './add-transaction.component.html',
@@ -35,11 +36,13 @@ export class AddTransactionComponent implements OnInit {
     public modalCtrl: ModalController,
     private transactionRepository: TransactionsRepositoryService,
     private userRepository: UserRepositoryService,
+    private categoryRepository: CategoryRepositoryService,
+    private subcategoryRepository: SubcategoryRepositoryService,
   ) {
     this.newTransactionForm = new FormGroup({
       amount: new FormControl(this.newTransaction.amount),
     });
-    this.setupModal(); // need await
+    this.setupModal();
   }
 
   ngOnInit() {}
@@ -48,8 +51,28 @@ export class AddTransactionComponent implements OnInit {
     this.presentingElement = await this.modalCtrl.getTop();
 
     // Get Budget Categories
-    this.user = this.userRepository.getCurrentFirestoreUser() as User;
+    const user = await this.userRepository.getCurrentFirestoreUser();
+    if (!user) return; /* Should handle these guards better */
+    this.user = user;
+    /* Grab the user's categories and subcategories */
+    const categories = await this.categoryRepository.getAllFromParent(user.id!);
+    if (!categories) return;
+    this.categories = categories.docs.map((doc) => doc as Category);
+    for (let i = 0; i < this.categories.length; i++) {
+      const subcategories = await this.subcategoryRepository.getAllFromParent(
+        user.id!,
+        this.categories[i].id!
+      );
+      if (!subcategories) {
+        this.categories[i].subcategories = [];
+        continue;
+      }
+      this.categories[i].subcategories = subcategories.docs.map(
+        (doc) => doc as Subcategory
+      );
+    }
   }
+
   amountChanged(event: number) {
     this.newTransaction['amount'] = event;
   }
@@ -58,6 +81,7 @@ export class AddTransactionComponent implements OnInit {
     try {
       this.transactionRepository.add(this.user.id!, this.newTransaction, this.newTransaction.id);
     } catch (error) {
+      console.log(error);
       this.modalCtrl.dismiss();
     }
   }
