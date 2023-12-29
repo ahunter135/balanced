@@ -1,4 +1,4 @@
-import { CollectionReference, DocumentData, Query } from "firebase/firestore";
+import { DocumentData, Query } from "firebase/firestore";
 import { FirestoreDocument, FirestoreDocumentQueryResult} from "src/app/types/firestore/doc-data";
 
 export interface ICollectionRepository<T extends FirestoreDocument> {

@@ -26,8 +26,7 @@ export class UserRepositoryService
     return this.get(authUser.uid);
   }
 
-  getCurrentUserId(): string {
-    if (!this.authService.currentUserId) return ''; // idk this may be bad and cause unexpected behaviro
+  getCurrentUserId(): string | null {
     return this.authService.currentUserId;
   }
 

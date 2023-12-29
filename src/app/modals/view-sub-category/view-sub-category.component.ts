@@ -26,7 +26,7 @@ export class ViewSubCategoryComponent implements OnInit {
   subcategory: Subcategory;
   category: Category;
   transactions: Array<Transaction> = [];
-  user: User;
+  user: User | undefined;
   constructor(
     public modalCtrl: ModalController,
     private navParams: NavParams,
@@ -61,7 +61,10 @@ export class ViewSubCategoryComponent implements OnInit {
   }
 
   async saveNewAmount() {
-    this.user = this.userService.getActiveUser() as User;
+    this.user = this.userService.activeUser;
+    if (!this.user) {
+      return;
+    }
     for (let i = 0; i < this.user.categories.length; i++) {
       if (this.user.categories[i].id == this.category.id) {
         for (let j = 0; j < this.user.categories[i].subcategories.length; j++) {

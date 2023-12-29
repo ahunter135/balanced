@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Auth } from '@angular/fire/auth';
-import { User, createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
+import { User as AuthUser, createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
 
 import { Category, User as FirestoreUser } from '../types/firestore/user';
 import { UserRepositoryService } from '../repositories/user-repository.service';
@@ -17,8 +17,8 @@ export class AuthService {
   private _currentUserIdCached: string | null;
   get currentUserId(): string | null { return this._currentUserIdCached; }
 
-  currentAuthUser: Observable<User | null> = new Observable((observer) => {
-    onAuthStateChanged(this.auth, (user: User | null) => {
+  currentAuthUser: Observable<AuthUser | null> = new Observable((observer) => {
+    onAuthStateChanged(this.auth, (user: AuthUser | null) => {
       if (user) {
         this._currentUserIdCached = user.uid;
       } else {
@@ -57,11 +57,18 @@ export class AuthService {
     return newFirestoreUser;
   }
 
-  async logout(): Promise<void> {
-
+  async logout(): Promise<Boolean> {
+    try {
+      await this.auth.signOut();
+      this._currentUserIdCached = null;
+      return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
   }
 
-  async getCurrentAuthUser(): Promise<User | null> {
+  async getCurrentAuthUser(): Promise<AuthUser | null> {
     return this.auth.currentUser;
   }
 

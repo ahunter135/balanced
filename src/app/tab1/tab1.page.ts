@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { getFirestore, updateDoc, doc, getDoc } from '@angular/fire/firestore';
 import {
   User,
   Category,
@@ -36,12 +35,13 @@ export class Tab1Page {
   leftToBudget: number = 0;
   remainingToSpend: number = 0;
   constructor(
-    public userService: UserService,
     private userRepository: UserRepositoryService,
     private pickerCtrl: PickerController,
     private modalCtrl: ModalController,
     private categoryRepository: CategoryRepositoryService,
     private subcategoryRepository: SubcategoryRepositoryService,
+
+    private userService: UserService,
   ) {
     // Set the app to load the current month
     // Storing as a number to easily compare
@@ -150,7 +150,8 @@ export class Tab1Page {
    * Sub category was added, save to DB
    */
   async saveAllSubs() {
-    updateDoc(doc(getFirestore(), 'users', this.user.uid as string), {
+    if (!this.user?.categories) return;
+    updateDoc(doc(getFirestore(), 'users', this.user['uid'] as string), {
       categories: [...this.user.categories],
     });
   }

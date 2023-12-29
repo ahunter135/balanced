@@ -22,10 +22,10 @@
       <strong>{{remainingToSpend / 100 | currency}}</strong></span
     >
   </div>
-  <span *ngFor="let item of user.categories; let i = index">
+  <span *ngFor="let item of user ? user.categories : []; let i = index">
     <app-category
       [category]="item"
-      [subcategories]="item.subcategories"
+      [subcategories]="item.subcategories ? item.subcategories : []"
       [currentView]="currentView"
       (addNewSubEvent)="addNewSub(item)"
       (requestSaveOfSubs)="saveAllSubs()"

@@ -9,13 +9,5 @@ import { UserService } from './services/user.service';
 })
 export class AppComponent {
   constructor(private userService: UserService) {
-    onAuthStateChanged(getAuth(), (auth) => {
-      console.log(auth);
-      if (auth) {
-        this.userService.setActiveUser(auth as User);
-      } else {
-        this.userService.setActiveUser(null);
-      }
-    });
   }
 }

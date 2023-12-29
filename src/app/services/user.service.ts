@@ -16,13 +16,16 @@ import {
 } from '@angular/fire/firestore';
 import { HttpService } from './http.service';
 import { forkJoin, lastValueFrom } from 'rxjs';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
+  public activeUser: FirestoreUser;
   private pendingTransactions: Array<Transaction> = [];
-  constructor(private http: HttpService) {}
+  constructor(private http: HttpService, private authService: AuthService) {}
+
 
   public getPendingTransactions() {
     return this.pendingTransactions;
@@ -69,7 +72,7 @@ export class UserService {
         collection(
           getFirestore(),
           'users',
-          this.activeUser?.uid as string,
+          this.activeUser['uid'] as string,
           'linked_accounts'
         )
       )
@@ -110,7 +113,7 @@ export class UserService {
           doc(
             getFirestore(),
             'users',
-            this.activeUser?.uid as string,
+            this.activeUser['uid'] as string,
             'linked_accounts',
             element.id
           ),
@@ -175,7 +178,7 @@ export class UserService {
         doc(
           getFirestore(),
           'users',
-          this.activeUser?.uid as string,
+          this.activeUser['uid'] as string,
           'transactions',
           transaction.id
         ),
@@ -210,7 +213,7 @@ export class UserService {
         collection(
           getFirestore(),
           'users',
-          this.activeUser?.uid as string,
+          this.activeUser['uid'] as string,
           'transactions'
         ),
         where('pending', '==', true)
