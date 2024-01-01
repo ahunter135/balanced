@@ -9,7 +9,7 @@
 <ion-content>
   <ion-card>
     <ion-card-content>
-      <ion-item lines="none" *ngIf="category.text == 'income'" class="header">
+      <ion-item lines="none" *ngIf="category.id == 'income'" class="header">
         <ion-label>{{ subcategory.actual_amount * -1 | currency }} </ion-label
         ><ion-label>received of</ion-label
         ><input
@@ -21,7 +21,7 @@
           [options]="{ prefix: '$ ', thousands: ',', decimal: '.' }"
         />
       </ion-item>
-      <ion-item lines="none" *ngIf="category.text != 'income'" class="header">
+      <ion-item lines="none" *ngIf="category.id != 'income'" class="header">
         <ion-label>{{ subcategory.actual_amount | currency }}</ion-label
         ><ion-label>spent of</ion-label>
         <input

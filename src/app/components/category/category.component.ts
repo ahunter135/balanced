@@ -16,7 +16,6 @@ import {
   where,
 } from '@angular/fire/firestore';
 import { IonInput } from '@ionic/angular';
-import { UserService } from 'src/app/services/user.service';
 import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
 import { AuthService } from 'src/app/services/auth.service';
 
@@ -74,16 +73,10 @@ export class CategoryComponent implements OnInit {
   }
 
   shouldWeSaveOrRemove() {
-    for (let i = 0; i < this.subcategories.length; i++) {
-      if (this.subcategories[i].isEditing) {
-        this.subcategories[i].isEditing = false;
-        if (this.subcategories[i].text.length == 0) {
-          this.subcategories.splice(i, 1);
-        } else {
-          // Stuff was typed, lets add it to the DB
-          this.requestSaveOfSubs.emit();
-        }
-      }
+    const shouldAnyBeSaved = this.subcategories.find((sub) => sub.isEditing);
+    if (shouldAnyBeSaved) {
+      /* Let caller figure out what to do */
+      this.requestSaveOfSubs.emit();
     }
   }
 

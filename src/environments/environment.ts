@@ -12,7 +12,9 @@ export const environment = {
     messagingSenderId: '51779442445',
     measurementId: 'G-X448BHFKZT',
   },
-  production: false
+  production: false,
+  useFirestoreEmulator: true,
+  useFirebaseAuthEmulator: true,
 };
 
 /*

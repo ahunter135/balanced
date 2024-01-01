@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Auth } from '@angular/fire/auth';
-import { User as AuthUser, createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
+import { User as AuthUser, UserCredential, createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
 
 import { Category, User as FirestoreUser } from '../types/firestore/user';
 import { UserRepositoryService } from '../repositories/user-repository.service';
@@ -38,11 +38,15 @@ export class AuthService {
   }
 
   async login(email: string, password: string): Promise<void> {
-    await signInWithEmailAndPassword(
-      this.auth,
-      email,
-      password
-    );
+    try {
+      await signInWithEmailAndPassword(
+        this.auth,
+        email,
+        password
+      );
+    } catch (error: any) {
+      throw new Error("Email or password is incorrect");
+    }
   }
 
   async createAccount(email: string, password: string, other: CreateAccountOthers): Promise<FirestoreUser> {
@@ -53,7 +57,9 @@ export class AuthService {
 
     // Add categories to the user's doc
     for (let category of defaultCategories) {
-      categoryAddPromises.push(this.categoryRepository.add(newFirestoreUser.id!, category, category.id));
+      categoryAddPromises.push(
+        this.categoryRepository.add(newFirestoreUser.id!, category, category.id)
+      );
     }
     await Promise.all(categoryAddPromises);
     return newFirestoreUser;
@@ -74,21 +80,47 @@ export class AuthService {
     return this.auth.currentUser;
   }
 
-  private async createUserStuff(email: string, password: string, other: CreateAccountOthers): Promise<FirestoreUser> {
-    const userSignUp = await createUserWithEmailAndPassword(
-      this.auth,
-      email,
-      password
-    );
+  async deleteAuthUser(): Promise<void> {
+    const user = await this.getCurrentAuthUser();
+    if (user) {
+      await user.delete();
+      this._currentUserIdCached = null;
+    }
+  }
 
-    const newUser: FirestoreUser = {
+  private async createUserStuff(email: string, password: string, other: CreateAccountOthers): Promise<FirestoreUser> {
+    /* Create auth user */
+    let userSignUp: UserCredential;
+    try {
+      userSignUp = await createUserWithEmailAndPassword(
+        this.auth,
+        email,
+        password
+      );
+    } catch (error) {
+      throw new Error("Something went wrong");
+    }
+
+    let newUser: FirestoreUser = {
       email,
       id: userSignUp.user.uid,
       subscribed: false,
       name: other.name,
     };
 
-    await this.userRepository.add(newUser, newUser.id);
+    let tmp: FirestoreUser | undefined;
+    try {
+      tmp = await this.userRepository.add(newUser, newUser.id);
+    } catch (error) {
+      /* Roll back auth user creation */
+      await this.deleteAuthUser();
+      throw new Error("Something went wrong");
+    }
+    if (tmp) newUser = tmp;
+    else throw new Error("Failed to create user");
+    if (newUser.id) this._currentUserIdCached = newUser.id;
+
     return newUser;
   }
+
 }

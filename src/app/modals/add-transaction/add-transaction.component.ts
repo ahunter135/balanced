@@ -7,11 +7,11 @@ import {
   Subcategory,
 } from 'src/app/types/firestore/user';
 import { FormControl, FormGroup } from '@angular/forms';
-import { v4 as uuid } from 'uuid';
 import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
 import { UserRepositoryService } from 'src/app/repositories/user-repository.service';
 import { CategoryRepositoryService } from 'src/app/repositories/category-repository.service';
 import { SubcategoryRepositoryService } from 'src/app/repositories/subcategory-repository.service';
+import { generateRandomId } from 'src/app/utils/generation';
 @Component({
   selector: 'app-add-transaction',
   templateUrl: './add-transaction.component.html',
@@ -21,7 +21,7 @@ export class AddTransactionComponent implements OnInit {
   newTransactionForm: FormGroup;
   newTransaction: Transaction = {
     date: new Date(),
-    id: uuid(),
+    id: generateRandomId(),
     amount: 0,
     category: '',
     name: '',

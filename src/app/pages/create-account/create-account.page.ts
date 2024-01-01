@@ -9,7 +9,11 @@ import { AuthService } from 'src/app/services/auth.service';
   styleUrls: ['./create-account.page.scss'],
 })
 export class CreateAccountPage implements OnInit {
-  user: any = {};
+  user: any = {
+    name: undefined,
+    email: undefined,
+    password: undefined,
+  };
   constructor(
     private alertService: AlertService,
     private router: Router,
@@ -19,11 +23,26 @@ export class CreateAccountPage implements OnInit {
   ngOnInit() {}
 
   async signUp() {
+    /* Verify if the user has filled all the fields */
+    try {
+      this.verifyUserValues();
+    } catch (error: any) {
+      this.alertService.createAndShowToast(error.message);
+      return;
+    }
+
+
     try {
       await this.authService.createAccount(this.user.email, this.user.password, { name: this.user.name });
       this.router.navigateByUrl('');
-    } catch (error) {
-      this.alertService.createAndShowToast(error as string);
+    } catch (error: any) {
+      this.alertService.createAndShowToast(error.message);
+    }
+  }
+
+  private verifyUserValues() {
+    if (!this.user.name || !this.user.email || !this.user.password) {
+      throw new Error('Please fill all the fields');
     }
   }
 }

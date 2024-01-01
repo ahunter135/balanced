@@ -1,10 +1,14 @@
 import { DocumentData, Query } from "firebase/firestore";
 import { FirestoreDocument, FirestoreDocumentQueryResult} from "src/app/types/firestore/doc-data";
 
-export interface ICollectionRepository<T extends FirestoreDocument> {
-  get(id: string): Promise<T | undefined>;
+export interface IRepository<T extends FirestoreDocument> {
   getAll(): Promise<FirestoreDocumentQueryResult<T>>;
-  getByQuery(query: Query): Promise<FirestoreDocumentQueryResult<T>>;
+
+  getByQuery(query: Query): Promise<FirestoreDocumentQueryResult<T>>
+}
+
+export interface ICollectionRepository<T extends FirestoreDocument> extends IRepository<T>{
+  get(id: string): Promise<T | undefined>;
 
   add(item: DocumentData, id?: string): Promise<T | undefined>;
 
@@ -13,11 +17,9 @@ export interface ICollectionRepository<T extends FirestoreDocument> {
   delete(id: string, shouldHardDelete: boolean): Promise<boolean>;
 }
 
-export interface ISubCollectionRepository<T extends FirestoreDocument> {
+export interface ISubCollectionRepository<T extends FirestoreDocument> extends IRepository<T> {
   get(...ids: string[]): Promise<T | undefined>;
-  getAll(): Promise<FirestoreDocumentQueryResult<T>>;
   getAllFromParent(...ids: string[]): Promise<FirestoreDocumentQueryResult<T>>;
-  getByQuery(query: Query): Promise<FirestoreDocumentQueryResult<T>>;
 
   add(...args: any[]): Promise<T | undefined>;
 

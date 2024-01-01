@@ -5,6 +5,7 @@ import { SubCollectionRepository } from './subcollection-repository';
 import { Subcategory } from '../types/firestore/user';
 import { FirestoreDocumentQueryResult } from '../types/firestore/doc-data';
 import { ISubCollectionRepository } from './interfaces/repository';
+import { CLONE_PROPERTY, isObjectClone } from '../helpers/firestore/repository-helpers';
 
 @Injectable({
   providedIn: 'root'
@@ -34,10 +35,12 @@ export class SubcategoryRepositoryService
   }
 
   async add(userId: string, categoryId: string, subcategory: DocumentData, id?: string): Promise<Subcategory | undefined> {
+    subcategory = this.cloneAndRemoveProperties(subcategory);
     return super._add(SubcategoryRepositoryService.makeCollectionRef(userId, categoryId), subcategory, id);
   }
 
   async update(userId: string, categoryId: string, subcategoryId: string, subcategory: DocumentData): Promise<boolean> {
+    subcategory = this.cloneAndRemoveProperties(subcategory);
     return super._update(SubcategoryRepositoryService.makeCollectionRef(userId, categoryId), subcategoryId, subcategory);
   }
 
@@ -47,5 +50,19 @@ export class SubcategoryRepositoryService
 
   static makeCollectionRef(userId: string, categoryId: string): CollectionReference<DocumentData> {
     return collection(getFirestore(), USER_COLLECTION_NAME, userId, CATEGORIES_SUBCOLLECTION_NAME, categoryId, SUBCATEGORIES_SUBCOLLECTION_NAME);
+  }
+
+  protected cloneAndRemoveProperties(item: DocumentData): DocumentData {
+    if (!isObjectClone(item)) {
+      item = structuredClone(item);
+      /* Let superclasses know we have already cloned this item */
+      item[CLONE_PROPERTY] = true;
+    }
+
+    if (item['isEditing'] != undefined) {
+      delete item['isEditing'];
+    }
+
+    return item;
   }
 }

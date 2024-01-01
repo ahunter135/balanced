@@ -1,7 +1,7 @@
 <ion-card>
   <ion-card-header>
     <ion-card-subtitle id="subtitle"
-      ><span id="title">{{ category.text }}</span
+      ><span id="title">{{ category.id }}</span
       ><span id="category" *ngIf="!isChecklist">{{ currentView }}</span>
     </ion-card-subtitle>
   </ion-card-header>
@@ -55,7 +55,7 @@
       </span>
 
       <ion-item *ngIf="!isChecklist">
-        <ion-label class="add-new" (click)="addNewSub()">
+        <ion-label class="add-new" (click)="addNewSub()" style="cursor: pointer">
           <ion-icon name="add"></ion-icon> Add New Category
         </ion-label>
       </ion-item>

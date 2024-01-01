@@ -12,7 +12,7 @@ import {
 import { UserService } from '../services/user.service';
 import { TransactionSorterComponent } from '../modals/transaction-sorter/transaction-sorter.component';
 import { ModalController } from '@ionic/angular';
-import { NgxCurrencyDirective } from 'ngx-currency';
+import { UserRepositoryService } from '../repositories/user-repository.service';
 declare var Plaid: any;
 
 @Component({
@@ -30,7 +30,8 @@ export class Tab2Page {
   constructor(
     private http: HttpService,
     private userService: UserService,
-    private modalCtrl: ModalController
+    private modalCtrl: ModalController,
+    private userRepository: UserRepositoryService,
   ) {}
 
   ngOnInit() {
@@ -55,7 +56,7 @@ export class Tab2Page {
           doc(
             getFirestore(),
             'users/',
-            this.userService.getActiveUser()?.uid as string,
+            this.userRepository.getCurrentUserId()!,
             'linked_accounts',
             this.selectedInstitute.id
           ),
@@ -91,7 +92,8 @@ export class Tab2Page {
       .post(
         'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/createPlaidLinkToken',
         {
-          user_id: this.userService.getActiveUser()?.uid,
+
+          user_id: this.userRepository.getCurrentUserId()!,
         }
       )
       .subscribe((resp) => {
@@ -106,7 +108,7 @@ export class Tab2Page {
               )
               .subscribe(async (resp) => {
                 console.log(resp);
-                /** 
+                /**
               {
                 access_token: "access-sandbox-477ca4f5-493b-486b-b18e-9e339f501da6" This is the required access token to make requests
                 error: null
@@ -121,7 +123,7 @@ export class Tab2Page {
                   doc(
                     getFirestore(),
                     'users/',
-                    this.userService.getActiveUser()?.uid as string,
+                    this.userRepository.getCurrentUserId()!,
                     'linked_accounts',
                     id
                   ),
@@ -153,7 +155,7 @@ export class Tab2Page {
       collection(
         getFirestore(),
         'users',
-        this.userService.getActiveUser()?.uid as string,
+        this.userRepository.getCurrentUserId()!,
         'linked_accounts'
       )
     );

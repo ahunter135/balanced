@@ -13,7 +13,7 @@ export function getMonthYearLocaleString(date?: Date | NumberMonthYear): LocaleS
   if (!(date instanceof Date)) date = new Date(date.year, date.month, 1);
   return {
     month: date.toLocaleString('default', { month: 'long' }),
-    year: date.getFullYear.toString(),
+    year: date.getFullYear().toString(),
   };
 }
 

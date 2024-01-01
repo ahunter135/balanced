@@ -14,6 +14,7 @@ import { UserRepositoryService } from 'src/app/repositories/user-repository.serv
   selector: 'app-transaction-sorter',
   templateUrl: './transaction-sorter.component.html',
   styleUrls: ['./transaction-sorter.component.scss'],
+  providers: [NavParams],
 })
 export class TransactionSorterComponent implements OnInit {
   newTransactionForm: FormGroup;

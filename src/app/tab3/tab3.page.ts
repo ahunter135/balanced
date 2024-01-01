@@ -3,6 +3,10 @@ import { getAuth, signOut } from '@angular/fire/auth';
 import { HttpService } from '../services/http.service';
 import { UserService } from '../services/user.service';
 import { setDoc, doc, getFirestore } from '@angular/fire/firestore';
+import { UserRepositoryService } from '../repositories/user-repository.service';
+import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
+import { AlertService } from '../services/alert.service';
 declare var Plaid: any;
 
 @Component({
@@ -12,14 +16,21 @@ declare var Plaid: any;
 })
 export class Tab3Page {
   institutionName: string;
-  constructor(private http: HttpService, private userService: UserService) {}
+  constructor(
+    private http: HttpService,
+    private userService: UserService,
+    private userRepository: UserRepositoryService,
+    private authService: AuthService,
+    private router: Router,
+    private alertService: AlertService,
+  ) {}
 
   async link() {
     this.http
       .post(
         'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/createPlaidLinkToken',
         {
-          user_id: this.userService.getActiveUser()?.uid,
+          user_id: this.userRepository.getCurrentUserId()!,
         }
       )
       .subscribe((resp) => {
@@ -43,7 +54,7 @@ export class Tab3Page {
                   doc(
                     getFirestore(),
                     'users/',
-                    this.userService.getActiveUser()?.uid as string,
+                    this.userRepository.getCurrentUserId()!,
                     'linked_accounts',
                     id
                   ),
@@ -87,7 +98,12 @@ export class Tab3Page {
     });
   }
 
-  signOut() {
-    signOut(getAuth());
+  async signOut() {
+    const success = await this.authService.logout();
+    if (success) {
+      this.router.navigateByUrl('login');
+    } else {
+      this.alertService.createAndShowToast('There was an error logging out');
+    }
   }
 }

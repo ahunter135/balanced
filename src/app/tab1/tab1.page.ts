@@ -5,7 +5,7 @@ import {
   Transaction
 } from 'src/app/types/firestore/user';
 import { Component, ViewEncapsulation } from '@angular/core';
-import { v4 as uuid } from 'uuid';
+import { generateRandomId } from '../utils/generation';
 import { ModalController, PickerController } from '@ionic/angular';
 import { TransactionSorterComponent } from '../modals/transaction-sorter/transaction-sorter.component';
 import { ViewSubCategoryComponent } from '../modals/view-sub-category/view-sub-category.component';
@@ -73,8 +73,8 @@ export class Tab1Page {
         .then((categories: Array<Category>) => {
           categories.sort(defaultCategorySort);
           this.user!.categories = categories;
+          this.calculatePlannedAndBudget(categories);
         });
-      this.calculatePlannedAndBudget(this.user.categories!);
     }
   }
 
@@ -88,27 +88,26 @@ export class Tab1Page {
   async getUserCategories(): Promise<Array<Category>> {
     /* We know user and id exist because we checked in ngOnInit */
     const queryResult = await this.categoryRepository.getAllFromParent(this.user!.id!);
-    this.mutateUserSubcategories(queryResult.docs, this.chosenDateNumber).then(() => {
-      /* This depends on mutateUserSubcategories being done */
-      this.calculatePlannedAndBudget(queryResult.docs);
-    });
+    const promises: Array<Promise<any>> = [];
+    /* Grab all subcategories for each category for chosen date */
+    for (let i = 0; i < queryResult.docs.length; i++) {
+      promises.push(
+        this.subcategoryRepository.getByQuery(
+          buildSubcategoryByDateQuery(this.user!.id!, queryResult.docs[i].id!, this.chosenDateNumber)
+        ).then((subQueryResult) => {
+          if (subQueryResult.size == 0) queryResult.docs[i].subcategories = [];
+          else queryResult.docs[i].subcategories = subQueryResult.docs;
+        })
+      );
+    }
+    await Promise.all(promises);
     return queryResult.docs;
-  }
-
-  async mutateUserSubcategories(categories: Category[], date: NumberMonthYear): Promise<void> {
-    categories.map((doc: Category) => {
-      this.subcategoryRepository.getByQuery(buildSubcategoryByDateQuery(this.user!.id!, doc.id!, date))
-        .then((subcategories) => {
-          doc.subcategories = subcategories.docs;
-          return doc;
-        });
-    });
   }
 
   calculatePlannedAndBudget(categories: Array<any>) {
     let total = 0;
     for (let i = 0; i < categories.length; i++) {
-      if (categories[i].text == 'income') {
+      if (categories[i].id == 'income') {
         for (let j = 0; j < categories[i].subcategories.length; j++) {
           total += parseInt(categories[i].subcategories[j].planned_amount);
         }
@@ -118,7 +117,7 @@ export class Tab1Page {
     this.plannedIncome = total;
     total = 0;
     for (let i = 0; i < categories.length; i++) {
-      if (categories[i].text != 'income') {
+      if (categories[i].id != 'income') {
         for (let j = 0; j < categories[i].subcategories.length; j++) {
           total += parseInt(categories[i].subcategories[j].planned_amount);
         }
@@ -128,7 +127,7 @@ export class Tab1Page {
 
     total = 0;
     for (let i = 0; i < categories.length; i++) {
-      if (categories[i].text != 'income') {
+      if (categories[i].id != 'income') {
         for (let j = 0; j < categories[i].subcategories.length; j++) {
           total += parseInt(categories[i].subcategories[j].actual_amount);
         }
@@ -145,7 +144,7 @@ export class Tab1Page {
    * @param index - category cards are stored as an array, so need to know which was clicked
    */
   addNewSub(item: Category) {
-    if (item.text == 'income') return;
+    if (item.id == 'income') return;
     const newSub: Subcategory = {
       text: '',
       index: item.subcategories!.length,
@@ -155,24 +154,41 @@ export class Tab1Page {
         year: this.chosenDateNumber.year,
       },
       actual_amount: 0,
-      id: uuid(),
+      id: generateRandomId(),
       isEditing: true,
     };
 
     item.subcategories!.push(newSub); // hopefully this mutates
-    this.subcategoryRepository.add(this.userRepository.getCurrentUserId()!, item.id!, newSub, newSub.id);
+    //this.subcategoryRepository.add(this.userRepository.getCurrentUserId()!, item.id!, newSub, newSub.id);
   }
 
   /**
    * Sub category was added, save to DB
    */
   async saveAllSubs() {
-    /* TODO: Figure out what this does
     if (!this.user?.categories) return;
-    updateDoc(doc(getFirestore(), 'users', this.user['uid'] as string), {
-      categories: [...this.user.categories],
-    });
-    */
+    const promises: Array<Promise<any>> = [];
+    for (let i = 0; i < this.user.categories.length; i++) {
+      let category = this.user.categories[i];
+      if (!category || !category.subcategories) continue;
+      for (let j = 0; j < category.subcategories.length; j++) {
+        let subcategory = category.subcategories[j];
+        if (!subcategory || !subcategory.isEditing) continue;
+        if (subcategory.text.length == 0) {
+          category.subcategories.splice(j, 1);
+          continue;
+        }
+        subcategory.isEditing = false;
+        promises.push(
+          this.subcategoryRepository.add(
+            this.user.id!,
+            this.user.categories[i].id!,
+            this.user.categories[i].subcategories![j],
+            this.user.categories[i].subcategories![j].id
+          )
+        );
+      }
+    }
   }
 
   /**
@@ -284,7 +300,7 @@ export class Tab1Page {
     });
 
     modal.onDidDismiss().then(() => {
-      this.calculatePlannedAndBudget(this.user.categories);
+      this.calculatePlannedAndBudget(this.user!.categories!);
     });
     modal.present();
   }

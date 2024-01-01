@@ -9,7 +9,6 @@ export type User = FirestoreDocument & {
 }
 
 export type Category = FirestoreDocument & {
-  text: string;
   index: number;
   subcategories?: Array<Subcategory>; // optional may not be attached at all times
   editable: boolean;

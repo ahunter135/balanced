@@ -1,5 +1,4 @@
 import { Category } from 'src/app/types/firestore/user';
-import { v4 as uuid } from 'uuid';
 
 export function getDefaultCategories(): Array<Category> {
   let result: Array<Category> = [];
@@ -7,9 +6,8 @@ export function getDefaultCategories(): Array<Category> {
   for (let i = 0; i < namesAndEditables.length; i++) {
     const [name, editable] = namesAndEditables[i];
     result[i] = {
-      text: name,
       index: i,
-      id: uuid(),
+      id: name,
       editable: editable,
     };
   }
