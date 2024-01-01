@@ -12,6 +12,16 @@
   top: 0;
   background-color: #ffffff;
   z-index: 1;
+
+  .over-budget {
+    font-weight: bold;
+    color: red;
+  }
+
+  .on-budget {
+    font-weight: bold;
+    color: black;
+  }
 }
 
 #planned-income-container {

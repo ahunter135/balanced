@@ -19,6 +19,8 @@ export class ViewSubCategoryComponent implements OnInit {
   transactions: Array<Transaction> = [];
   user: User | undefined;
 
+  isIncome: boolean;
+  planned_amount: any;
   constructor(
     public modalCtrl: ModalController,
     private navParams: NavParams,
@@ -35,6 +37,8 @@ export class ViewSubCategoryComponent implements OnInit {
       if (!user) return;
       this.transactions = await this.getTransactions();
       this.transactions.sort(dateTransactionSort);
+      console.log(this.subcategory);
+      this.planned_amount = this.subcategory.planned_amount / 100;
     });
   }
 
@@ -70,6 +74,6 @@ export class ViewSubCategoryComponent implements OnInit {
   }
 
   parseAmount(amount: number) {
-    return amount * -1;
+    return -1 * amount;
   }
 }

@@ -11,9 +11,13 @@ import {
   Subcategory,
   Transaction
 } from 'src/app/types/firestore/user';
+import {
+  query,
+  where,
+} from '@angular/fire/firestore';
+import { IonInput } from '@ionic/angular';
 import { UserService } from 'src/app/services/user.service';
 import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
-import { query, where } from 'firebase/firestore';
 import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
@@ -26,11 +30,11 @@ export class CategoryComponent implements OnInit {
   @Input() subcategories: Array<Subcategory>;
   @Input() isChecklist: boolean = false;
   @Input() currentView: string = 'planned';
-
+  @Input() chosenDate: any;
   @Output() addNewSubEvent = new EventEmitter();
   @Output() requestSaveOfSubs = new EventEmitter();
   @Output() subcategorySelected = new EventEmitter();
-
+  @ViewChild('nameInput', { static: false }) nameInput: IonInput;
   @ViewChild('fieldsContainer') fieldsContainer: any;
   transactions = [] as Array<Transaction>;
   checker: any;
@@ -48,6 +52,11 @@ export class CategoryComponent implements OnInit {
 
   addNewSub() {
     this.addNewSubEvent.emit();
+  }
+
+  triggerIonBlur() {
+    // Manually trigger the ionBlur event
+    this.shouldWeSaveOrRemove();
   }
 
   checkDOMChange() {
@@ -105,7 +114,7 @@ export class CategoryComponent implements OnInit {
     for (let i = 0; i < transactions.length; i++) {
       const transaction = transactions[i];
       const cost = transaction.amount;
-      total -= cost;
+      total += cost;
     }
     subcategory.actual_amount = total / 100;
   }

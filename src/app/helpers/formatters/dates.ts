@@ -24,7 +24,7 @@ export function getPickerYears(): Array<{ text: string, value: number}> {
 
     const years = [];
     for (let year = startYear; year <= endYear; year++) {
-      years.push({ text: year.toString(), value: year });
+      years.push({ text: year.toString(), value: year, selected: false });
     }
 
     return years;

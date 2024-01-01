@@ -28,9 +28,11 @@ export class AddTransactionComponent implements OnInit {
     merchant_name: '',
     pending: false,
   };
+  transactionType: string = 'expense';
   presentingElement: any;
   categories = [] as Array<Category>;
   user: User;
+  selectedSub: string;
 
   constructor(
     public modalCtrl: ModalController,
@@ -78,11 +80,24 @@ export class AddTransactionComponent implements OnInit {
   }
 
   add() {
+    let newTransactionObject = Object.assign({}, this.newTransaction);
+    if (this.transactionType == 'income') {
+      newTransactionObject.amount = -1 * newTransactionObject.amount;
+    }
     try {
       this.transactionRepository.add(this.user.id!, this.newTransaction, this.newTransaction.id);
     } catch (error) {
       console.log(error);
+    } finally {
       this.modalCtrl.dismiss();
     }
+  }
+
+  subcategorySelected(ev: any) {
+    this.modalCtrl.dismiss();
+    console.log(ev);
+    this.selectedSub = ev.text;
+    this.newTransaction.category = ev.id;
+    this.newTransaction.pending = false;
   }
 }

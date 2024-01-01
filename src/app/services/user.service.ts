@@ -121,7 +121,6 @@ export class UserService {
           }
         );
       });
-
       // Step 2: We need to grab existing transactions that are pending
       await this.getExistingPendingTransactions();
 
@@ -130,7 +129,6 @@ export class UserService {
 
       // Done
       // we now have all existing pending and newly added pending transactions
-      console.log(this.pendingTransactions);
       this.sortTransactions(this.pendingTransactions);
     });
   }
@@ -221,5 +219,19 @@ export class UserService {
     pendingDocsSnapshot.forEach((element) => {
       this.pendingTransactions.push(element.data() as Transaction);
     });
+  }
+
+  generateRandomId() {
+    // Generate a random number and convert it to a hexadecimal string
+    const randomNumber = Math.floor(Math.random() * 1000000);
+    const randomHex = randomNumber.toString(16);
+
+    // Get the current timestamp and convert it to a hexadecimal string
+    const timestamp = Date.now().toString(16);
+
+    // Concatenate the timestamp and random number to create the ID
+    const randomId = timestamp + randomHex;
+
+    return randomId;
   }
 }

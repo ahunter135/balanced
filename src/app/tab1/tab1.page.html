@@ -8,9 +8,7 @@
 
 <ion-content [fullscreen]="true">
   <div id="budget-remaining-container">
-    <span
-      ><strong>{{leftToBudget / 100 | currency}}</strong> left to budget</span
-    >
+    <span [innerHTML]="getLeftToBudget()"></span>
   </div>
   <div id="planned-income-container">
     <span id="planned-income" *ngIf="currentView == 'budgeted'"
@@ -28,8 +26,9 @@
       [subcategories]="item.subcategories || []"
       [currentView]="currentView"
       (addNewSubEvent)="addNewSub(item)"
+      [chosenDate]="chosenDate"
       (requestSaveOfSubs)="saveAllSubs()"
-      (subcategorySelected)="subcategorySelected($event)"
+      (subcategorySelected)="subcategorySelected($event, i == 0)"
     ></app-category>
   </span>
 

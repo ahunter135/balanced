@@ -8,6 +8,7 @@ import { AddTransactionComponent } from '../modals/add-transaction/add-transacti
 import { CurrencyInputComponent } from './currency-input/currency-input.component';
 import { TransactionSorterComponent } from '../modals/transaction-sorter/transaction-sorter.component';
 import { ViewSubCategoryComponent } from '../modals/view-sub-category/view-sub-category.component';
+import { NgxCurrencyDirective } from 'ngx-currency';
 
 @NgModule({
   declarations: [
@@ -26,6 +27,12 @@ import { ViewSubCategoryComponent } from '../modals/view-sub-category/view-sub-c
     ViewSubCategoryComponent,
     TransactionSorterComponent,
   ],
-  imports: [CommonModule, FormsModule, IonicModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonicModule,
+    ReactiveFormsModule,
+    NgxCurrencyDirective,
+  ],
 })
 export class ComponentsModule {}

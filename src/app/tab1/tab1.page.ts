@@ -1,11 +1,10 @@
-import { Component } from '@angular/core';
 import {
   User,
   Category,
   Subcategory,
   Transaction
 } from 'src/app/types/firestore/user';
-import { UserService } from '../services/user.service';
+import { Component, ViewEncapsulation } from '@angular/core';
 import { v4 as uuid } from 'uuid';
 import { ModalController, PickerController } from '@ionic/angular';
 import { TransactionSorterComponent } from '../modals/transaction-sorter/transaction-sorter.component';
@@ -25,6 +24,7 @@ import { TransactionService } from '../services/transaction.service';
   selector: 'app-tab1',
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class Tab1Page {
   /* Chosen year and month to display and budget for */
@@ -74,6 +74,7 @@ export class Tab1Page {
           categories.sort(defaultCategorySort);
           this.user!.categories = categories;
         });
+      this.calculatePlannedAndBudget(this.user.categories!);
     }
   }
 
@@ -194,7 +195,20 @@ export class Tab1Page {
    * Emitted from Header, shows a date picker to change the budget date
    */
   async requestDateChange() {
-    // Array of years spanning from last 2 years to 2 years from now
+    let selectedIndex = [];
+
+    for (let i = 0; i < MONTH_NAMES_AND_VALUES.length; i++) {
+      if (MONTH_NAMES_AND_VALUES[i].text == this.chosenDate.month) {
+        selectedIndex[0] = i;
+        break;
+      }
+    }
+
+    for (let i = 0; i < PICKER_YEAR_NAMES_AND_VALUES.length; i++) {
+      if (PICKER_YEAR_NAMES_AND_VALUES[i].text == this.chosenDate.year) {
+        selectedIndex[1] = i;
+      }
+    }
 
     const picker = await this.pickerCtrl.create({
       columns: [
@@ -222,7 +236,8 @@ export class Tab1Page {
         },
       ],
     });
-
+    picker.columns[0].selectedIndex = selectedIndex[0];
+    picker.columns[1].selectedIndex = selectedIndex[1];
     await picker.present();
   }
 
@@ -256,17 +271,47 @@ export class Tab1Page {
     */
   }
 
-  async subcategorySelected(ev: any) {
+  async subcategorySelected(ev: any, isIncome = false) {
     const modal = await this.modalCtrl.create({
       component: ViewSubCategoryComponent,
       componentProps: {
         subcategory: ev.sub,
+        isIncome,
         category: ev.cat,
       },
       initialBreakpoint: 0.6,
       breakpoints: [0, 0.6, 0.8, 1],
     });
 
+    modal.onDidDismiss().then(() => {
+      this.calculatePlannedAndBudget(this.user.categories);
+    });
     modal.present();
+  }
+
+  formatCurrency(
+    number: number,
+    currencyCode: string = 'USD',
+    locale: string = 'en-US'
+  ): string {
+    // Use Intl.NumberFormat to format the number as currency
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: currencyCode,
+    }).format(number);
+  }
+
+  getLeftToBudget() {
+    const amount = this.leftToBudget / 100;
+
+    if (amount < 0) {
+      return `<span class='over-budget'>${this.formatCurrency(
+        -1 * amount
+      )}</span> over budget`;
+    } else {
+      return `<span class='on-budget'>${this.formatCurrency(
+        amount
+      )}</span> left to budget`;
+    }
   }
 }

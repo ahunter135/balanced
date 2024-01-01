@@ -165,14 +165,14 @@ exports.getInstitutionName = onRequest(async (req, res) => {
         const response = await client.institutionsGetById(request);
         const institution = response.data.institution;
 
-        res.send({name: institution.name});
+        res.send({ name: institution.name });
       } catch (error) {
         console.log(error);
         // Handle error
         res.send(error);
       }
     } catch (error) {
-        console.log(error);
+      console.log(error);
       // handle error
       res.send(error);
     }

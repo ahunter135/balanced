@@ -32,6 +32,8 @@
               [(ngModel)]="sub.text"
               (ionFocus)="stopTimeout()"
               (ionBlur)="shouldWeSaveOrRemove()"
+              (keyup.enter)="triggerIonBlur()"
+              #nameInput
             ></ion-input>
             <ion-note style="text-align: end">{{
               currentView === "budgeted"

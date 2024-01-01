@@ -16,7 +16,11 @@ import { IonInput } from '@ionic/angular';
   styleUrls: ['./currency-input.component.scss'],
 })
 export class CurrencyInputComponent implements OnInit {
+  @Input() amount: number; // in cents
+
   constructor(private currencyPipe: CurrencyPipe) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.amount = this.amount / 100;
+  }
 }
