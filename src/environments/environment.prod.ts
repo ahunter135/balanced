@@ -1,3 +1,5 @@
+import { Configuration, PlaidEnvironments } from "plaid";
+
 export const environment = {
   firebase: {
     projectId: 'balanced-budget-90f1f',
@@ -10,3 +12,15 @@ export const environment = {
   },
   production: true
 };
+
+export const plaidConfig: Configuration = new Configuration({
+  /* What api environment to use. 'sandbox' or 'development' or 'production' */
+  basePath: PlaidEnvironments['production'], /*'https://sandbox.plaid.com',*/
+  /* Might need more here */
+  baseOptions: {
+    headers: {
+      'PLAID-CLIENT-ID': '', // IDK
+      'PLAID-SECRET': '', // IDK
+    },
+  },
+});

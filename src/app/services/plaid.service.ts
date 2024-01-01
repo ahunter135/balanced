@@ -6,7 +6,7 @@ import { Transaction } from '../types/firestore/user';
 import { forkJoin, lastValueFrom } from 'rxjs';
 import { dateTransactionSort } from '../helpers/sorters/user-related-sorters';
 import { TransactionsRepositoryService } from '../repositories/transactions-repository.service';
-import { GET_TRANSACTION_DATA_URL } from '../constants/http/urls';
+import { CREATE_PLAID_LINK_TOKEN_URL, GET_TRANSACTION_DATA_URL } from '../constants/http/urls';
 import { PlaidTransaction } from '../types/plaid/plaid';
 import { plaidTransactionToFirestoreTransaction } from '../helpers/mappers/transactions';
 
@@ -20,8 +20,18 @@ export class PlaidService {
     private linkedAccountsRepository: LinkedAccountsRepositoryService,
     private transactionRepository: TransactionsRepositoryService,
     private userRepository: UserRepositoryService,
-  ) { }
+  ) {
+  }
 
+  async linkPlaidToUser(): Promise<void> {
+    this.http.post(
+      CREATE_PLAID_LINK_TOKEN_URL,
+      {
+        user_id: this.userRepository.getCurrentUserId()!,
+      }
+    ).subscribe((resp) => {});
+
+  }
 
   async getTransactionsFromPlaid(): Promise<Transaction[]> {
     let transactions: PlaidTransaction[] = [];
@@ -39,7 +49,7 @@ export class PlaidService {
       promises.push(
         lastValueFrom(
           this.http.post(
-            GET_TRANSACTION_DATA_URL, // TODO: Change this to the real URL
+            GET_TRANSACTION_DATA_URL,
             {
               accessToken: linkedAccount.access_token,
               cursor: linkedAccount.transaction_sync_cursor,

@@ -9,11 +9,10 @@ import {
   getDocs,
   setDoc,
 } from '@angular/fire/firestore';
-import { UserService } from '../services/user.service';
 import { TransactionSorterComponent } from '../modals/transaction-sorter/transaction-sorter.component';
 import { ModalController } from '@ionic/angular';
 import { UserRepositoryService } from '../repositories/user-repository.service';
-declare var Plaid: any;
+import { generateRandomId } from '../utils/generation';
 
 @Component({
   selector: 'app-tab2',
@@ -29,7 +28,6 @@ export class Tab2Page {
 
   constructor(
     private http: HttpService,
-    private userService: UserService,
     private modalCtrl: ModalController,
     private userRepository: UserRepositoryService,
   ) {}
@@ -117,7 +115,7 @@ export class Tab2Page {
              */
                 const accessToken = resp.access_token;
                 const institution = resp.item_id;
-                const id = this.userService.generateRandomId();
+                const id = generateRandomId();
                 const name = await this.getInstitutionName(accessToken);
                 setDoc(
                   doc(

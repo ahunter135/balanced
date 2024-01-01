@@ -1,13 +1,11 @@
 import { Component } from '@angular/core';
-import { getAuth, signOut } from '@angular/fire/auth';
 import { HttpService } from '../services/http.service';
-import { UserService } from '../services/user.service';
 import { setDoc, doc, getFirestore } from '@angular/fire/firestore';
 import { UserRepositoryService } from '../repositories/user-repository.service';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { AlertService } from '../services/alert.service';
-declare var Plaid: any;
+import { generateRandomId } from '../utils/generation';
 
 @Component({
   selector: 'app-tab3',
@@ -18,7 +16,6 @@ export class Tab3Page {
   institutionName: string;
   constructor(
     private http: HttpService,
-    private userService: UserService,
     private userRepository: UserRepositoryService,
     private authService: AuthService,
     private router: Router,
@@ -28,7 +25,7 @@ export class Tab3Page {
   async link() {
     this.http
       .post(
-        'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/createPlaidLinkToken',
+        '',
         {
           user_id: this.userRepository.getCurrentUserId()!,
         }
@@ -48,7 +45,7 @@ export class Tab3Page {
 
                 const accessToken = resp.access_token;
                 const institution = resp.item_id;
-                const id = this.userService.generateRandomId();
+                const id = generateRandomId();
                 const name = await this.getInstitutionName(accessToken);
                 setDoc(
                   doc(

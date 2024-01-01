@@ -1,3 +1,5 @@
+import { Configuration, PlaidEnvironments, PlaidApi } from 'plaid';
+
 // This file can be replaced during build by using the `fileReplacements` array.
 // `ng build` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
@@ -16,6 +18,18 @@ export const environment = {
   useFirestoreEmulator: true,
   useFirebaseAuthEmulator: true,
 };
+
+export const plaidConfig: Configuration = new Configuration({
+  /* What api environment to use. 'sandbox' or 'development' or 'production' */
+  basePath: PlaidEnvironments['sandbox'], /*'https://sandbox.plaid.com',*/
+  /* Might need more here */
+  baseOptions: {
+    headers: {
+      'PLAID-CLIENT-ID': '', // IDK
+      'PLAID-SECRET': '', // IDK
+    },
+  },
+});
 
 /*
  * For easier debugging in development mode, you can import the following file
