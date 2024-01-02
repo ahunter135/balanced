@@ -6,9 +6,17 @@ import { Transaction } from '../types/firestore/user';
 import { forkJoin, lastValueFrom } from 'rxjs';
 import { dateTransactionSort } from '../helpers/sorters/user-related-sorters';
 import { TransactionsRepositoryService } from '../repositories/transactions-repository.service';
-import { CREATE_PLAID_LINK_TOKEN_URL, GET_TRANSACTION_DATA_URL } from '../constants/http/urls';
-import { PlaidTransaction } from '../types/plaid/plaid';
+import {
+  CREATE_PLAID_LINK_TOKEN_URL,
+  GET_TRANSACTION_DATA_URL,
+  EXCHANGE_PLAID_PUBLIC_TOKEN_URL,
+  GET_INSTITUTION_NAME_URL,
+} from '../constants/http/urls';
+import { PlaidHandler, PlaidOnSuccessMetadata, PlaidTransaction } from '../types/plaid/plaid';
 import { plaidTransactionToFirestoreTransaction } from '../helpers/mappers/transactions';
+import { generateRandomId } from '../utils/generation';
+
+declare var Plaid: any;
 
 @Injectable({
   providedIn: 'root'
@@ -29,7 +37,11 @@ export class PlaidService {
       {
         user_id: this.userRepository.getCurrentUserId()!,
       }
-    ).subscribe((resp) => {});
+    ).subscribe((resp) => {
+      console.log(resp);
+      const handler = this.createPlaidHandler(resp.link_token);
+      handler.open();
+    });
 
   }
 
@@ -83,5 +95,68 @@ export class PlaidService {
       this.transactionRepository.add(this.userRepository.getCurrentUserId()!, t);
     });
     return mappedTransactions;
+  }
+
+  async getInstitutionName(token: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      this.http
+        .post(
+          GET_INSTITUTION_NAME_URL,
+          {
+            accessToken: token,
+          }
+        )
+        .subscribe((resp) => {
+          console.log(resp);
+          resolve(resp.name);
+        });
+    });
+  }
+
+  private createPlaidHandler(token: string): PlaidHandler {
+    return Plaid.create({
+      token,
+      onSuccess: this.plaidHandlerOnSuccessCallback.bind(this),
+      onExit: this.plaidHandlerOnExitCallback.bind(this),
+      onLoad: this.plaidHandlerOnLoadCallback.bind(this),
+      onEvent: this.plaidHandlerOnEventCallback.bind(this),
+      receivedRedirectUri: null,
+    });
+  }
+
+  private plaidHandlerOnSuccessCallback(publicToken: string, metadata: PlaidOnSuccessMetadata): void {
+    this.http.post(
+      EXCHANGE_PLAID_PUBLIC_TOKEN_URL,
+      {
+        publicToken,
+      },
+    ).subscribe((resp) => {
+      console.log(resp);
+      const { access_token, item_id } = resp;
+      const id = generateRandomId();
+      const institutionName = metadata.institution.name;
+      /* Add linked account to database */
+      this.linkedAccountsRepository.add(
+        this.userRepository.getCurrentUserId()!,
+        {
+          access_token,
+          institution: item_id,
+          institution_name: institutionName,
+        },
+        id,
+      );
+    });
+  }
+
+  private plaidHandlerOnExitCallback(error: object | null, metadata: object): void {
+
+  }
+
+  private plaidHandlerOnLoadCallback(): void {
+
+  }
+
+  private plaidHandlerOnEventCallback(eventName: string, metadata: object): void {
+
   }
 }

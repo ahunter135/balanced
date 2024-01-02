@@ -2,8 +2,8 @@
   [chosenMonth]="chosenDate.month"
   [chosenYear]="chosenDate.year"
   (viewChanged)="viewChanged($event)"
-  (transactionAdded)="transactionAdded()"
   (requestDateChange)="requestDateChange()"
+  (addTransactionButtonClicked)="addTransaction()"
 ></app-header>
 
 <ion-content [fullscreen]="true">
@@ -13,11 +13,11 @@
   <div id="planned-income-container">
     <span id="planned-income" *ngIf="currentView == 'budgeted'"
       ><span class="title">Planned Income</span>
-      <strong>{{plannedIncome / 100 | currency}}</strong></span
+      <strong>{{plannedIncome | currency}}</strong></span
     >
     <span id="planned-income" *ngIf="currentView == 'remaining'"
       ><span class="title">Remaining to Spend</span>
-      <strong>{{remainingToSpend / 100 | currency}}</strong></span
+      <strong>{{remainingToSpend | currency}}</strong></span
     >
   </div>
   <span *ngFor="let item of user ? user.categories : []; let i = index">
@@ -28,7 +28,7 @@
       (addNewSubEvent)="addNewSub(item)"
       [chosenDate]="chosenDate"
       (requestSaveOfSubs)="saveAllSubs()"
-      (subcategorySelected)="subcategorySelected($event, i == 0)"
+      (subcategorySelected)="subcategorySelected($event)"
     ></app-category>
   </span>
 
@@ -55,7 +55,7 @@
         (click)="openTransactionSorter(i)"
       >
         <div id="date">{{item.date | date:'MMM. d'}}</div>
-        <span id="amount">{{parseAmount(item.amount) / 100 | currency}}</span>
+        <span id="amount">{{parseAmount(item.amount) | currency}}</span>
         <div id="name">{{item.merchant_name || item.name}}</div>
       </div>
     </div>

@@ -22,7 +22,7 @@
             <ion-label>{{ sub.text }}</ion-label>
             <ion-note style="text-align: end">{{
               currentView === "budgeted"
-                ? (sub.planned_amount / 100 | currency)
+                ? (sub.planned_amount | currency)
                 : (sub.actual_amount | currency)
             }}</ion-note>
           </span>
@@ -37,7 +37,7 @@
             ></ion-input>
             <ion-note style="text-align: end">{{
               currentView === "budgeted"
-                ? (sub.planned_amount / 100 | currency)
+                ? (sub.planned_amount | currency)
                 : (sub.actual_amount | currency)
             }}</ion-note>
           </span>

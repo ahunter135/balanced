@@ -1,3 +1,4 @@
+import { Timestamp } from "firebase/firestore";
 import { NumberMonthYear } from "../dates/dates";
 import { FirestoreDocument } from "./doc-data";
 
@@ -25,7 +26,7 @@ export type Subcategory = FirestoreDocument & {
 
 export type Transaction = FirestoreDocument & {
   amount: number;
-  category: string;
+  subcategoryId: string;
   date: Date;
   name: string;
   merchant_name: string;

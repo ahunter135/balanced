@@ -19,6 +19,7 @@ import { buildSubcategoryByDateQuery } from '../helpers/queries/subcategories';
 import { MONTH_NAMES_AND_VALUES, PICKER_YEAR_NAMES_AND_VALUES } from '../constants/dates/dates';
 import { TransactionsRepositoryService } from '../repositories/transactions-repository.service';
 import { TransactionService } from '../services/transaction.service';
+import { AddTransactionComponent } from '../modals/add-transaction/add-transaction.component';
 
 @Component({
   selector: 'app-tab1',
@@ -105,35 +106,28 @@ export class Tab1Page {
   }
 
   calculatePlannedAndBudget(categories: Array<any>) {
-    let total = 0;
+    let incomeTotal = 0;
+    let expenseTotal = 0;
+    let actualAmountSpent = 0;
     for (let i = 0; i < categories.length; i++) {
       if (categories[i].id == 'income') {
         for (let j = 0; j < categories[i].subcategories.length; j++) {
-          total += parseInt(categories[i].subcategories[j].planned_amount);
+          incomeTotal += categories[i].subcategories[j].planned_amount;
+        }
+      } else {
+        for (let j = 0; j < categories[i].subcategories.length; j++) {
+          expenseTotal += categories[i].subcategories[j].planned_amount;
+          actualAmountSpent += categories[i].subcategories[j].actual_amount;
         }
       }
     }
 
-    this.plannedIncome = total;
-    total = 0;
-    for (let i = 0; i < categories.length; i++) {
-      if (categories[i].id != 'income') {
-        for (let j = 0; j < categories[i].subcategories.length; j++) {
-          total += parseInt(categories[i].subcategories[j].planned_amount);
-        }
-      }
-    }
-    this.leftToBudget = this.plannedIncome - total;
-
-    total = 0;
-    for (let i = 0; i < categories.length; i++) {
-      if (categories[i].id != 'income') {
-        for (let j = 0; j < categories[i].subcategories.length; j++) {
-          total += parseInt(categories[i].subcategories[j].actual_amount);
-        }
-      }
-    }
-    this.remainingToSpend = this.plannedIncome - total;
+    console.log(incomeTotal);
+    console.log(expenseTotal);
+    console.log(actualAmountSpent);
+    this.plannedIncome = incomeTotal;
+    this.leftToBudget = this.plannedIncome - expenseTotal;
+    this.remainingToSpend = this.plannedIncome - actualAmountSpent;
   }
 
   /**
@@ -199,12 +193,22 @@ export class Tab1Page {
     this.currentView = ev;
   }
 
-  /**
-   * Emitted from Header when a transaction gets pushed to DB. So lets refresh the users data
-  *  TODO: Fix this by passing transactin locally
-   */
-  async transactionAdded() {
-    //this.getUserData();
+  async addTransaction() {
+    const modal = await this.modalCtrl.create({
+      component: AddTransactionComponent,
+      componentProps: {
+        categories: this.user!.categories!,
+        user: this.user
+      },
+    });
+
+    modal.present();
+
+    modal.onDidDismiss().then((resp: any) => {
+      const newTransaction = resp.data;
+      if (!newTransaction) return;
+      this.transactions.push(newTransaction);
+    });
   }
 
   /**
@@ -287,12 +291,12 @@ export class Tab1Page {
     */
   }
 
-  async subcategorySelected(ev: any, isIncome = false) {
+  async subcategorySelected(ev: any) {
     const modal = await this.modalCtrl.create({
       component: ViewSubCategoryComponent,
       componentProps: {
         subcategory: ev.sub,
-        isIncome,
+        isIncome: ev.cat.id == 'income',
         category: ev.cat,
       },
       initialBreakpoint: 0.6,
@@ -318,7 +322,7 @@ export class Tab1Page {
   }
 
   getLeftToBudget() {
-    const amount = this.leftToBudget / 100;
+    const amount = this.leftToBudget;
 
     if (amount < 0) {
       return `<span class='over-budget'>${this.formatCurrency(

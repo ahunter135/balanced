@@ -50,7 +50,7 @@ export class TransactionSorterComponent implements OnInit {
     if (!this.user || !this.user.id) return;
     // Update the transaction doc
     await this.transactionRepository.update(this.user.id!, this.newTransaction.id!, this.newTransaction);
-    const subcategoryId = this.newTransaction.category;
+    const subcategoryId = this.newTransaction.subcategoryId;
 
     // Update the subcategory actual_amount
     for (let i = 0; i < this.categories.length; i++) {
@@ -58,7 +58,7 @@ export class TransactionSorterComponent implements OnInit {
       for (let j = 0; j < this.categories[i].subcategories!.length; j++) {
         if (
           this.categories[i].subcategories![j].id ==
-          this.newTransaction.category
+          this.newTransaction.subcategoryId
         ) {
           this.subcategoryRepository.update(
             this.user.id,
@@ -93,11 +93,11 @@ export class TransactionSorterComponent implements OnInit {
     this.modalCtrl.dismiss();
     console.log(ev);
     this.selectedSub = ev.text;
-    this.newTransaction.category = ev.id;
+    this.newTransaction.subcategoryId = ev.id;
     this.newTransaction.pending = false;
   }
 
   getAmount() {
-    return (this.newTransaction.amount / 100) * -1;
+    return (this.newTransaction.amount) * -1;
   }
 }

@@ -1,6 +1,5 @@
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { AddTransactionComponent } from 'src/app/modals/add-transaction/add-transaction.component';
 
 @Component({
   selector: 'app-header',
@@ -10,8 +9,8 @@ import { AddTransactionComponent } from 'src/app/modals/add-transaction/add-tran
 export class HeaderComponent implements OnInit {
   /* Events that page should handle */
   @Output() viewChanged = new EventEmitter();
-  @Output() transactionAdded = new EventEmitter();
   @Output() requestDateChange = new EventEmitter();
+  @Output() addTransactionButtonClicked = new EventEmitter();
   /* Month and year to display, Locale */
   @Input() chosenMonth: String;
   @Input() chosenYear: String;
@@ -24,15 +23,9 @@ export class HeaderComponent implements OnInit {
   * modal
   */
   async addTransaction() {
-    const modal = await this.modalController.create({
-      component: AddTransactionComponent,
-    });
-
-    modal.present();
-
-    modal.onDidDismiss().then((resp: any) => {
-      this.transactionAdded.emit();
-    });
+    // Moving this to event so parent can handle
+    // passing categories and subcategories
+    this.addTransactionButtonClicked.emit();
   }
 
   segmentChanged(ev: any) {

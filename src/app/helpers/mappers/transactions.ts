@@ -6,8 +6,8 @@ export function plaidTransactionToFirestoreTransaction(
 ): Transaction {
   return {
     id: plaidTransaction.transaction_id,
-    amount: plaidTransaction.amount * 100,
-    category: '',
+    amount: plaidTransaction.amount,
+    subcategoryId: '',
     date: plaidTransaction.date,
     merchant_name: plaidTransaction.merchant_name,
     name: plaidTransaction.name,

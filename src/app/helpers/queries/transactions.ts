@@ -19,7 +19,7 @@ export function buildTransactionsQuery(
     wheres.push(where('date', '<=', endDate));
   }
   if (category) {
-    wheres.push(where('category', '==', category));
+    wheres.push(where('subcategoryId', '==', category));
   }
   return query(
     TransactionsRepositoryService.makeCollectionRef(userId),

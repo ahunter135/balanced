@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { IonRouterOutlet, ModalController } from '@ionic/angular';
+import { Component, Input, OnInit } from '@angular/core';
+import { ModalController } from '@ionic/angular';
 import {
   Transaction,
   Category,
@@ -8,38 +8,40 @@ import {
 } from 'src/app/types/firestore/user';
 import { FormControl, FormGroup } from '@angular/forms';
 import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
-import { UserRepositoryService } from 'src/app/repositories/user-repository.service';
-import { CategoryRepositoryService } from 'src/app/repositories/category-repository.service';
-import { SubcategoryRepositoryService } from 'src/app/repositories/subcategory-repository.service';
 import { generateRandomId } from 'src/app/utils/generation';
+import { AlertService } from 'src/app/services/alert.service';
+import { SubcategoryRepositoryService } from 'src/app/repositories/subcategory-repository.service';
+
 @Component({
   selector: 'app-add-transaction',
   templateUrl: './add-transaction.component.html',
   styleUrls: ['./add-transaction.component.scss'],
 })
 export class AddTransactionComponent implements OnInit {
+  @Input() categories: Array<Category>;
+  /* User may or may not have their categories attached */
+  @Input() user: User;
+
   newTransactionForm: FormGroup;
   newTransaction: Transaction = {
     date: new Date(),
     id: generateRandomId(),
     amount: 0,
-    category: '',
+    subcategoryId: '',
     name: '',
     merchant_name: '',
     pending: false,
   };
   transactionType: string = 'expense';
   presentingElement: any;
-  categories = [] as Array<Category>;
-  user: User;
-  selectedSub: string;
+  selectedSub: Subcategory;
+  selectedCat: Category;
 
   constructor(
     public modalCtrl: ModalController,
     private transactionRepository: TransactionsRepositoryService,
-    private userRepository: UserRepositoryService,
-    private categoryRepository: CategoryRepositoryService,
     private subcategoryRepository: SubcategoryRepositoryService,
+    private alertService: AlertService,
   ) {
     this.newTransactionForm = new FormGroup({
       amount: new FormControl(this.newTransaction.amount),
@@ -51,53 +53,45 @@ export class AddTransactionComponent implements OnInit {
 
   async setupModal() {
     this.presentingElement = await this.modalCtrl.getTop();
+  }
 
-    // Get Budget Categories
-    const user = await this.userRepository.getCurrentFirestoreUser();
-    if (!user) return; /* Should handle these guards better */
-    this.user = user;
-    /* Grab the user's categories and subcategories */
-    const categories = await this.categoryRepository.getAllFromParent(user.id!);
-    if (!categories) return;
-    this.categories = categories.docs.map((doc) => doc as Category);
-    for (let i = 0; i < this.categories.length; i++) {
-      const subcategories = await this.subcategoryRepository.getAllFromParent(
-        user.id!,
-        this.categories[i].id!
-      );
-      if (!subcategories) {
-        this.categories[i].subcategories = [];
-        continue;
-      }
-      this.categories[i].subcategories = subcategories.docs.map(
-        (doc) => doc as Subcategory
-      );
+  async add() {
+    if (!this.newTransaction.amount ||
+        this.newTransaction.amount == 0) {
+      this.alertService.createAndShowToast('Please enter an amount');
+      return;
     }
-  }
-
-  amountChanged(event: number) {
-    this.newTransaction['amount'] = event;
-  }
-
-  add() {
-    let newTransactionObject = Object.assign({}, this.newTransaction);
+    let newTransactionObject: Transaction | undefined = Object.assign({}, this.newTransaction);
     if (this.transactionType == 'income') {
       newTransactionObject.amount = -1 * newTransactionObject.amount;
     }
     try {
-      this.transactionRepository.add(this.user.id!, this.newTransaction, this.newTransaction.id);
+      /** Adds the transaction to the database
+        * and updates the subcategory actual_amount
+        * atomically
+        */
+      if (!(await this.subcategoryRepository.updateActualAmountAtomic(
+        this.user.id!,
+        this.selectedCat.id!,
+        this.selectedSub.id!,
+        newTransactionObject.amount,
+      ))) {
+        throw new Error('Error updating subcategory actual_amount');
+      }
+      this.transactionRepository.add(this.user.id!, newTransactionObject, newTransactionObject.id!);
     } catch (error) {
       console.log(error);
-    } finally {
-      this.modalCtrl.dismiss();
+      newTransactionObject = undefined;
     }
+    this.modalCtrl.dismiss(newTransactionObject);
   }
 
-  subcategorySelected(ev: any) {
+  subcategorySelected(ev: any, cat: Category) {
     this.modalCtrl.dismiss();
     console.log(ev);
-    this.selectedSub = ev.text;
-    this.newTransaction.category = ev.id;
+    this.selectedSub = ev;
+    this.selectedCat = cat;
+    this.newTransaction.subcategoryId = ev.id;
     this.newTransaction.pending = false;
   }
 }

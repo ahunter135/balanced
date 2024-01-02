@@ -22,16 +22,20 @@
         />
       </ion-item>
       <ion-item lines="none" *ngIf="category.id != 'income'" class="header">
-        <ion-label>{{ subcategory.actual_amount | currency }}</ion-label
-        ><ion-label>spent of</ion-label>
-        <input
+        <div style="display: flex; flex-direction: row; justify-content: space-around; width: 100%">
+          <ion-label style="width: 33%">{{ subcategory.actual_amount | currency }}</ion-label>
+          <ion-label style="width: 33%">Spent of</ion-label>
+          <input
           placeholder="$0.00"
           [(ngModel)]="planned_amount"
           type="decimal"
           (blur)="saveNewAmount()"
           currencyMask
-          [options]="{ prefix: '$ ', thousands: ',', decimal: '.' }"
-        />
+          [options]="{ prefix: '$ ', thousands: ',', decimal: '.', align: 'center', }"
+          style="width: 33%"
+          class="ngx-currency-input"
+          />
+        </div>
       </ion-item>
     </ion-card-content>
   </ion-card>
@@ -46,7 +50,7 @@
             >{{ item.date | date : "MMM. d" }} - {{ item.name }}</ion-label
           >
           <ion-note slot="end">{{
-            parseAmount(item.amount) / 100 | currency
+            parseAmount(item.amount) | currency
           }}</ion-note>
         </ion-item>
       </ion-list>

@@ -1,8 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { ModalController, NavParams } from '@ionic/angular';
 import { User, Transaction, Category, Subcategory } from 'src/app/types/firestore/user';
 import { UserRepositoryService } from 'src/app/repositories/user-repository.service';
-import { query } from 'firebase/firestore';
 import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
 import { buildTransactionsQuery } from 'src/app/helpers/queries/transactions';
 import { dateTransactionSort } from 'src/app/helpers/sorters/user-related-sorters';
@@ -18,9 +17,10 @@ export class ViewSubCategoryComponent implements OnInit {
   category: Category;
   transactions: Array<Transaction> = [];
   user: User | undefined;
-
   isIncome: boolean;
   planned_amount: any;
+
+
   constructor(
     public modalCtrl: ModalController,
     private navParams: NavParams,
@@ -37,8 +37,7 @@ export class ViewSubCategoryComponent implements OnInit {
       if (!user) return;
       this.transactions = await this.getTransactions();
       this.transactions.sort(dateTransactionSort);
-      console.log(this.subcategory);
-      this.planned_amount = this.subcategory.planned_amount / 100;
+      this.planned_amount = this.subcategory.planned_amount;
     });
   }
 
@@ -68,9 +67,11 @@ export class ViewSubCategoryComponent implements OnInit {
       this.category.id!,
       this.subcategory.id!,
       {
-        planned_amount: this.subcategory.planned_amount * 100,
+        planned_amount: this.planned_amount,
       }
     );
+    /* Changing this changes Tab 1's subcategory.planned_amount */
+    this.subcategory.planned_amount = this.planned_amount;
   }
 
   parseAmount(amount: number) {

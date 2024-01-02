@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { CATEGORIES_SUBCOLLECTION_NAME, SUBCATEGORIES_SUBCOLLECTION_NAME, USER_COLLECTION_NAME } from '../constants/firestore/collection-names';
-import { CollectionReference, DocumentData, Query, collection, getFirestore } from 'firebase/firestore';
+import { CollectionReference, DocumentData, Query, collection, doc, getFirestore, runTransaction } from 'firebase/firestore';
 import { SubCollectionRepository } from './subcollection-repository';
 import { Subcategory } from '../types/firestore/user';
 import { FirestoreDocumentQueryResult } from '../types/firestore/doc-data';
@@ -42,6 +42,27 @@ export class SubcategoryRepositoryService
   async update(userId: string, categoryId: string, subcategoryId: string, subcategory: DocumentData): Promise<boolean> {
     subcategory = this.cloneAndRemoveProperties(subcategory);
     return super._update(SubcategoryRepositoryService.makeCollectionRef(userId, categoryId), subcategoryId, subcategory);
+  }
+
+  async updateActualAmountAtomic(
+    userId: string,
+    categoryId: string,
+    subcategoryId: string,
+    amountToAdd: number,
+  ): Promise<boolean> {
+    await runTransaction(getFirestore(), async (t) => {
+      const subcategoryRef = SubcategoryRepositoryService.makeCollectionRef(userId, categoryId);
+      const subcategoryDoc = doc(subcategoryRef, subcategoryId);
+      const subcategory = await t.get(subcategoryDoc);
+      if (!subcategory.exists()) {
+        throw new Error('Subcategory does not exist');
+      }
+      const oldActualAmount = subcategory.data()['actual_amount'];
+      t.update(subcategoryDoc, {
+        actual_amount: oldActualAmount + amountToAdd,
+      });
+    });
+    return true;
   }
 
   async delete(userId: string, categoryId: string, subcategoryId: string, shouldHardDelete: boolean = false): Promise<boolean> {

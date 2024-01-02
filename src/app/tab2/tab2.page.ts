@@ -13,6 +13,7 @@ import { TransactionSorterComponent } from '../modals/transaction-sorter/transac
 import { ModalController } from '@ionic/angular';
 import { UserRepositoryService } from '../repositories/user-repository.service';
 import { generateRandomId } from '../utils/generation';
+import { PlaidService } from '../services/plaid.service';
 
 @Component({
   selector: 'app-tab2',
@@ -30,10 +31,10 @@ export class Tab2Page {
     private http: HttpService,
     private modalCtrl: ModalController,
     private userRepository: UserRepositoryService,
+    private plaidService: PlaidService,
   ) {}
 
   ngOnInit() {
-    // this.getInstitutionName();
     this.getInstitutions();
   }
 
@@ -86,66 +87,7 @@ export class Tab2Page {
   }
 
   async link() {
-    this.http
-      .post(
-        'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/createPlaidLinkToken',
-        {
-
-          user_id: this.userRepository.getCurrentUserId()!,
-        }
-      )
-      .subscribe((resp) => {
-        console.log(resp);
-        const handler = Plaid.create({
-          token: resp.link_token,
-          onSuccess: (public_token: string, metadata: any) => {
-            this.http
-              .post(
-                'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/exchangePublicToken',
-                { public_token }
-              )
-              .subscribe(async (resp) => {
-                console.log(resp);
-                /**
-              {
-                access_token: "access-sandbox-477ca4f5-493b-486b-b18e-9e339f501da6" This is the required access token to make requests
-                error: null
-                item_id: "yQkDd5JLpVIK14D4WR5JCVDvKwDzDztyvaBD5" This is the financial institution
-              }
-             */
-                const accessToken = resp.access_token;
-                const institution = resp.item_id;
-                const id = generateRandomId();
-                const name = await this.getInstitutionName(accessToken);
-                setDoc(
-                  doc(
-                    getFirestore(),
-                    'users/',
-                    this.userRepository.getCurrentUserId()!,
-                    'linked_accounts',
-                    id
-                  ),
-                  {
-                    access_token: accessToken,
-                    institution,
-                    name,
-                    id,
-                  }
-                );
-              });
-          },
-          onLoad: () => {
-            // This fires when the Plaid Prompt shows up for the first time
-          },
-          onExit: (err: any, metadata: any) => {},
-          onEvent: (eventName: any, metadata: any) => {
-            // This fires any time something happens within the Plaid Prompt
-          },
-          //required for OAuth; if not using OAuth, set to null or omit:
-          receivedRedirectUri: null,
-        });
-        handler.open();
-      });
+    this.plaidService.linkPlaidToUser();
   }
 
   async getInstitutions() {
@@ -167,21 +109,5 @@ export class Tab2Page {
         this.retrieveTransactions();
       }
     }
-  }
-  async getInstitutionName(token: string) {
-    return new Promise((resolve, reject) => {
-      this.http
-        .post(
-          'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/getInstitutionName',
-          {
-            accessToken: token,
-          }
-        )
-        .subscribe((resp) => {
-          console.log(resp);
-          this.institutionName = resp.name;
-          resolve(resp.name);
-        });
-    });
   }
 }

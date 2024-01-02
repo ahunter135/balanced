@@ -41,6 +41,7 @@
             type="decimal"
             currencyMask
             [options]="{ prefix: '$ ', thousands: ',', decimal: '.' }"
+            class="ngx-currency-input"
           />
         </ion-item>
         <ion-item>
@@ -79,7 +80,7 @@
         <ion-item button id="open-modal">
           <ion-label>Budget Category</ion-label>
           <br />
-          <p *ngIf="newTransaction.category">{{ selectedSub }}</p>
+          <p *ngIf="newTransaction.subcategoryId">{{ selectedSub.text }}</p>
         </ion-item>
       </ion-list>
     </ion-card-content>
@@ -100,12 +101,12 @@
         </ion-toolbar>
       </ion-header>
       <ion-content>
-        <span *ngFor="let cat of user.categories">
+        <span *ngFor="let cat of categories">
           <app-category
             [category]="cat"
             [isChecklist]="true"
             [subcategories]="cat.subcategories || []"
-            (subcategorySelected)="subcategorySelected($event)"
+            (subcategorySelected)="subcategorySelected($event, cat)"
           ></app-category>
         </span>
       </ion-content>

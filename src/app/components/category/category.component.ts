@@ -4,6 +4,7 @@ import {
   Input,
   OnInit,
   Output,
+  SimpleChanges,
   ViewChild,
 } from '@angular/core';
 import {
@@ -17,7 +18,7 @@ import {
 } from '@angular/fire/firestore';
 import { IonInput } from '@ionic/angular';
 import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
-import { AuthService } from 'src/app/services/auth.service';
+import { UserRepositoryService } from 'src/app/repositories/user-repository.service';
 
 @Component({
   selector: 'app-category',
@@ -39,14 +40,19 @@ export class CategoryComponent implements OnInit {
   checker: any;
   constructor(
     private transactionRepositoryService: TransactionsRepositoryService,
-    private authService: AuthService,
+    private userRepository: UserRepositoryService,
   ) {}
 
   ngOnInit() {
-    // Get all relevent transactions
-    this.getTransactionsThenCalculate();
-
     this.checkDOMChange();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['category'] &&
+       changes['category'].currentValue &&
+       this.userRepository.getCurrentUserId()) {
+      this.getTransactionsThenCalculate();
+    }
   }
 
   addNewSub() {
@@ -91,25 +97,23 @@ export class CategoryComponent implements OnInit {
     for (let i = 0; i < this.subcategories.length; i++) {
       let transactions = await this.transactionRepositoryService.getByQuery(
         query(
-          TransactionsRepositoryService.makeCollectionRef(this.authService.currentUserId!),
-          where('category', '==', this.subcategories[i].id)
+          TransactionsRepositoryService.makeCollectionRef(this.userRepository.getCurrentUserId()!),
+          where('subcategoryId', '==', this.subcategories[i].id)
         )
       );
 
-      console.log(transactions.docs);
       this.calculate(transactions.docs, this.subcategories[i]);
     }
   }
 
   calculate(transactions: Array<Transaction>, subcategory: Subcategory) {
-    let planned_amount = subcategory.planned_amount;
     let total = 0;
     for (let i = 0; i < transactions.length; i++) {
       const transaction = transactions[i];
       const cost = transaction.amount;
       total += cost;
     }
-    subcategory.actual_amount = total / 100;
+    subcategory.actual_amount = total;
   }
 
   selectSubCategory(index: number) {

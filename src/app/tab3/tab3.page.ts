@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
 import { HttpService } from '../services/http.service';
-import { setDoc, doc, getFirestore } from '@angular/fire/firestore';
 import { UserRepositoryService } from '../repositories/user-repository.service';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { AlertService } from '../services/alert.service';
-import { generateRandomId } from '../utils/generation';
+import { PlaidService } from '../services/plaid.service';
 
 @Component({
   selector: 'app-tab3',
@@ -14,85 +13,17 @@ import { generateRandomId } from '../utils/generation';
 })
 export class Tab3Page {
   institutionName: string;
+
   constructor(
-    private http: HttpService,
     private userRepository: UserRepositoryService,
     private authService: AuthService,
     private router: Router,
     private alertService: AlertService,
+    private plaidService: PlaidService,
   ) {}
 
   async link() {
-    this.http
-      .post(
-        '',
-        {
-          user_id: this.userRepository.getCurrentUserId()!,
-        }
-      )
-      .subscribe((resp) => {
-        console.log(resp);
-        const handler = Plaid.create({
-          token: resp.link_token,
-          onSuccess: (public_token: string, metadata: any) => {
-            this.http
-              .post(
-                'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/exchangePublicToken',
-                { public_token }
-              )
-              .subscribe(async (resp) => {
-                console.log(resp);
-
-                const accessToken = resp.access_token;
-                const institution = resp.item_id;
-                const id = generateRandomId();
-                const name = await this.getInstitutionName(accessToken);
-                setDoc(
-                  doc(
-                    getFirestore(),
-                    'users/',
-                    this.userRepository.getCurrentUserId()!,
-                    'linked_accounts',
-                    id
-                  ),
-                  {
-                    access_token: accessToken,
-                    institution,
-                    name,
-                    id,
-                  }
-                );
-              });
-          },
-          onLoad: () => {
-            // This fires when the Plaid Prompt shows up for the first time
-          },
-          onExit: (err: any, metadata: any) => {},
-          onEvent: (eventName: any, metadata: any) => {
-            // This fires any time something happens within the Plaid Prompt
-          },
-          //required for OAuth; if not using OAuth, set to null or omit:
-          receivedRedirectUri: null,
-        });
-        handler.open();
-      });
-  }
-
-  async getInstitutionName(token: string) {
-    return new Promise((resolve, reject) => {
-      this.http
-        .post(
-          'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/getInstitutionName',
-          {
-            accessToken: token,
-          }
-        )
-        .subscribe((resp) => {
-          console.log(resp);
-          this.institutionName = resp.name;
-          resolve(resp.name);
-        });
-    });
+    this.plaidService.linkPlaidToUser();
   }
 
   async signOut() {
