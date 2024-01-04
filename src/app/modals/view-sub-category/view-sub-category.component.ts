@@ -1,20 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  getFirestore,
-  query,
-  updateDoc,
-  where,
-} from '@angular/fire/firestore';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { ModalController, NavParams } from '@ionic/angular';
-import { Category } from 'src/app/interfaces/category';
-import { Subcategory } from 'src/app/interfaces/subcategory';
-import { Transaction } from 'src/app/interfaces/transaction';
-import { User } from 'src/app/interfaces/user';
-import { UserService } from 'src/app/services/user.service';
+import { User, Transaction, Category, Subcategory } from 'src/app/types/firestore/user';
+import { UserRepositoryService } from 'src/app/repositories/user-repository.service';
+import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
+import { buildTransactionsQuery } from 'src/app/helpers/queries/transactions';
+import { dateTransactionSort } from 'src/app/helpers/sorters/user-related-sorters';
+import { SubcategoryRepositoryService } from 'src/app/repositories/subcategory-repository.service';
 
 @Component({
   selector: 'app-view-sub-category',
@@ -25,79 +16,72 @@ export class ViewSubCategoryComponent implements OnInit {
   subcategory: Subcategory;
   category: Category;
   transactions: Array<Transaction> = [];
-  isIncome: boolean;
-  user: User;
+  user: User | undefined;
   planned_amount: any;
+
+
   constructor(
     public modalCtrl: ModalController,
     private navParams: NavParams,
-    private userService: UserService
+    private userRepository: UserRepositoryService,
+    private transactionRepository: TransactionsRepositoryService,
+    private subCategoryRepository: SubcategoryRepositoryService,
   ) {}
 
   ngOnInit() {
     this.subcategory = this.navParams.get('subcategory');
+    if (this.subcategory.id === 'income') {
+    }
     this.category = this.navParams.get('category');
-    console.log(this.subcategory);
-    this.planned_amount = this.subcategory.planned_amount / 100;
-    this.getData();
-  }
-
-  async getData() {
-    this.transactions = [];
-    let transactionsSnapshot = await getDocs(
-      query(
-        collection(
-          getFirestore(),
-          'users',
-          this.userService.getActiveUser()?.uid as string,
-          'transactions'
-        ),
-        where('category', '==', this.subcategory.id)
-      )
-    );
-
-    transactionsSnapshot.forEach((element) => {
-      this.transactions.push(element.data() as Transaction);
+    this.userRepository.getCurrentFirestoreUser().then(async (user) => {
+      this.user = user;
+      if (!user) return;
+      this.transactions = await this.getTransactions();
+      this.transactions.sort(dateTransactionSort);
+      if (this.category.id === 'income') {
+        this.planned_amount = -1 * this.subcategory.planned_amount;
+      } else {
+        this.planned_amount = this.subcategory.planned_amount;
+      }
     });
   }
 
-  async saveNewAmount() {
-    let amount = this.planned_amount;
-    this.user = this.userService.getActiveUser() as User;
-    for (let i = 0; i < this.user.categories.length; i++) {
-      if (this.user.categories[i].id == this.category.id) {
-        for (let j = 0; j < this.user.categories[i].subcategories.length; j++) {
-          if (
-            this.user.categories[i].subcategories[j].id == this.subcategory.id
-          ) {
-            const updatedSubcategory = Object.assign(
-              {},
-              this.user.categories[i].subcategories[j]
-            );
+  /* IDEA: Should grab only some transactions, not all.
+   * Can do this easily, but later on if want to implement
+   */
+  async getTransactions(): Promise<Array<Transaction>> {
+    if (!this.user || !this.user.id) return [];
 
-            // Update the planned_amount in the copy
-            updatedSubcategory.planned_amount = amount * 100;
-
-            // Replace the original subcategory with the updated copy
-            this.user.categories[i].subcategories[j] = updatedSubcategory;
-            break;
-          }
-        }
-      }
-    }
-    updateDoc(
-      doc(
-        getFirestore(),
-        'users',
-        this.userService.getActiveUser()?.uid as string
-      ),
-      {
-        categories: this.user.categories,
-      }
+    const q = buildTransactionsQuery(
+      this.user.id,
+      true,
+      true,
+      null,
+      null,
+      this.subcategory.id
     );
+    const querySnapshot = await this.transactionRepository.getByQuery(q);
+    return querySnapshot.docs;
   }
 
-  parseAmount(amount: number) {
-    return -1 * amount;
+  /* Save new planned amount to the database */
+  async saveNewAmount() {
+    if (!this.user || !this.user.id) return;
+    if (this.category.id === undefined) return;
+    let planned_amount = this.planned_amount;
+    if (this.category.id == 'income') {
+      planned_amount = -1 * this.planned_amount;
+    }
+
+    this.subCategoryRepository.update(
+      this.user.id,
+      this.category.id!,
+      this.subcategory.id!,
+      {
+        planned_amount: planned_amount,
+      }
+    );
+    /* Changing this changes Tab 1's subcategory.planned_amount */
+    this.subcategory.planned_amount = planned_amount;
   }
 }

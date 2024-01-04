@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { signInWithEmailAndPassword, getAuth } from '@angular/fire/auth';
 import { Router } from '@angular/router';
+import { AlertService } from 'src/app/services/alert.service';
+import { AuthService } from 'src/app/services/auth.service';
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
@@ -11,20 +12,20 @@ export class LoginPage implements OnInit {
     email: '',
     password: '',
   };
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private alertService: AlertService,
+  ) {}
 
   ngOnInit() {}
 
   async login() {
     try {
-      await signInWithEmailAndPassword(
-        getAuth(),
-        this.user.email,
-        this.user.password
-      );
+      await this.authService.login(this.user.email, this.user.password);
       this.router.navigateByUrl('');
-    } catch (error) {
-      alert(error);
+    } catch (error: any) {
+      this.alertService.createAndShowToast(error.message);
     }
   }
 

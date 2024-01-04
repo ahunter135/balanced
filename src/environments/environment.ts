@@ -12,9 +12,10 @@ export const environment = {
     messagingSenderId: '51779442445',
     measurementId: 'G-X448BHFKZT',
   },
-  production: false
+  production: false,
+  useFirestoreEmulator: true,
+  useFirebaseAuthEmulator: true,
 };
-
 /*
  * For easier debugging in development mode, you can import the following file
  * to ignore zone related error stack frames such as `zone.run`, `zoneDelegate.invokeTask`.

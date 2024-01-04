@@ -31,3 +31,12 @@ ion-content {
 .is-hovering {
   --background: #bcbcbc;
 }
+
+.ngx-currency-input {
+  background: #fff;
+  border: none;
+}
+
+.ngx-currency-input:focus {
+  outline: none;
+}
