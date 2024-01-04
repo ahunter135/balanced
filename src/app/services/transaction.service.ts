@@ -37,7 +37,7 @@ export class TransactionService {
     let transactions: Transaction[] = [];
     let plaidsTransactions: Transaction[] | null = null;
     if (getFromPlaid) {
-      plaidsTransactions = await this.getTransactionsFromPlaid();
+      plaidsTransactions = await this.getTransactionsFromPlaid(startDate, endDate);
     }
     const query = buildTransactionsQuery(
       userId,
@@ -47,6 +47,7 @@ export class TransactionService {
       endDate,
     );
     transactions = (await this.transactionRepository.getByQuery(query)).docs;
+    console.log(transactions);
 
     if (plaidsTransactions) {
       /* Filter out the transactions that don't match the query */
@@ -73,8 +74,8 @@ export class TransactionService {
   }
 
   /* A wrapper in case we need to preprocess some */
-  private async getTransactionsFromPlaid(): Promise<Transaction[]> {
-    return this.plaidService.getTransactionsFromPlaid();
+  private async getTransactionsFromPlaid(startDate: Date | null, endDate: Date | null): Promise<Transaction[]> {
+    return this.plaidService.syncPlaidTransactions(startDate, endDate);
   }
 
 }

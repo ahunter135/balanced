@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { connectAuthEmulator, getAuth } from 'firebase/auth';
 import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
+import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -25,6 +26,11 @@ export class AppComponent {
       const auth = getAuth();
       connectAuthEmulator(auth, 'http://localhost:9099');
       console.warn("Using the Firebase Auth emulator.");
+    }
+    if (!environment.production && environment.useFunctionsEmulator) {
+      const functions = getFunctions();
+      connectFunctionsEmulator(functions, 'localhost', 5001);
+      console.warn("Using the Firebase Functions emulator.");
     }
   }
 }

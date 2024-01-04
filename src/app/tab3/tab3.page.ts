@@ -1,6 +1,4 @@
 import { Component } from '@angular/core';
-import { HttpService } from '../services/http.service';
-import { UserRepositoryService } from '../repositories/user-repository.service';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { AlertService } from '../services/alert.service';
@@ -15,7 +13,6 @@ export class Tab3Page {
   institutionName: string;
 
   constructor(
-    private userRepository: UserRepositoryService,
     private authService: AuthService,
     private router: Router,
     private alertService: AlertService,

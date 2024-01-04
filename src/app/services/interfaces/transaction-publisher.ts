@@ -26,6 +26,7 @@ export interface ITransactionSubscriber {
   * the event by passing this object to the publisher.
   */
 export type TransactionEvent = {
+  from: 'plaid' | 'manual',
   addedTransactions: Transaction[],
   removedTransactions: Transaction[],
   modifiedTransactions: Transaction[]

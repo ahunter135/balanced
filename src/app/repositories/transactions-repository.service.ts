@@ -5,8 +5,6 @@ import { Transaction } from '../types/firestore/user';
 import { CollectionReference, DocumentData, Query, Timestamp, collection, getFirestore } from 'firebase/firestore';
 import { FirestoreDocumentQueryResult } from '../types/firestore/doc-data';
 import { ISubCollectionRepository } from './interfaces/repository';
-import { doc, runTransaction } from 'firebase/firestore';
-import { SubcategoryRepositoryService } from './subcategory-repository.service';
 
 @Injectable({
   providedIn: 'root'

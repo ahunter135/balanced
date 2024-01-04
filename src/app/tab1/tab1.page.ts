@@ -160,9 +160,10 @@ export class Tab1Page implements ITransactionSubscriber {
       }
     }
 
-    console.log(actualAmountSpent);
     this.plannedIncome = incomePlannedAmount;
     this.leftToBudget = (-1 * this.plannedIncome) - expensePlannedAmount;
+    if (this.leftToBudget <= -0 && this.leftToBudget > -0.01)
+      this.leftToBudget = 0; // -0 shows up sometimes
     this.remainingToSpend = (-1 * this.plannedIncome) - actualAmountSpent;
   }
 

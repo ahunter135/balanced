@@ -81,6 +81,7 @@ export class AddTransactionComponent implements OnInit {
       }
       this.transactionRepository.add(this.user.id!, newTransactionObject, newTransactionObject.id!);
       this.transactionPublisher.publishEvent({
+        from: 'manual',
         addedTransactions: [newTransactionObject],
         removedTransactions: [],
         modifiedTransactions: [],

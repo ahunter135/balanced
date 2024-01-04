@@ -9,14 +9,18 @@ import time
 def openBrowser(url):
     webbrowser.open(url)
 
+
 def runCommand(command):
     os.system(command)
 
+
 AUTH_EMULATOR_BOOL_VARIABLE = "useFirebaseAuthEmulator"
 FIRESTORE_EMULATOR_BOOL_VARIABLE = "useFirestoreEmulator"
+FUNCTIONS_EMULATOR_BOOL_VARIABLE = "useFunctionsEmulator"
 
 FIREBASE_CLI_FIRESTORE_EMULATOR_NAME = "firestore"
 FIREBASE_CLI_AUTH_EMULATOR_NAME = "auth"
+FIREBASE_CLI_FUNCTIONS_EMULATOR_NAME = "functions"
 
 # Figure out what emulators to use
 emulators = []
@@ -30,6 +34,9 @@ for line in text:
     if FIRESTORE_EMULATOR_BOOL_VARIABLE in line:
         if "true" in line:
             emulators.append(FIREBASE_CLI_FIRESTORE_EMULATOR_NAME)
+    if FUNCTIONS_EMULATOR_BOOL_VARIABLE in line:
+        if "true" in line:
+            emulators.append(FIREBASE_CLI_FUNCTIONS_EMULATOR_NAME)
 os.close(envFile)
 
 commandString = "firebase emulators:start --only " + ",".join(emulators)
