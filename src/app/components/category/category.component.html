@@ -1,8 +1,8 @@
 <ion-card>
   <ion-card-header>
-    <ion-card-subtitle id="subtitle"
-      ><span id="title">{{ category.id }}</span
-      ><span id="category" *ngIf="!isChecklist">{{ currentView }}</span>
+    <ion-card-subtitle id="subtitle">
+      <span id="title">{{ category.id }}</span>
+      <span id="category" *ngIf="!isChecklist">Remaining</span>
     </ion-card-subtitle>
   </ion-card-header>
   <ion-card-content>
@@ -21,9 +21,8 @@
           >
             <ion-label>{{ sub.text }}</ion-label>
             <ion-note style="text-align: end">{{
-              currentView === "budgeted"
-                ? (sub.planned_amount | currency)
-                : (sub.actual_amount | currency)
+                getSubcategoryRemainingAmount(sub)
+                | currency
             }}</ion-note>
           </span>
           <span *ngIf="sub.isEditing" class="new-sub">
@@ -36,9 +35,8 @@
               #nameInput
             ></ion-input>
             <ion-note style="text-align: end">{{
-              currentView === "budgeted"
-                ? (sub.planned_amount | currency)
-                : (sub.actual_amount | currency)
+                getSubcategoryRemainingAmount(sub)
+                | currency
             }}</ion-note>
           </span>
         </ion-item>

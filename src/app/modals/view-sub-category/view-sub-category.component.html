@@ -10,16 +10,20 @@
   <ion-card>
     <ion-card-content>
       <ion-item lines="none" *ngIf="category.id == 'income'" class="header">
-        <ion-label>{{ subcategory.actual_amount * -1 | currency }} </ion-label
-        ><ion-label>received of</ion-label
-        ><input
+        <div style="display: flex; flex-direction: row; justify-content: space-around; width: 100%">
+          <ion-label style="width: 33%;">{{ subcategory.actual_amount * -1 | currency }} </ion-label>
+          <ion-label style="width: 33%;">Received of</ion-label>
+          <input
           placeholder="$0.00"
           [(ngModel)]="planned_amount"
           type="decimal"
           (blur)="saveNewAmount()"
           currencyMask
           [options]="{ prefix: '$ ', thousands: ',', decimal: '.' }"
-        />
+          style="width: 33%"
+          class="ngx-currency-input"
+          />
+        </div>
       </ion-item>
       <ion-item lines="none" *ngIf="category.id != 'income'" class="header">
         <div style="display: flex; flex-direction: row; justify-content: space-around; width: 100%">
@@ -50,7 +54,7 @@
             >{{ item.date | date : "MMM. d" }} - {{ item.name }}</ion-label
           >
           <ion-note slot="end">{{
-            parseAmount(item.amount) | currency
+            (item.amount * -1) | currency
           }}</ion-note>
         </ion-item>
       </ion-list>

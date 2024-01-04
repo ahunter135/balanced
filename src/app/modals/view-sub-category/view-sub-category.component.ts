@@ -17,7 +17,6 @@ export class ViewSubCategoryComponent implements OnInit {
   category: Category;
   transactions: Array<Transaction> = [];
   user: User | undefined;
-  isIncome: boolean;
   planned_amount: any;
 
 
@@ -31,13 +30,19 @@ export class ViewSubCategoryComponent implements OnInit {
 
   ngOnInit() {
     this.subcategory = this.navParams.get('subcategory');
+    if (this.subcategory.id === 'income') {
+    }
     this.category = this.navParams.get('category');
     this.userRepository.getCurrentFirestoreUser().then(async (user) => {
       this.user = user;
       if (!user) return;
       this.transactions = await this.getTransactions();
       this.transactions.sort(dateTransactionSort);
-      this.planned_amount = this.subcategory.planned_amount;
+      if (this.category.id === 'income') {
+        this.planned_amount = -1 * this.subcategory.planned_amount;
+      } else {
+        this.planned_amount = this.subcategory.planned_amount;
+      }
     });
   }
 
@@ -49,7 +54,8 @@ export class ViewSubCategoryComponent implements OnInit {
 
     const q = buildTransactionsQuery(
       this.user.id,
-      false,
+      true,
+      true,
       null,
       null,
       this.subcategory.id
@@ -61,20 +67,21 @@ export class ViewSubCategoryComponent implements OnInit {
   /* Save new planned amount to the database */
   async saveNewAmount() {
     if (!this.user || !this.user.id) return;
+    if (this.category.id === undefined) return;
+    let planned_amount = this.planned_amount;
+    if (this.category.id == 'income') {
+      planned_amount = -1 * this.planned_amount;
+    }
 
     this.subCategoryRepository.update(
       this.user.id,
       this.category.id!,
       this.subcategory.id!,
       {
-        planned_amount: this.planned_amount,
+        planned_amount: planned_amount,
       }
     );
     /* Changing this changes Tab 1's subcategory.planned_amount */
-    this.subcategory.planned_amount = this.planned_amount;
-  }
-
-  parseAmount(amount: number) {
-    return -1 * amount;
+    this.subcategory.planned_amount = planned_amount;
   }
 }

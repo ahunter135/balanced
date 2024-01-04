@@ -11,6 +11,7 @@ import { TransactionsRepositoryService } from 'src/app/repositories/transactions
 import { generateRandomId } from 'src/app/utils/generation';
 import { AlertService } from 'src/app/services/alert.service';
 import { SubcategoryRepositoryService } from 'src/app/repositories/subcategory-repository.service';
+import { TransactionPublisherService } from 'src/app/services/transaction-publisher.service';
 
 @Component({
   selector: 'app-add-transaction',
@@ -32,7 +33,6 @@ export class AddTransactionComponent implements OnInit {
     merchant_name: '',
     pending: false,
   };
-  transactionType: string = 'expense';
   presentingElement: any;
   selectedSub: Subcategory;
   selectedCat: Category;
@@ -42,6 +42,7 @@ export class AddTransactionComponent implements OnInit {
     private transactionRepository: TransactionsRepositoryService,
     private subcategoryRepository: SubcategoryRepositoryService,
     private alertService: AlertService,
+    private transactionPublisher: TransactionPublisherService,
   ) {
     this.newTransactionForm = new FormGroup({
       amount: new FormControl(this.newTransaction.amount),
@@ -61,8 +62,8 @@ export class AddTransactionComponent implements OnInit {
       this.alertService.createAndShowToast('Please enter an amount');
       return;
     }
-    let newTransactionObject: Transaction | undefined = Object.assign({}, this.newTransaction);
-    if (this.transactionType == 'income') {
+    let newTransactionObject: Transaction = Object.assign({}, this.newTransaction);
+    if (this.selectedCat.id == 'income') {
       newTransactionObject.amount = -1 * newTransactionObject.amount;
     }
     try {
@@ -79,11 +80,15 @@ export class AddTransactionComponent implements OnInit {
         throw new Error('Error updating subcategory actual_amount');
       }
       this.transactionRepository.add(this.user.id!, newTransactionObject, newTransactionObject.id!);
+      this.transactionPublisher.publishEvent({
+        addedTransactions: [newTransactionObject],
+        removedTransactions: [],
+        modifiedTransactions: [],
+      });
     } catch (error) {
       console.log(error);
-      newTransactionObject = undefined;
     }
-    this.modalCtrl.dismiss(newTransactionObject);
+    this.modalCtrl.dismiss();
   }
 
   subcategorySelected(ev: any, cat: Category) {

@@ -1,4 +1,3 @@
-import { Timestamp } from "firebase/firestore";
 import { NumberMonthYear } from "../dates/dates";
 import { FirestoreDocument } from "./doc-data";
 

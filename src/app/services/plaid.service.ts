@@ -4,7 +4,6 @@ import { LinkedAccountsRepositoryService } from '../repositories/linked-accounts
 import { UserRepositoryService } from '../repositories/user-repository.service';
 import { Transaction } from '../types/firestore/user';
 import { forkJoin, lastValueFrom } from 'rxjs';
-import { dateTransactionSort } from '../helpers/sorters/user-related-sorters';
 import { TransactionsRepositoryService } from '../repositories/transactions-repository.service';
 import {
   CREATE_PLAID_LINK_TOKEN_URL,
@@ -15,6 +14,7 @@ import {
 import { PlaidHandler, PlaidOnSuccessMetadata, PlaidTransaction } from '../types/plaid/plaid';
 import { plaidTransactionToFirestoreTransaction } from '../helpers/mappers/transactions';
 import { generateRandomId } from '../utils/generation';
+import { TransactionPublisherService } from './transaction-publisher.service';
 
 declare var Plaid: any;
 
@@ -28,6 +28,7 @@ export class PlaidService {
     private linkedAccountsRepository: LinkedAccountsRepositoryService,
     private transactionRepository: TransactionsRepositoryService,
     private userRepository: UserRepositoryService,
+    private transactionPublisher: TransactionPublisherService,
   ) {
   }
 
@@ -46,8 +47,6 @@ export class PlaidService {
   }
 
   async getTransactionsFromPlaid(): Promise<Transaction[]> {
-    let transactions: PlaidTransaction[] = [];
-
     /* Step 1: Get the user's linked accounts */
     const linkedAccounts = (await this.linkedAccountsRepository.getAllFromParent(
       this.userRepository.getCurrentUserId()!
@@ -72,13 +71,16 @@ export class PlaidService {
     }
 
     /* Step 3: Get the transactions from http responses */
+    let addedTransactions: PlaidTransaction[] = [];
+    let removedTransactions: PlaidTransaction[] = [];
+    let modifiedTransactions: PlaidTransaction[] = [];
     forkJoin(promises).subscribe((responses) => {
       responses.forEach((resp, index) => {
         const linkedAccount = linkedAccounts[index]; /* TODO: Make sure this is the right index */
-        const newTransactions: PlaidTransaction[] = resp.added;
-        newTransactions.sort(dateTransactionSort);
-        /* TODO: Remove old transactions? */
-        transactions = transactions.concat(newTransactions);
+        addedTransactions = addedTransactions.concat(resp.added);
+        removedTransactions = removedTransactions.concat(resp.removed);
+        modifiedTransactions = modifiedTransactions.concat(resp.modified);
+        /* Update the cursor and last transaction retrieval date */
         this.linkedAccountsRepository.update(
           this.userRepository.getCurrentUserId()!,
           linkedAccount.id!,
@@ -89,12 +91,30 @@ export class PlaidService {
         );
       });
     });
-    const mappedTransactions = transactions.map(plaidTransactionToFirestoreTransaction);
+    const addedTransactionsFB: Transaction[] = addedTransactions.map(
+      plaidTransactionToFirestoreTransaction);
+    const removedTransactionsFB: Transaction[] = removedTransactions.map(
+      plaidTransactionToFirestoreTransaction);
+    const modifiedTransactionsFB: Transaction[] = modifiedTransactions.map(
+      plaidTransactionToFirestoreTransaction);
     /* Add new transactions to the database */
-    mappedTransactions.forEach(async (t) => {
-      this.transactionRepository.add(this.userRepository.getCurrentUserId()!, t);
+    addedTransactionsFB.forEach(async (t) => {
+      this.transactionRepository.add(this.userRepository.getCurrentUserId()!, t, t.id!);
     });
-    return mappedTransactions;
+    /* Remove transactions from the database */
+    removedTransactionsFB.forEach(async (t) => {
+      this.transactionRepository.delete(this.userRepository.getCurrentUserId()!, t.id!);
+    });
+    /* Update transactions in the database */
+    modifiedTransactionsFB.forEach(async (t) => {
+      this.transactionRepository.update(this.userRepository.getCurrentUserId()!, t.id!, t);
+    });
+    this.transactionPublisher.publishEvent({
+      addedTransactions: addedTransactionsFB,
+      removedTransactions: removedTransactionsFB,
+      modifiedTransactions: modifiedTransactionsFB,
+    });
+    return addedTransactionsFB;
   }
 
   async getInstitutionName(token: string): Promise<string> {

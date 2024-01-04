@@ -8,6 +8,15 @@ export function getNumberMonthYearFromDate(date?: Date): NumberMonthYear {
   };
 }
 
+export function getStartAndEndOfMonth(date?: Date | NumberMonthYear): { start: Date, end: Date } {
+  if (!date) date = new Date();
+  if (!(date instanceof Date)) date = new Date(date.year, date.month, 1);
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0,
+                      23, 59, 59, 999);
+  return { start, end };
+}
+
 export function getMonthYearLocaleString(date?: Date | NumberMonthYear): LocaleStringMonthYear {
   if (!date) date = new Date();
   if (!(date instanceof Date)) date = new Date(date.year, date.month, 1);

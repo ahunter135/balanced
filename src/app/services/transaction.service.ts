@@ -25,7 +25,8 @@ export class TransactionService {
   * @returns An array of transactions.
   */
   async getTransactions(
-    pendingOnly: boolean,
+    includePending: boolean,
+    includeNonPending: boolean,
     getFromPlaid: boolean = false,
     startDate: Date | null = null,
     endDate: Date | null = null,
@@ -40,7 +41,8 @@ export class TransactionService {
     }
     const query = buildTransactionsQuery(
       userId,
-      pendingOnly,
+      includePending,
+      includeNonPending,
       startDate,
       endDate,
     );
@@ -50,8 +52,11 @@ export class TransactionService {
       /* Filter out the transactions that don't match the query */
       plaidsTransactions = plaidsTransactions.filter((t) => {
         let isValid = true;
-        if (pendingOnly) {
+        if (includePending) {
           isValid = isValid && t.pending;
+        }
+        if (!includePending) {
+          isValid = isValid && !t.pending;
         }
         if (startDate) {
           isValid = isValid && t.date >= startDate;

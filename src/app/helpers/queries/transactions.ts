@@ -3,14 +3,18 @@ import { TransactionsRepositoryService } from 'src/app/repositories/transactions
 
 export function buildTransactionsQuery(
   userId: string,
-  pendingOnly: boolean,
+  includePending: boolean,
+  includeNonPending: boolean,
   startDate: Date | null,
   endDate: Date | null,
   category: string | null = null,
 ): Query {
   let wheres: any[] = [];
-  if (pendingOnly) {
+  if (includePending) {
     wheres.push(where('pending', '==', true));
+  }
+  if (includeNonPending) {
+    wheres.push(where('pending', '==', false));
   }
   if (startDate) {
     wheres.push(where('date', '>=', startDate));

@@ -8,7 +8,7 @@ export function plaidTransactionToFirestoreTransaction(
     id: plaidTransaction.transaction_id,
     amount: plaidTransaction.amount,
     subcategoryId: '',
-    date: plaidTransaction.date,
+    date: new Date(plaidTransaction.datetime),
     merchant_name: plaidTransaction.merchant_name,
     name: plaidTransaction.name,
     pending: plaidTransaction.pending,

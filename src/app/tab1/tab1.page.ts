@@ -10,16 +10,18 @@ import { ModalController, PickerController } from '@ionic/angular';
 import { TransactionSorterComponent } from '../modals/transaction-sorter/transaction-sorter.component';
 import { ViewSubCategoryComponent } from '../modals/view-sub-category/view-sub-category.component';
 import { LocaleStringMonthYear, NumberMonthYear } from '../types/dates/dates';
-import { getMonthYearLocaleString, getNumberMonthYearFromDate } from '../helpers/formatters/dates';
+import { getMonthYearLocaleString, getNumberMonthYearFromDate, getStartAndEndOfMonth } from '../helpers/formatters/dates';
 import { UserRepositoryService } from '../repositories/user-repository.service';
-import { defaultCategorySort } from '../helpers/sorters/user-related-sorters';
+import { dateTransactionSort, defaultCategorySort } from '../helpers/sorters/user-related-sorters';
 import { CategoryRepositoryService } from '../repositories/category-repository.service';
 import { SubcategoryRepositoryService } from '../repositories/subcategory-repository.service';
 import { buildSubcategoryByDateQuery } from '../helpers/queries/subcategories';
 import { MONTH_NAMES_AND_VALUES, PICKER_YEAR_NAMES_AND_VALUES } from '../constants/dates/dates';
-import { TransactionsRepositoryService } from '../repositories/transactions-repository.service';
 import { TransactionService } from '../services/transaction.service';
 import { AddTransactionComponent } from '../modals/add-transaction/add-transaction.component';
+import { TransactionPublisherService } from '../services/transaction-publisher.service';
+import { ITransactionSubscriber, TransactionEvent } from '../services/interfaces/transaction-publisher';
+import { ObjValueMap } from '../utils/data-structures';
 
 @Component({
   selector: 'app-tab1',
@@ -27,16 +29,18 @@ import { AddTransactionComponent } from '../modals/add-transaction/add-transacti
   styleUrls: ['tab1.page.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class Tab1Page {
+export class Tab1Page implements ITransactionSubscriber {
   /* Chosen year and month to display and budget for */
   private _chosenDate: LocaleStringMonthYear;
   private _chosenDateNumber: NumberMonthYear;
 
   user?: User;
-  transactions: Array<Transaction> = [];
+  /* Map of transactions by month and year to easily separate them */
+  transactions: ObjValueMap<NumberMonthYear, Array<Transaction>>;
+  /* Map of categories by month and year to easily separate them */
+  categories: ObjValueMap<NumberMonthYear, Array<Category>>;
 
   institutionName: string = '';
-  currentView: string = 'budgeted';
   isCardContainerVisible: boolean = false;
   plannedIncome: number = 0;
   leftToBudget: number = 0;
@@ -49,34 +53,33 @@ export class Tab1Page {
     private categoryRepository: CategoryRepositoryService,
     private subcategoryRepository: SubcategoryRepositoryService,
     private transactionService: TransactionService,
+    private transactionPublisher: TransactionPublisherService,
   ) {
     // Set the app to load the current month
     // Storing as a number to easily compare
     this.chosenDateNumber = getNumberMonthYearFromDate();
+    this.transactions = new ObjValueMap<NumberMonthYear, Array<Transaction>>();
+    this.categories = new ObjValueMap<NumberMonthYear, Array<Category>>();
   }
 
   async ngOnInit() {
+    this.transactionPublisher.subscribe(this);
     this.user = await this.userRepository.getCurrentFirestoreUser();
-    // User data has been grabbed
-    // Lets get their transactions that need to be budgeted
-    if (this.user) {
-      this.transactionService.getTransactions(
-        false, // pendingOnly
-        true,  // getFromPlaid
-        null,  // startDate TODO: Make this the first day of the month
-        null,  // endDate
-      ).then((transactions: Array<Transaction>) => {
-        this.transactions = transactions;
-      }).catch((err) => {
-        console.error(err);
+    this.grabTransactionsForSelectedMonth()
+      .then((transactions: Array<Transaction>) => {
+        transactions.sort(dateTransactionSort);
+        this.transactions.set(this.chosenDateNumber, transactions);
       });
-      this.getUserCategories()
-        .then((categories: Array<Category>) => {
-          categories.sort(defaultCategorySort);
-          this.user!.categories = categories;
-          this.calculatePlannedAndBudget(categories);
-        });
-    }
+    this.grabUserCategoriesForSelectedMonth()
+      .then((categories: Array<Category>) => {
+        categories.sort(defaultCategorySort);
+        this.categories.set(this.chosenDateNumber, categories);
+        this.calculatePlannedAndBudget(categories);
+      });
+  }
+
+  async ngOnDestroy() {
+    this.transactionPublisher.unsubscribe(this);
   }
 
   get chosenDate(): LocaleStringMonthYear { return this._chosenDate; }
@@ -86,48 +89,81 @@ export class Tab1Page {
     this._chosenDate = getMonthYearLocaleString(value);
   }
 
-  async getUserCategories(): Promise<Array<Category>> {
-    /* We know user and id exist because we checked in ngOnInit */
+  get startAndEndOfMonth(): { start: Date, end: Date } {
+    return getStartAndEndOfMonth(this.chosenDateNumber);
+  }
+
+  get transactionsLength(): number {
+    const transactions = this.transactions.get(this.chosenDateNumber);
+    return transactions ? transactions.length : 0;
+  }
+
+  get transactionsArray(): Array<Transaction> {
+    return this.transactions.get(this.chosenDateNumber) || [];
+  }
+
+  get categoriesLength(): number {
+    const categories = this.categories.get(this.chosenDateNumber);
+    return categories ? categories.length : 0;
+  }
+
+  get categoriesArray(): Array<Category> {
+    return this.categories.get(this.chosenDateNumber) || [];
+  }
+
+  async grabUserCategoriesForSelectedMonth(): Promise<Array<Category>> {
+    if (!this.user) return [];
     const queryResult = await this.categoryRepository.getAllFromParent(this.user!.id!);
+    const categories: Array<Category> = queryResult.docs;
     const promises: Array<Promise<any>> = [];
     /* Grab all subcategories for each category for chosen date */
-    for (let i = 0; i < queryResult.docs.length; i++) {
+    for (let i = 0; i < categories.length; i++) {
       promises.push(
         this.subcategoryRepository.getByQuery(
           buildSubcategoryByDateQuery(this.user!.id!, queryResult.docs[i].id!, this.chosenDateNumber)
         ).then((subQueryResult) => {
-          if (subQueryResult.size == 0) queryResult.docs[i].subcategories = [];
-          else queryResult.docs[i].subcategories = subQueryResult.docs;
+          if (subQueryResult.size == 0) categories[i].subcategories = [];
+          else categories[i].subcategories = subQueryResult.docs;
         })
       );
     }
     await Promise.all(promises);
-    return queryResult.docs;
+    return categories;
+  }
+
+  async grabTransactionsForSelectedMonth(): Promise<Array<Transaction>> {
+    if (!this.user) return [];
+    const { start, end } = this.startAndEndOfMonth;
+    return this.transactionService.getTransactions(
+      false,  // includePending
+      true,  // includeNonPending
+      true,  // getFromPlaid
+      start,  // startDate
+      end,  // endDate
+    );
   }
 
   calculatePlannedAndBudget(categories: Array<any>) {
-    let incomeTotal = 0;
-    let expenseTotal = 0;
+    let incomePlannedAmount = 0;
+    let expensePlannedAmount = 0;
     let actualAmountSpent = 0;
     for (let i = 0; i < categories.length; i++) {
       if (categories[i].id == 'income') {
         for (let j = 0; j < categories[i].subcategories.length; j++) {
-          incomeTotal += categories[i].subcategories[j].planned_amount;
+          incomePlannedAmount += categories[i].subcategories[j].planned_amount;
         }
       } else {
         for (let j = 0; j < categories[i].subcategories.length; j++) {
-          expenseTotal += categories[i].subcategories[j].planned_amount;
+          expensePlannedAmount += categories[i].subcategories[j].planned_amount;
           actualAmountSpent += categories[i].subcategories[j].actual_amount;
         }
       }
     }
 
-    console.log(incomeTotal);
-    console.log(expenseTotal);
     console.log(actualAmountSpent);
-    this.plannedIncome = incomeTotal;
-    this.leftToBudget = this.plannedIncome - expenseTotal;
-    this.remainingToSpend = this.plannedIncome - actualAmountSpent;
+    this.plannedIncome = incomePlannedAmount;
+    this.leftToBudget = (-1 * this.plannedIncome) - expensePlannedAmount;
+    this.remainingToSpend = (-1 * this.plannedIncome) - actualAmountSpent;
   }
 
   /**
@@ -138,7 +174,6 @@ export class Tab1Page {
    * @param index - category cards are stored as an array, so need to know which was clicked
    */
   addNewSub(item: Category) {
-    if (item.id == 'income') return;
     const newSub: Subcategory = {
       text: '',
       index: item.subcategories!.length,
@@ -152,18 +187,17 @@ export class Tab1Page {
       isEditing: true,
     };
 
-    item.subcategories!.push(newSub); // hopefully this mutates
-    //this.subcategoryRepository.add(this.userRepository.getCurrentUserId()!, item.id!, newSub, newSub.id);
+    item.subcategories!.push(newSub);
   }
 
   /**
    * Sub category was added, save to DB
    */
   async saveAllSubs() {
-    if (!this.user?.categories) return;
+    if (this.categoriesLength == 0 || !this.user) return;
     const promises: Array<Promise<any>> = [];
-    for (let i = 0; i < this.user.categories.length; i++) {
-      let category = this.user.categories[i];
+    for (let i = 0; i < this.categoriesLength; i++) {
+      let category = this.categoriesArray[i];
       if (!category || !category.subcategories) continue;
       for (let j = 0; j < category.subcategories.length; j++) {
         let subcategory = category.subcategories[j];
@@ -176,39 +210,25 @@ export class Tab1Page {
         promises.push(
           this.subcategoryRepository.add(
             this.user.id!,
-            this.user.categories[i].id!,
-            this.user.categories[i].subcategories![j],
-            this.user.categories[i].subcategories![j].id
+            this.categoriesArray[i].id!,
+            this.categoriesArray[i].subcategories![j],
+            this.categoriesArray[i].subcategories![j].id
           )
         );
       }
     }
   }
 
-  /**
-   * If segment is changed in header, change view
-   * @param ev - emitted from Header
-   */
-  viewChanged(ev: any) {
-    this.currentView = ev;
-  }
-
   async addTransaction() {
     const modal = await this.modalCtrl.create({
       component: AddTransactionComponent,
       componentProps: {
-        categories: this.user!.categories!,
+        categories: this.categoriesArray,
         user: this.user
       },
     });
 
     modal.present();
-
-    modal.onDidDismiss().then((resp: any) => {
-      const newTransaction = resp.data;
-      if (!newTransaction) return;
-      this.transactions.push(newTransaction);
-    });
   }
 
   /**
@@ -264,15 +284,32 @@ export class Tab1Page {
   /**
    * Date has been changed, so grab new data for that months budget
    */
-  getDataForNewMonth() {}
+  getDataForNewMonth() {
+    /* TODO: Issue here where we may have plaid transactions for this month,
+      * but not firestore transactions. Add way to know.
+      */
+    const shouldGrabTransactions = !this.transactions.has(this.chosenDateNumber);
+    const shouldGrabCategories = !this.categories.has(this.chosenDateNumber);
+    if (shouldGrabTransactions) {
+      this.grabTransactionsForSelectedMonth()
+        .then((transactions: Array<Transaction>) => {
+          transactions.sort(dateTransactionSort);
+          this.transactions.set(this.chosenDateNumber, transactions);
+        });
+    }
+    if (shouldGrabCategories) {
+      this.grabUserCategoriesForSelectedMonth()
+        .then((categories: Array<Category>) => {
+          categories.sort(defaultCategorySort);
+          this.categories.set(this.chosenDateNumber, categories);
+          this.calculatePlannedAndBudget(categories);
+        });
+    }
+  }
 
   /* Lazy load the pending transactions */
   revealPendingTransactions() {
     this.isCardContainerVisible = !this.isCardContainerVisible;
-  }
-
-  parseAmount(amount: number) {
-    return amount * -1;
   }
 
   /* TODO: Figure out what this does */
@@ -304,7 +341,7 @@ export class Tab1Page {
     });
 
     modal.onDidDismiss().then(() => {
-      this.calculatePlannedAndBudget(this.user!.categories!);
+      this.calculatePlannedAndBudget(this.categoriesArray);
     });
     modal.present();
   }
@@ -321,17 +358,79 @@ export class Tab1Page {
     }).format(number);
   }
 
-  getLeftToBudget() {
-    const amount = this.leftToBudget;
+  /* Function that receives transaction events from the TransactionPublisher */
+  async onTransactionEvent(event: TransactionEvent): Promise<void> {
+    const { addedTransactions, removedTransactions, modifiedTransactions } = event;
+    const promises: Array<Promise<Map<string, number> | null>> = [];
 
-    if (amount < 0) {
-      return `<span class='over-budget'>${this.formatCurrency(
-        -1 * amount
-      )}</span> over budget`;
-    } else {
-      return `<span class='on-budget'>${this.formatCurrency(
-        amount
-      )}</span> left to budget`;
+    promises.push(this.handleAddedTransactions(addedTransactions));
+    promises.push(this.handleRemovedTransactions(removedTransactions));
+    promises.push(this.handleModifiedTransactions(modifiedTransactions));
+
+    let resolved = await Promise.all(promises);
+    let subcategoryAmountsModified = new Map<string, number>();
+    resolved.forEach((map) => {
+      if (!map) return;
+      map.forEach((value, key) => {
+        if (!subcategoryAmountsModified.has(key)) {
+          subcategoryAmountsModified.set(key, value);
+        } else {
+          subcategoryAmountsModified.set(key, subcategoryAmountsModified.get(key)! + value);
+        }
+      });
+    });
+    /* Update the subcategory amounts based on the transactions from
+    * the event
+    */
+    for (let [subcategoryId, amount] of subcategoryAmountsModified) {
+      this.categoriesArray.forEach((category) => {
+        category.subcategories!.forEach((subcategory) => {
+          if (subcategory.id == subcategoryId) {
+            subcategory.actual_amount += amount;
+          }
+        });
+      });
     }
+
+    this.calculatePlannedAndBudget(this.categoriesArray);
+  }
+
+  async handleAddedTransactions(transactions: Array<Transaction>): Promise<Map<string, number> | null> {
+    if (!transactions || transactions.length == 0) return null;
+    const monthsModified = new Set<NumberMonthYear>();
+    const subcategoryAmountsModified = new Map<string, number>();
+
+    for (let i = 0; i < transactions.length; i++) {
+      const transaction: Transaction = transactions[i];
+      const transactionMonthYear = getNumberMonthYearFromDate(transaction.date);
+      monthsModified.add(transactionMonthYear);
+      const hasTransactionsForMonth = this.transactions.has(transactionMonthYear);
+      if (!hasTransactionsForMonth) {
+        this.transactions.set(transactionMonthYear, [transaction]);
+      } else {
+        this.transactions.get(transactionMonthYear)!.push(transaction);
+      }
+      const subcategoryId = transaction.subcategoryId;
+      if (!subcategoryAmountsModified.has(subcategoryId)) {
+        subcategoryAmountsModified.set(subcategoryId, transaction.amount);
+      } else {
+        subcategoryAmountsModified.set(
+          subcategoryId,
+          subcategoryAmountsModified.get(subcategoryId)! + transaction.amount
+        );
+      }
+    }
+    for (let month of monthsModified) {
+      this.transactions.get(month)!.sort(dateTransactionSort);
+    }
+    return subcategoryAmountsModified;
+  }
+
+  async handleRemovedTransactions(transactions: Array<Transaction>): Promise<Map<string, number> | null> {
+    return null;
+  }
+
+  async handleModifiedTransactions(transactions: Array<Transaction>): Promise<Map<string, number> | null> {
+    return null;
   }
 }

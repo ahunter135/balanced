@@ -1,30 +1,29 @@
 <app-header
   [chosenMonth]="chosenDate.month"
   [chosenYear]="chosenDate.year"
-  (viewChanged)="viewChanged($event)"
   (requestDateChange)="requestDateChange()"
   (addTransactionButtonClicked)="addTransaction()"
 ></app-header>
 
 <ion-content [fullscreen]="true">
   <div id="budget-remaining-container">
-    <span [innerHTML]="getLeftToBudget()"></span>
+    <span>
+      <span [ngClass]="leftToBudget < 0 ? 'over-budget' : 'on-budget'">
+        {{ formatCurrency(leftToBudget) }}
+      </span>
+      {{ leftToBudget < 0 ? 'over budget' : 'left to budget' }}
+    </span>
   </div>
   <div id="planned-income-container">
-    <span id="planned-income" *ngIf="currentView == 'budgeted'"
-      ><span class="title">Planned Income</span>
-      <strong>{{plannedIncome | currency}}</strong></span
-    >
-    <span id="planned-income" *ngIf="currentView == 'remaining'"
+    <span id="planned-income"
       ><span class="title">Remaining to Spend</span>
       <strong>{{remainingToSpend | currency}}</strong></span
     >
   </div>
-  <span *ngFor="let item of user ? user.categories : []; let i = index">
+  <span *ngFor="let item of categoriesArray; let i = index">
     <app-category
       [category]="item"
       [subcategories]="item.subcategories || []"
-      [currentView]="currentView"
       (addNewSubEvent)="addNewSub(item)"
       [chosenDate]="chosenDate"
       (requestSaveOfSubs)="saveAllSubs()"
@@ -34,12 +33,12 @@
 
   <div
     id="app-draggable-container"
-    *ngIf="transactions.length > 0"
+    *ngIf="transactionsLength > 0"
     (click)="revealPendingTransactions()"
   >
     <div id="transaction-counter">
       <span class="counter-number"
-        >{{transactions.length}}</span
+        >{{transactionsLength}}</span
       >
     </div>
   </div>
@@ -51,11 +50,11 @@
     <div id="scrollable-container">
       <div
         id="card"
-        *ngFor="let item of transactions; let i = index"
+        *ngFor="let item of transactionsArray; let i = index"
         (click)="openTransactionSorter(i)"
       >
         <div id="date">{{item.date | date:'MMM. d'}}</div>
-        <span id="amount">{{parseAmount(item.amount) | currency}}</span>
+        <span id="amount">{{(item.amount * -1) | currency}}</span>
         <div id="name">{{item.merchant_name || item.name}}</div>
       </div>
     </div>
