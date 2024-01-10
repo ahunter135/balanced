@@ -1,103 +1,65 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import {
   User,
   Transaction,
   Category,
 } from 'src/app/types/firestore/user';
 import { FormGroup } from '@angular/forms';
-import { ModalController, NavParams } from '@ionic/angular';
-import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
-import { CategoryRepositoryService } from 'src/app/repositories/category-repository.service';
-import { SubcategoryRepositoryService } from 'src/app/repositories/subcategory-repository.service';
-import { UserRepositoryService } from 'src/app/repositories/user-repository.service';
+import { IonDatetime, ModalController } from '@ionic/angular';
+import { TransactionPublisherService } from 'src/app/services/transaction-publisher.service';
+
 @Component({
   selector: 'app-transaction-sorter',
   templateUrl: './transaction-sorter.component.html',
   styleUrls: ['./transaction-sorter.component.scss'],
-  providers: [NavParams],
 })
-export class TransactionSorterComponent implements OnInit {
+export class TransactionSorterComponent implements AfterViewInit {
+  @ViewChild(IonDatetime) ionDatetime: IonDatetime;
+
   newTransactionForm: FormGroup;
-  newTransaction: Transaction;
   presentingElement: any;
-  categories = [] as Array<Category>;
+
+  /* Component props */
+  transaction: Transaction;
+  categories: Array<Category>;
   user: User | undefined;
 
   selectedSub: string;
   constructor(
     public modalCtrl: ModalController,
-    private navParams: NavParams,
-    private transactionRepository: TransactionsRepositoryService,
-    private categoryRepository: CategoryRepositoryService,
-    private subcategoryRepository: SubcategoryRepositoryService,
-    private userRepository: UserRepositoryService,
+    private transactionPublisher: TransactionPublisherService,
   ) {}
 
-  async ngOnInit() {
-    this.newTransaction = this.navParams.get('transaction');
-    console.log(this.newTransaction);
-    // Get Budget Categories
-    this.user = await this.userRepository.getCurrentFirestoreUser();
-    if (!this.user) return; /* Should handle these guards better */
-
-    this.categories = (await this.categoryRepository.getAllFromParent(this.user.id!)).docs;
-    for (let i = 0; i < this.categories.length; i++) {
-      this.categories[i].subcategories = (await this.subcategoryRepository.getAllFromParent(this.user.id!, this.categories[i].id!)).docs;
-    }
+  async ngAfterViewInit() {
+    const off = this.transaction.date.getTimezoneOffset();
+    const date = new Date(this.transaction.date.getTime() - (off * 60 * 1000));
+    /* Cheat by putting into local time but spoofing as UTC to get format */
+    this.ionDatetime.value = date.toISOString();
   }
 
   async save() {
-    if (!this.user || !this.user.id) return;
-    // Update the transaction doc
-    await this.transactionRepository.update(this.user.id!, this.newTransaction.id!, this.newTransaction);
-    const subcategoryId = this.newTransaction.subcategoryId;
-
-    // Update the subcategory actual_amount
-    for (let i = 0; i < this.categories.length; i++) {
-      if (!this.categories[i].subcategories) continue;
-      for (let j = 0; j < this.categories[i].subcategories!.length; j++) {
-        if (
-          this.categories[i].subcategories![j].id ==
-          this.newTransaction.subcategoryId
-        ) {
-          this.subcategoryRepository.update(
-            this.user.id,
-            this.categories[i].id!,
-            subcategoryId,
-            {
-              actual_amount:
-                this.categories[i].subcategories![j].actual_amount +
-                this.newTransaction.amount,
-            }
-          );
-          break;
-        }
-      }
-    }
-
-    // Update the local pendingTransactions array
-    /* TODO: Split this into a subscriber/publisher pattern
-    const pendingTransactions = this.userService.getPendingTransactions();
-    for (let i = 0; i < pendingTransactions.length; i++) {
-      if (pendingTransactions[i].id === this.newTransaction.id) {
-        pendingTransactions.splice(i, 1);
-        break;
-      }
-    }
-    this.userService.setPendingTransactions(pendingTransactions);
-    */
+    this.transactionPublisher.publishEvent({
+      from: 'manual',
+      addedTransactions: [],
+      modifiedTransactions: [this.transaction],
+      removedTransactions: [],
+    });
     this.modalCtrl.dismiss();
   }
 
   subcategorySelected(ev: any) {
     this.modalCtrl.dismiss();
-    console.log(ev);
-    this.selectedSub = ev.text;
-    this.newTransaction.subcategoryId = ev.id;
-    this.newTransaction.pending = false;
+    this.transaction.subcategoryId = ev.id;
+    console.log(this.transaction);
+  }
+
+  dateChanged(ev: any) {
+    this.transaction.date = new Date(ev.detail.value);
   }
 
   getAmount() {
-    return (this.newTransaction.amount) * -1;
+    return this.transaction.amount >= 0 ?
+      this.transaction.amount :
+      -this.transaction.amount;
   }
 }

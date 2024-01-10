@@ -7,10 +7,8 @@ import {
   Subcategory,
 } from 'src/app/types/firestore/user';
 import { FormControl, FormGroup } from '@angular/forms';
-import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
 import { generateRandomId } from 'src/app/utils/generation';
 import { AlertService } from 'src/app/services/alert.service';
-import { SubcategoryRepositoryService } from 'src/app/repositories/subcategory-repository.service';
 import { TransactionPublisherService } from 'src/app/services/transaction-publisher.service';
 
 @Component({
@@ -39,8 +37,6 @@ export class AddTransactionComponent implements OnInit {
 
   constructor(
     public modalCtrl: ModalController,
-    private transactionRepository: TransactionsRepositoryService,
-    private subcategoryRepository: SubcategoryRepositoryService,
     private alertService: AlertService,
     private transactionPublisher: TransactionPublisherService,
   ) {
@@ -50,7 +46,8 @@ export class AddTransactionComponent implements OnInit {
     this.setupModal();
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+  }
 
   async setupModal() {
     this.presentingElement = await this.modalCtrl.getTop();
@@ -67,29 +64,26 @@ export class AddTransactionComponent implements OnInit {
       newTransactionObject.amount = -1 * newTransactionObject.amount;
     }
     try {
-      /** Adds the transaction to the database
-        * and updates the subcategory actual_amount
-        * atomically
-        */
-      if (!(await this.subcategoryRepository.updateActualAmountAtomic(
-        this.user.id!,
-        this.selectedCat.id!,
-        this.selectedSub.id!,
-        newTransactionObject.amount,
-      ))) {
-        throw new Error('Error updating subcategory actual_amount');
-      }
-      this.transactionRepository.add(this.user.id!, newTransactionObject, newTransactionObject.id!);
       this.transactionPublisher.publishEvent({
         from: 'manual',
         addedTransactions: [newTransactionObject],
         removedTransactions: [],
         modifiedTransactions: [],
+        other: {
+          subcategoryId: this.selectedSub.id!,
+          categoryId: this.selectedCat.id!,
+        },
       });
     } catch (error) {
       console.log(error);
     }
     this.modalCtrl.dismiss();
+  }
+
+  dateChanged(ev: any) {
+    const date = ev.detail.value;
+    this.newTransaction.date = new Date(date);
+    console.log(this.newTransaction.date);
   }
 
   subcategorySelected(ev: any, cat: Category) {

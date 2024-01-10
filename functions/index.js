@@ -41,19 +41,10 @@ const PLAID_REDIRECT_URI = process.env.PLAID_REDIRECT_URI || "";
 // Parameter used for OAuth in Android. This should be the package name of your app,
   // e.g. com.plaid.linksample
 const PLAID_ANDROID_PACKAGE_NAME = process.env.PLAID_ANDROID_PACKAGE_NAME || "";
-// We store the access_token in memory - in production, store it in a secure
-// persistent data store
-let ACCESS_TOKEN = null;
-let PUBLIC_TOKEN = null;
-let ITEM_ID = null;
-// The payment_id is only relevant for the UK/EU Payment Initiation product.
-// We store the payment_id in memory - in production, store it in a secure
-// persistent data store along with the Payment metadata, such as userId .
-let PAYMENT_ID = null;
-// The transfer_id is only relevant for Transfer ACH product.
-// We store the transfer_id in memory - in production, store it in a secure
-// persistent data store
-let TRANSFER_ID = null;
+
+const admin = require("firebase-admin");
+const { USER_COLLECTION_NAME, LINKED_ACCOUNT_SUBCOLLECTION_NAME, LINKED_ACCOUNT_SECRET_SUBCOLLECTION_NAME } = require("./constants");
+admin.initializeApp();
 
 const configuration = getPlaidConfig();
 
@@ -92,16 +83,49 @@ exports.exchangePublicToken = onRequest(
       const tokenResponse = await client.itemPublicTokenExchange({
         public_token: req.body.publicToken,
       });
-      ACCESS_TOKEN = tokenResponse.data.access_token;
-      ITEM_ID = tokenResponse.data.item_id;
+      const accessToken = tokenResponse.data.access_token;
+      const institutionId = tokenResponse.data.item_id;
+      const institutionName = req.body.institutionName;
+      // Add linked account to user
+      const linkedAccount = {
+        institution_name: institutionName,
+        institution: institutionId,
+      };
+      const linkedAccountRef = await addLinkedAccount(req.body.userId, linkedAccount);
+      const linkedAccountId = linkedAccountRef.id;
+      const linkedAccountSecret = {
+        access_token: accessToken,
+      };
+      const linkedAccountSecretRef = await addLinkedAccountSecret(req.body.userId,
+        linkedAccountId, linkedAccountSecret);
+      const linkedAccountSecretId = linkedAccountSecretRef.id;
+      /*
       if (PLAID_PRODUCTS.includes(Products.Transfer)) {
         TRANSFER_ID = await authorizeAndCreateTransfer(ACCESS_TOKEN);
-      }
+      } */
+      // Sync transactions from the Link item
+      let { added, modified, removed } = await syncPlaidTransactions(
+        accessToken,
+        req.body.userId,
+        linkedAccountId,
+        linkedAccount,
+      );
+      /* Initial Sync so remove transactions before today */
+      const today = new Date().setUTCHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setUTCHours(0, 0, 0, 0);
+      console.log(added);
+      console.log(modified);
+      console.log(removed);
+      added = filterPlaidTransactions(added, today, tomorrow);
+      modified = filterPlaidTransactions(modified, today, tomorrow);
+      removed = filterPlaidTransactions(removed, today, tomorrow);
       res.status(200).send({
-        // the 'access_token' is a private token, DO NOT pass this token to the frontend in your production environment
-        access_token: ACCESS_TOKEN,
-        item_id: ITEM_ID,
-        error: null,
+        added,
+        modified,
+        removed,
+        linkedAccountId,
       });
       return;
     } catch (error) {
@@ -114,39 +138,24 @@ exports.exchangePublicToken = onRequest(
 exports.getTransactionData = onRequest(
   { cors: true },
   async (req, res) => {
-    // Provide a cursor from your database if you've previously
-    // received one for the Item. Leave null if this is your
-    // first sync call for this Item. The first request will
-    // return a cursor.
-    let cursor = req.body.cursor || null;
-    // New transaction updates since "cursor"
-    let added = [];
-    let modified = [];
-    // Removed transaction ids
-    let removed = [];
-    let hasMore = true;
     try {
-      while (hasMore) {
-        const request = {
-          access_token: req.body.accessToken,
-          cursor: cursor,
-        };
-        const response = await client.transactionsSync(request);
-        const data = response.data;
-        // Add this page of results
-        added = added.concat(data.added);
-        modified = modified.concat(data.modified);
-        removed = removed.concat(data.removed);
-        hasMore = data.has_more;
-        // Update cursor to the next cursor
-        cursor = data.next_cursor;
+      const linkedAccountSecrets = await getLinkedAccountSecret(req.body.userId, req.body.linkedAccountId);
+      if (linkedAccountSecrets.empty) {
+        res.status(404).send("Linked account not found");
+        return;
       }
+      const accessToken = linkedAccountSecrets.docs[0].data().access_token;
+      const { added, modified, removed } = await syncPlaidTransactions(
+        accessToken,
+        req.body.userId,
+        req.body.linkedAccountId,
+        req.body.linkedAccount
+      );
 
       res.status(200).send({
         added,
         modified,
         removed,
-        cursor,
       });
       return;
     } catch (error) {
@@ -190,8 +199,7 @@ exports.getInstitutionName = onRequest(
 // This is a helper function to authorize and create a Transfer after successful
 // exchange of a public_token for an access_token. The TRANSFER_ID is then used
 // to obtain the data about that particular Transfer.
-
-  const authorizeAndCreateTransfer = async (accessToken) => {
+const authorizeAndCreateTransfer = async (accessToken) => {
     // We call /accounts/get to obtain first account_id - in production,
       // account_id's should be persisted in a data store and retrieved
     // from there.
@@ -230,7 +238,85 @@ exports.getInstitutionName = onRequest(
     });
     prettyPrintResponse(transferResponse);
     return transferResponse.data.transfer.id;
+};
+
+const syncPlaidTransactions = async (accessToken, userId, linkedAccountId, linkedAccount) => {
+    // New transaction updates since "cursor"
+    let added = [];
+    let modified = [];
+    // Removed transaction ids
+    let removed = [];
+    let hasMore = true;
+    let cursor = linkedAccount.transaction_sync_cursor;
+    while (hasMore) {
+      const request = {
+        access_token: accessToken,
+        cursor: cursor,
+      };
+      const response = await client.transactionsSync(request);
+      console.log(response.status);
+      const data = response.data;
+      // Add this page of results
+      added = added.concat(data.added);
+      modified = modified.concat(data.modified);
+      removed = removed.concat(data.removed);
+      hasMore = data.has_more;
+      console.log("hasMore: " + hasMore);
+      // Update cursor to the next cursor
+      cursor = data.next_cursor;
+  }
+  console.log("done syncing");
+  linkedAccount.transaction_sync_cursor = cursor;
+  linkedAccount.last_transaction_retrieval = new Date();
+  await updateLinkedAccount(userId, linkedAccountId, linkedAccount);
+  console.log("updated linked account");
+  return {
+    added,
+    modified,
+    removed,
   };
+};
+
+const addLinkedAccount = async (userId, linkedAccount) => {
+  return admin.firestore().collection(USER_COLLECTION_NAME).doc(userId)
+    .collection(LINKED_ACCOUNT_SUBCOLLECTION_NAME)
+    .add(linkedAccount);
+};
+
+const updateLinkedAccount = async (userId, linkedAccountId, linkedAccount) => {
+  return admin.firestore().collection(USER_COLLECTION_NAME).doc(userId)
+    .collection(LINKED_ACCOUNT_SUBCOLLECTION_NAME)
+    .doc(linkedAccountId)
+    .set(linkedAccount);
+};
+
+const addLinkedAccountSecret = async (userId, linkedAccountId, linkedAccountSecret) => {
+  return admin.firestore().collection(USER_COLLECTION_NAME).doc(userId)
+    .collection(LINKED_ACCOUNT_SUBCOLLECTION_NAME).doc(linkedAccountId)
+    .collection(LINKED_ACCOUNT_SECRET_SUBCOLLECTION_NAME)
+    .add(linkedAccountSecret);
+}
+
+const updateLinkedAccountSecret = async (userId, linkedAccountId,
+  linkedAccountSecretId, linkedAccountSecret) => {
+  return admin.firestore().collection(USER_COLLECTION_NAME).doc(userId)
+    .collection(LINKED_ACCOUNT_SUBCOLLECTION_NAME).doc(linkedAccountId)
+    .collection(LINKED_ACCOUNT_SECRET_SUBCOLLECTION_NAME).doc(linkedAccountSecretId)
+    .set(linkedAccountSecret);
+};
+
+const getLinkedAccountSecret = async (userId, linkedAccountId) => {
+  return admin.firestore().collection(USER_COLLECTION_NAME).doc(userId)
+    .collection(LINKED_ACCOUNT_SUBCOLLECTION_NAME).doc(linkedAccountId)
+    .collection(LINKED_ACCOUNT_SECRET_SUBCOLLECTION_NAME).get();
+};
+
+const filterPlaidTransactions = (transactions, beginDate, endDate) => {
+  return transactions.filter((transaction) => {
+    const transactionDate = new Date(transaction.date);
+    return transactionDate >= beginDate && transactionDate <= endDate;
+  });
+};
 
 /* Return the plaid Configuration object based on the environment */
 function getPlaidConfig() {

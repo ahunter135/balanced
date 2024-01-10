@@ -30,4 +30,10 @@ export type TransactionEvent = {
   addedTransactions: Transaction[],
   removedTransactions: Transaction[],
   modifiedTransactions: Transaction[]
+  /** Other data that may be useful to the subscriber
+    * of the event. For manual events, this should be
+    * the subcategory id and the category id. For Plaid
+    * events, idk yet.
+    */
+  other?: any,
 }

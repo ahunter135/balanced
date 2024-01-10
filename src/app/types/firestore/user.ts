@@ -8,12 +8,14 @@ export type User = FirestoreDocument & {
   categories?: Array<Category>; // optional because these may or may not be attached to the user at all times
 }
 
+/* Subcollection of User */
 export type Category = FirestoreDocument & {
   index: number;
   subcategories?: Array<Subcategory>; // optional may not be attached at all times
   editable: boolean;
 }
 
+/* Subcollection of Category */
 export type Subcategory = FirestoreDocument & {
   text: string;
   date: NumberMonthYear,
@@ -23,6 +25,7 @@ export type Subcategory = FirestoreDocument & {
   isEditing: boolean;
 }
 
+/* Subcollection of User */
 export type Transaction = FirestoreDocument & {
   amount: number;
   subcategoryId: string;
@@ -32,8 +35,8 @@ export type Transaction = FirestoreDocument & {
   pending: boolean;
 }
 
+/* Subcollection of User */
 export type LinkedAccount = FirestoreDocument & {
-  access_token: string;
   institution: string;
   institution_name: string;
   last_transaction_retrieval: Date;

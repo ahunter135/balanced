@@ -1,11 +1,8 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { ModalController, NavParams } from '@ionic/angular';
+import { Component, OnInit } from '@angular/core';
+import { ModalController } from '@ionic/angular';
 import { User, Transaction, Category, Subcategory } from 'src/app/types/firestore/user';
-import { UserRepositoryService } from 'src/app/repositories/user-repository.service';
-import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
-import { buildTransactionsQuery } from 'src/app/helpers/queries/transactions';
-import { dateTransactionSort } from 'src/app/helpers/sorters/user-related-sorters';
 import { SubcategoryRepositoryService } from 'src/app/repositories/subcategory-repository.service';
+import { dateTransactionSort } from 'src/app/helpers/sorters/user-related-sorters';
 
 @Component({
   selector: 'app-view-sub-category',
@@ -15,53 +12,26 @@ import { SubcategoryRepositoryService } from 'src/app/repositories/subcategory-r
 export class ViewSubCategoryComponent implements OnInit {
   subcategory: Subcategory;
   category: Category;
-  transactions: Array<Transaction> = [];
+  transactions: Array<Transaction>;
   user: User | undefined;
   planned_amount: any;
 
 
   constructor(
     public modalCtrl: ModalController,
-    private navParams: NavParams,
-    private userRepository: UserRepositoryService,
-    private transactionRepository: TransactionsRepositoryService,
     private subCategoryRepository: SubcategoryRepositoryService,
   ) {}
 
   ngOnInit() {
-    this.subcategory = this.navParams.get('subcategory');
-    if (this.subcategory.id === 'income') {
+    if (this.category.id === 'income') {
+      this.planned_amount = -1 * this.subcategory.planned_amount;
+    } else {
+      this.planned_amount = this.subcategory.planned_amount;
     }
-    this.category = this.navParams.get('category');
-    this.userRepository.getCurrentFirestoreUser().then(async (user) => {
-      this.user = user;
-      if (!user) return;
-      this.transactions = await this.getTransactions();
-      this.transactions.sort(dateTransactionSort);
-      if (this.category.id === 'income') {
-        this.planned_amount = -1 * this.subcategory.planned_amount;
-      } else {
-        this.planned_amount = this.subcategory.planned_amount;
-      }
+    this.transactions = this.transactions.filter((transaction) => {
+      return transaction.subcategoryId === this.subcategory.id;
     });
-  }
-
-  /* IDEA: Should grab only some transactions, not all.
-   * Can do this easily, but later on if want to implement
-   */
-  async getTransactions(): Promise<Array<Transaction>> {
-    if (!this.user || !this.user.id) return [];
-
-    const q = buildTransactionsQuery(
-      this.user.id,
-      true,
-      true,
-      null,
-      null,
-      this.subcategory.id
-    );
-    const querySnapshot = await this.transactionRepository.getByQuery(q);
-    return querySnapshot.docs;
+    this.transactions.sort(dateTransactionSort);
   }
 
   /* Save new planned amount to the database */
