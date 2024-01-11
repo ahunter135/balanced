@@ -5,6 +5,8 @@ import { CollectionReference, DocumentData, collection, getFirestore } from 'fir
 import { USER_COLLECTION_NAME } from '../constants/firestore/collection-names';
 /* I don't want to use this but cannot import Authservice because of circular dependency */
 import { getAuth } from 'firebase/auth';
+import { CryptoService } from '../services/crypto.service';
+import { Auth } from '@angular/fire/auth';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +16,10 @@ export class UserRepositoryService
 
   private cachedUser?: User;
 
-  constructor() {
+  constructor(
+    private cryptoService: CryptoService,
+    private auth: Auth,
+  ) {
     super(collection(getFirestore(), USER_COLLECTION_NAME));
   }
 
@@ -32,6 +37,10 @@ export class UserRepositoryService
     }
 
     const user = await this.get(authUserId);
+    if (user) {
+      /* Set the surrogate key in the crypto service */
+      await this.setSurrogateKey(user);
+    }
     this.cachedUser = user;
     return user;
   }
@@ -50,5 +59,34 @@ export class UserRepositoryService
 
   static makeCollectionRef(): CollectionReference<DocumentData> {
     return collection(getFirestore(), USER_COLLECTION_NAME);
+  }
+
+  private async setSurrogateKey(user: User): Promise<void> {
+    // Don't work twice
+    if (this.cryptoService.surrogateKey)
+      return;
+
+    if (!this.auth.currentUser || !this.auth.currentUser.refreshToken)
+      return;
+
+    if (!user.encryption_data)
+      return;
+    /* Silently fail when the user does not have a refresh token.
+      * Login function handles this case.
+      */
+    try {
+      const [refreshTokenKDFKey, _] = await this.cryptoService.deriveKeyFromPlainText(
+        this.auth.currentUser.refreshToken,
+        user.encryption_data.refresh_token_kdf_salt
+      );
+
+      const surrogateKey = await this.cryptoService.decrypt(
+        refreshTokenKDFKey,
+        user.encryption_data.surrogate_key_refresh_token
+      );
+      this.cryptoService.surrogateKey = surrogateKey;
+    } catch (error) {
+
+    }
   }
 }

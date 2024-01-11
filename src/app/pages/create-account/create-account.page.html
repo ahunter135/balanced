@@ -5,7 +5,7 @@
       <div id="subheader-text">Budgets</div>
     </div>
 
-    <div id="login-form">
+    <div id="login-form" *ngIf="state=='create'">
       <ion-input
         label="Full Name"
         labelPlacement="stacked"
@@ -28,6 +28,22 @@
         >Let's Get Balanced</ion-button
       >
       <p routerLink="..">Back to Login</p>
+    </div>
+
+    <div *ngIf="state=='showphrase'" style="text-align:center">
+      <div id="phrase-container">
+        <div class="phrase">{{ backupPhraseWords ? backupPhraseWords[0] : '' }}</div>
+        <div class="phrase">-</div>
+        <div class="phrase">{{ backupPhraseWords ? backupPhraseWords[1] : '' }}</div>
+        <div class="phrase">-</div>
+        <div class="phrase">{{ backupPhraseWords ? backupPhraseWords[2] : '' }}</div>
+      </div>
+      <div id="phrase-instructions">
+        Write down these words and keep them in a safe place. You will need them to recover your data.
+      </div>
+      <div style="width: 60%; margin: 0 auto">
+        <ion-button (click)="doneShowingPhrase()" expand="block">I've written them down</ion-button>
+      </div>
     </div>
   </div>
 </ion-content>

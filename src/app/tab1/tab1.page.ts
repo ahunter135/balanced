@@ -62,6 +62,7 @@ export class Tab1Page implements ITransactionSubscriber {
     this.chosenDateNumber = getNumberMonthYearFromDate();
     this.transactions = new ObjValueMap<NumberMonthYear, Array<Transaction>>();
     this.categories = new ObjValueMap<NumberMonthYear, Array<Category>>();
+
   }
 
   async ngOnInit() {
@@ -184,7 +185,6 @@ export class Tab1Page implements ITransactionSubscriber {
   }
 
   calculatePlannedAndBudget(categories: Array<any>) {
-    console.log(this.transactionsArray);
     this.updateSubcategoryActualAmounts();
     let incomePlannedAmount = 0;
     let expensePlannedAmount = 0;

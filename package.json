@@ -33,6 +33,7 @@
     "ionicons": "^7.0.0",
     "moment": "^2.29.4",
     "ngx-currency": "^4.0.0",
+    "random-words": "^2.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "uuid": "^9.0.0",

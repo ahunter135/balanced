@@ -6,6 +6,19 @@ export type User = FirestoreDocument & {
   name: string;
   subscribed: boolean;
   categories?: Array<Category>; // optional because these may or may not be attached to the user at all times
+  encryption_data?: UserEncryptionData;
+}
+
+export type UserEncryptionData = {
+  /* Surrogate key encrypted with three different keys */
+  surrogate_key_password: string;
+  surrogate_key_backup_phrase: string;
+  surrogate_key_refresh_token: string;
+
+  /* Salts used for key derivation */
+  password_kdf_salt: string;
+  backup_phrase_kdf_salt: string;
+  refresh_token_kdf_salt: string;
 }
 
 /* Subcollection of User */
