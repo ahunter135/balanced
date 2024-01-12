@@ -46,6 +46,14 @@ export type Transaction = FirestoreDocument & {
   name: string;
   merchant_name: string;
   pending: boolean;
+
+  /** Encryped fields. Repository class will be responsible for
+    * encrypting and decrypting these fields.
+    * amount, name, and merchant_name are encrypted.
+    * subcategoryId, date, and pending are not encrypted
+    * because they are not sensitive and are used for querying.
+    */
+  encrypted_string?: string;
 }
 
 /* Subcollection of User */

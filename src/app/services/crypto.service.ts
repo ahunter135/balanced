@@ -68,6 +68,25 @@ export class CryptoService {
     return words.join('-');
   }
 
+  async encryptObject(obj: any): Promise<string> {
+    const objString: string = await this.encodeStringToBase64(JSON.stringify(obj));
+
+    const surrogateKey: string | undefined = this.surrogateKey;
+    if (!surrogateKey) {
+      throw new Error('Surrogate key not found');
+    }
+    return this.encrypt(surrogateKey, objString);
+  }
+
+  async decryptObject(encryptedObj: string): Promise<any> {
+    const surrogateKey: string | undefined = this.surrogateKey;
+    if (!surrogateKey) {
+      throw new Error('Surrogate key not found');
+    }
+    const decryptedObjString: string = await this.decrypt(surrogateKey, encryptedObj);
+    return JSON.parse(await this.decodeStringFromBase64(decryptedObjString));
+  }
+
   /* Low level crypto functions */
 
   /** Generate a key from a plain text source (like a password) to use for encryption */
@@ -182,4 +201,7 @@ export class CryptoService {
     ).buffer;
   }
 
+  async decodeStringFromBase64(data: string): Promise<string> {
+    return atob(data);
+  }
 }

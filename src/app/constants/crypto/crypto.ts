@@ -4,3 +4,9 @@ export const SYMMETRIC_ALGORITHM = 'AES-GCM';
 export const SYMMETRIC_KEY_LENGTH = 256;
 
 export const CRYPTO_KEY_FORMAT = 'raw';
+
+export const TRANSACTION_ENCRYPTED_FIELDS = [
+  'amount',
+  'name',
+  'merchant_name',
+];

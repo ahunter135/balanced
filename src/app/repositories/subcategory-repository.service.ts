@@ -62,6 +62,12 @@ export class SubcategoryRepositoryService
     if (item['isEditing'] != undefined) {
       delete item['isEditing'];
     }
+    if (item['index'] != undefined) {
+      delete item['index'];
+    }
+    if (item['actual_amount'] != undefined) {
+      delete item['actual_amount'];
+    }
 
     return item;
   }
