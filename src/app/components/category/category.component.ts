@@ -12,8 +12,6 @@ import {
   Transaction
 } from 'src/app/types/firestore/user';
 import { IonInput } from '@ionic/angular';
-import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
-import { UserRepositoryService } from 'src/app/repositories/user-repository.service';
 
 @Component({
   selector: 'app-category',

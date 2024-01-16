@@ -67,6 +67,10 @@ export class Tab1Page implements ITransactionSubscriber {
 
   }
 
+  async reorderItems(ev: any) {
+    console.log(ev);
+  }
+
   async ngOnInit() {
     this.transactionPublisher.subscribe(this);
     this.userSubscription = this.userRepository.currentFirestoreUser.subscribe((user) => {

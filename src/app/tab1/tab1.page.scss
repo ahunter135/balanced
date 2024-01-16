@@ -24,6 +24,16 @@
   }
 }
 
+.category-reorder-container {
+  --width: 100%;
+  --background: transparent;
+}
+
+.category-item-container {
+  --width: 100%;
+  --background: transparent;
+}
+
 #planned-income-container {
   display: block;
   margin: auto;

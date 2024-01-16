@@ -20,16 +20,28 @@
       <strong>{{remainingToSpend | currency}}</strong></span
     >
   </div>
-  <span *ngFor="let item of categoriesArray; let i = index">
+  <ion-reorder-group [disabled]="false" (ionItemReorder)="reorderItems($event)">
+    <ion-item
+      class="category-item-container"
+      lines="none"
+      *ngFor="let item of categoriesArray; let i = index"
+    >
     <app-category
+      style="width: 100%;"
       [category]="item"
       [subcategories]="item.subcategories || []"
       (addNewSubEvent)="addNewSub(item)"
       [chosenDate]="chosenDate"
       (requestSaveOfSubs)="saveAllSubs()"
       (subcategorySelected)="subcategorySelected($event)"
-    ></app-category>
+      ></app-category>
+      <ion-reorder slot="end"></ion-reorder>
+    </ion-item>
+  </ion-reorder-group>
+  <!--
+  <span *ngFor="let item of categoriesArray; let i = index">
   </span>
+  -->
 
   <div
     id="app-draggable-container"
