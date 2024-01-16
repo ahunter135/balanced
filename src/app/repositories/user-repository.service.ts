@@ -7,6 +7,7 @@ import { USER_COLLECTION_NAME } from '../constants/firestore/collection-names';
 import { getAuth } from 'firebase/auth';
 import { CryptoService } from '../services/crypto.service';
 import { Auth } from '@angular/fire/auth';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -22,6 +23,17 @@ export class UserRepositoryService
   ) {
     super(collection(getFirestore(), USER_COLLECTION_NAME));
   }
+
+  currentFirestoreUser: Observable<User | undefined> = new Observable((observer) => {
+    this.auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const firestoreUser = await this.getCurrentFirestoreUser();
+        observer.next(firestoreUser);
+      } else {
+        observer.next(undefined);
+      }
+    });
+  });
 
   /** Get the current user from Firestore
   * @param ignoreCached Whether to ignore the cached user. Set to true to force a new fetch.

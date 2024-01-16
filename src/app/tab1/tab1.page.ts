@@ -22,6 +22,7 @@ import { AddTransactionComponent } from '../modals/add-transaction/add-transacti
 import { TransactionPublisherService } from '../services/transaction-publisher.service';
 import { ITransactionSubscriber, TransactionEvent } from '../services/interfaces/transaction-publisher';
 import { ObjValueMap } from '../utils/data-structures';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-tab1',
@@ -35,6 +36,7 @@ export class Tab1Page implements ITransactionSubscriber {
   private _chosenDateNumber: NumberMonthYear;
 
   user?: User;
+  userSubscription?: Subscription;
   /* Map of transactions by month and year to easily separate them */
   transactions: ObjValueMap<NumberMonthYear, Array<Transaction>>;
   /* Map of categories by month and year to easily separate them */
@@ -67,12 +69,17 @@ export class Tab1Page implements ITransactionSubscriber {
 
   async ngOnInit() {
     this.transactionPublisher.subscribe(this);
-    this.user = await this.userRepository.getCurrentFirestoreUser();
-    this.loadMonthData();
+    this.userSubscription = this.userRepository.currentFirestoreUser.subscribe((user) => {
+      this.user = user;
+      console.log(this.user);
+      if (!user) return;
+      this.loadMonthData();
+    });
   }
 
   async ngOnDestroy() {
     this.transactionPublisher.unsubscribe(this);
+    this.userSubscription?.unsubscribe();
   }
 
   get chosenDate(): LocaleStringMonthYear { return this._chosenDate; }
@@ -133,6 +140,7 @@ export class Tab1Page implements ITransactionSubscriber {
         ).then((subQueryResult) => {
           if (subQueryResult.size == 0) categories[i].subcategories = [];
           else categories[i].subcategories = subQueryResult.docs;
+          categories[i].subcategories!.sort(defaultCategorySort);
         })
       );
     }
@@ -350,6 +358,7 @@ export class Tab1Page implements ITransactionSubscriber {
         subcategory: ev.sub,
         category: ev.cat,
         transactions: this.transactionsArray,
+        user: this.user,
       },
       initialBreakpoint: 0.6,
       breakpoints: [0, 0.6, 0.8, 1],

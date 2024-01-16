@@ -18,7 +18,7 @@ export class AuthService {
   private _currentUserIdCached: string | null;
   get currentUserId(): string | null { return this._currentUserIdCached; }
 
-  currentAuthUser: Observable<AuthUser | null> = new Observable((observer) => {
+  public currentAuthUser: Observable<AuthUser | null> = new Observable((observer) => {
     onAuthStateChanged(this.auth, (user: AuthUser | null) => {
       if (user) {
         this._currentUserIdCached = user.uid;

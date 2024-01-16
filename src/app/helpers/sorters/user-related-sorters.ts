@@ -1,7 +1,7 @@
-import { Category, Transaction } from "src/app/types/firestore/user";
+import { Category, Subcategory, Transaction } from "src/app/types/firestore/user";
 import { PlaidTransaction } from "src/app/types/plaid/plaid";
 
-export function defaultCategorySort(a: Category, b: Category) {
+export function defaultCategorySort(a: Category | Subcategory, b: Category | Subcategory) {
   if (a.index > b.index) {
     return 1;
   } else if (a.index < b.index) {
