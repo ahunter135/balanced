@@ -1,3 +1,4 @@
+<!--
 <ion-content [fullscreen]="true">
   <div id="container">
     <div id="header">
@@ -21,5 +22,57 @@
       <ion-button (click)="login()" expand="block">Login</ion-button>
       <p (click)="goToCreate()">Need an account? Sign up Here</p>
     </div>
+  </div>
+</ion-content>
+-->
+
+<!-- New Login Page -->
+<ion-content [fullscreen]="true">
+  <div class="title-container">
+    <h1 class="login-title">
+      Login
+    </h1>
+  </div>
+
+  <div class="login-input-container">
+    <div class="username-container">
+      <app-form-item
+        label="Email"
+        iconName="person-outline"
+        [model]="user"
+        property="email"
+        type="email"
+        placeholder="Type your email"
+        ></app-form-item>
+    </div>
+
+    <div class="password-container">
+      <app-form-item
+        label="Password"
+        iconName="lock-closed-outline"
+        [model]="user"
+        property="password"
+        type="password"
+        placeholder="Type your password"
+        ></app-form-item>
+    </div>
+
+    <div class="forgot-password-container" (mousedown)="forgotPasswordFocused = true" (mouseup)="forgotPasswordFocused = false" (click)="forgotPassword()">
+      <span class="forgot-password-text" [@forgotPass]="forgotPasswordFocused ? 'focused' : 'blurred'"
+        >
+        Forgot password?
+      </span>
+    </div>
+
+    <div class="login-button-container">
+      <app-login-button (buttonClick)="login()" [text]="'Login'"></app-login-button>
+    </div>
+  </div>
+
+
+
+  <div class="signup-text-container" (mousedown)="signUpFocused = true" (mouseup)="signUpFocused = false" (click)="goToCreate()">
+    <span class="signup-button" expand="block"
+      [@signUp]="signUpFocused ? 'focused' : 'blurred'">Sign Up</span>
   </div>
 </ion-content>

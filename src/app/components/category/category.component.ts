@@ -7,19 +7,13 @@ import {
   ViewChild,
 } from '@angular/core';
 import {
-  DocumentData,
-  collection,
-  getDocs,
-  getFirestore,
-  query,
-  where,
-} from '@angular/fire/firestore';
+  Category,
+  Subcategory,
+  Transaction
+} from 'src/app/types/firestore/user';
 import { IonInput } from '@ionic/angular';
-import { Category } from 'src/app/interfaces/category';
-import { Subcategory } from 'src/app/interfaces/subcategory';
-import { Transaction } from 'src/app/interfaces/transaction';
-import { UserService } from 'src/app/services/user.service';
-import { v4 as uuid } from 'uuid';
+import { TransactionsRepositoryService } from 'src/app/repositories/transactions-repository.service';
+import { UserRepositoryService } from 'src/app/repositories/user-repository.service';
 
 @Component({
   selector: 'app-category',
@@ -30,7 +24,6 @@ export class CategoryComponent implements OnInit {
   @Input() category: Category;
   @Input() subcategories: Array<Subcategory>;
   @Input() isChecklist: boolean = false;
-  @Input() currentView: string = 'planned';
   @Input() chosenDate: any;
   @Output() addNewSubEvent = new EventEmitter();
   @Output() requestSaveOfSubs = new EventEmitter();
@@ -39,12 +32,10 @@ export class CategoryComponent implements OnInit {
   @ViewChild('fieldsContainer') fieldsContainer: any;
   transactions = [] as Array<Transaction>;
   checker: any;
-  constructor(private userService: UserService) {}
+  constructor(
+  ) {}
 
   ngOnInit() {
-    // Get all relevent transactions
-    this.getTransactionsThenCalculate();
-
     this.checkDOMChange();
   }
 
@@ -67,21 +58,24 @@ export class CategoryComponent implements OnInit {
     }, 100);
   }
 
+  getSubcategoryRemainingAmount(subcategory: Subcategory): number {
+    if (!this.category.id) return 0;
+    if (this.category.id === 'income') {
+      return subcategory.actual_amount + (subcategory.planned_amount * -1);
+    } else {
+      return subcategory.planned_amount - subcategory.actual_amount;
+    }
+  }
+
   stopTimeout() {
     clearTimeout(this.checker);
   }
 
   shouldWeSaveOrRemove() {
-    for (let i = 0; i < this.subcategories.length; i++) {
-      if (this.subcategories[i].isEditing) {
-        this.subcategories[i].isEditing = false;
-        if (this.subcategories[i].text.length == 0) {
-          this.subcategories.splice(i, 1);
-        } else {
-          // Stuff was typed, lets add it to the DB
-          this.requestSaveOfSubs.emit();
-        }
-      }
+    const shouldAnyBeSaved = this.subcategories.find((sub) => sub.isEditing);
+    if (shouldAnyBeSaved) {
+      /* Let caller figure out what to do */
+      this.requestSaveOfSubs.emit();
     }
   }
 
@@ -90,39 +84,6 @@ export class CategoryComponent implements OnInit {
       sub: this.subcategories[index],
       cat: this.category,
     });
-  }
-
-  async getTransactionsThenCalculate() {
-    for (let i = 0; i < this.subcategories.length; i++) {
-      let transactions = await getDocs(
-        query(
-          collection(
-            getFirestore(),
-            'users',
-            this.userService.getActiveUser()?.uid as string,
-            'transactions'
-          ),
-          where('category', '==', this.subcategories[i].id)
-        )
-      );
-
-      const transactionsList = [] as Array<Transaction>;
-      transactions.forEach((ele: any) => {
-        transactionsList.push(ele.data() as Transaction);
-      });
-      this.calculate(transactionsList, this.subcategories[i]);
-    }
-  }
-
-  calculate(transactions: Array<Transaction>, subcategory: Subcategory) {
-    let planned_amount = subcategory.planned_amount;
-    let total = 0;
-    for (let i = 0; i < transactions.length; i++) {
-      const transaction = transactions[i];
-      const cost = transaction.amount;
-      total += cost;
-    }
-    subcategory.actual_amount = total / 100;
   }
 
   selectSubCategory(index: number) {

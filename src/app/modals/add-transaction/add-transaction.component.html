@@ -10,16 +10,6 @@
   </ion-toolbar>
 </ion-header>
 <ion-content>
-  <div id="segment">
-    <ion-segment value="expense" [(ngModel)]="transactionType">
-      <ion-segment-button value="expense">
-        <ion-label>Expense</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="income">
-        <ion-label>Income</ion-label>
-      </ion-segment-button>
-    </ion-segment>
-  </div>
 
   <ion-card>
     <ion-card-content>
@@ -27,7 +17,6 @@
         <ion-item>
           <ion-label>Date</ion-label>
           <ion-datetime-button
-            [(ngModel)]="newTransaction.date"
             slot="end"
             datetime="datetime"
           ></ion-datetime-button>
@@ -41,6 +30,7 @@
             type="decimal"
             currencyMask
             [options]="{ prefix: '$ ', thousands: ',', decimal: '.' }"
+            class="ngx-currency-input"
           />
         </ion-item>
         <ion-item>
@@ -66,6 +56,7 @@
         <ng-template>
           <ion-datetime
             id="datetime"
+            (ionChange)="dateChanged($event)"
             presentation="date"
             [preferWheel]="true"
           ></ion-datetime>
@@ -79,7 +70,7 @@
         <ion-item button id="open-modal">
           <ion-label>Budget Category</ion-label>
           <br />
-          <p *ngIf="newTransaction.category">{{ selectedSub }}</p>
+          <p *ngIf="newTransaction.subcategoryId">{{ selectedSub.text }}</p>
         </ion-item>
       </ion-list>
     </ion-card-content>
@@ -100,12 +91,12 @@
         </ion-toolbar>
       </ion-header>
       <ion-content>
-        <span *ngFor="let cat of user.categories">
+        <span *ngFor="let cat of categories">
           <app-category
             [category]="cat"
             [isChecklist]="true"
-            [subcategories]="cat.subcategories"
-            (subcategorySelected)="subcategorySelected($event)"
+            [subcategories]="cat.subcategories || []"
+            (subcategorySelected)="subcategorySelected($event, cat)"
           ></app-category>
         </span>
       </ion-content>

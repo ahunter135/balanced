@@ -1,96 +1,65 @@
-import { Component, OnInit } from '@angular/core';
-import { User } from 'src/app/interfaces/user';
-import { Transaction } from 'src/app/interfaces/transaction';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import {
+  User,
+  Transaction,
+  Category,
+} from 'src/app/types/firestore/user';
 import { FormGroup } from '@angular/forms';
-import { Category } from 'src/app/interfaces/category';
-import { v4 as uuid } from 'uuid';
-import { ModalController, NavParams } from '@ionic/angular';
-import { UserService } from 'src/app/services/user.service';
-import { doc, getFirestore, updateDoc } from '@angular/fire/firestore';
+import { IonDatetime, ModalController } from '@ionic/angular';
+import { TransactionPublisherService } from 'src/app/services/transaction-publisher.service';
+
 @Component({
   selector: 'app-transaction-sorter',
   templateUrl: './transaction-sorter.component.html',
   styleUrls: ['./transaction-sorter.component.scss'],
 })
-export class TransactionSorterComponent implements OnInit {
+export class TransactionSorterComponent implements AfterViewInit {
+  @ViewChild(IonDatetime) ionDatetime: IonDatetime;
+
   newTransactionForm: FormGroup;
-  newTransaction: Transaction;
   presentingElement: any;
-  categories = [] as Array<Category>;
-  user: User;
+
+  /* Component props */
+  transaction: Transaction;
+  categories: Array<Category>;
+  user: User | undefined;
+
   selectedSub: string;
   constructor(
     public modalCtrl: ModalController,
-    private navParams: NavParams,
-    private userService: UserService
+    private transactionPublisher: TransactionPublisherService,
   ) {}
 
-  ngOnInit() {
-    this.newTransaction = this.navParams.get('transaction');
-    console.log(this.newTransaction);
-    // Get Budget Categories
-    this.user = this.userService.getActiveUser() as User;
+  async ngAfterViewInit() {
+    const off = this.transaction.date.getTimezoneOffset();
+    const date = new Date(this.transaction.date.getTime() - (off * 60 * 1000));
+    /* Cheat by putting into local time but spoofing as UTC to get format */
+    this.ionDatetime.value = date.toISOString();
   }
 
   async save() {
-    // Update the transaction doc
-    await updateDoc(
-      doc(
-        getFirestore(),
-        'users',
-        this.user.uid as string,
-        'transactions',
-        this.newTransaction.id
-      ),
-      {
-        ...this.newTransaction,
-      }
-    );
-
-    // Update the subcategory actual_amount
-    for (let i = 0; i < this.user.categories.length; i++) {
-      for (let j = 0; j < this.user.categories[i].subcategories.length; j++) {
-        if (
-          this.user.categories[i].subcategories[j].id ==
-          this.newTransaction.category
-        ) {
-          this.user.categories[i].subcategories[j].actual_amount +=
-            this.newTransaction.amount;
-          break;
-        }
-      }
-    }
-    updateDoc(
-      doc(
-        getFirestore(),
-        'users',
-        this.userService.getActiveUser()?.uid as string
-      ),
-      {
-        categories: this.user.categories,
-      }
-    );
-    // Update the local pendingTransactions array
-    const pendingTransactions = this.userService.getPendingTransactions();
-    for (let i = 0; i < pendingTransactions.length; i++) {
-      if (pendingTransactions[i].id === this.newTransaction.id) {
-        pendingTransactions.splice(i, 1);
-        break;
-      }
-    }
-    this.userService.setPendingTransactions(pendingTransactions);
+    this.transactionPublisher.publishEvent({
+      from: 'manual',
+      addedTransactions: [],
+      modifiedTransactions: [this.transaction],
+      removedTransactions: [],
+    });
     this.modalCtrl.dismiss();
   }
 
   subcategorySelected(ev: any) {
     this.modalCtrl.dismiss();
-    console.log(ev);
-    this.selectedSub = ev.text;
-    this.newTransaction.category = ev.id;
-    this.newTransaction.pending = false;
+    this.transaction.subcategoryId = ev.id;
+    console.log(this.transaction);
+  }
+
+  dateChanged(ev: any) {
+    this.transaction.date = new Date(ev.detail.value);
   }
 
   getAmount() {
-    return (this.newTransaction.amount / 100) * -1;
+    return this.transaction.amount >= 0 ?
+      this.transaction.amount :
+      -this.transaction.amount;
   }
 }

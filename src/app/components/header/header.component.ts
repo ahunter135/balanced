@@ -1,6 +1,5 @@
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { AddTransactionComponent } from 'src/app/modals/add-transaction/add-transaction.component';
 
 @Component({
   selector: 'app-header',
@@ -8,29 +7,21 @@ import { AddTransactionComponent } from 'src/app/modals/add-transaction/add-tran
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent implements OnInit {
-  @Output() viewChanged = new EventEmitter();
-  @Output() transactionAdded = new EventEmitter();
+  /* Events that page should handle */
   @Output() requestDateChange = new EventEmitter();
+  @Output() addTransactionButtonClicked = new EventEmitter();
+  /* Month and year to display, Locale */
   @Input() chosenMonth: String;
   @Input() chosenYear: String;
-  constructor(private modalController: ModalController) {}
+
+  constructor() {}
 
   ngOnInit() {}
 
   async addTransaction() {
-    const modal = await this.modalController.create({
-      component: AddTransactionComponent,
-    });
-
-    modal.present();
-
-    modal.onDidDismiss().then((resp: any) => {
-      this.transactionAdded.emit();
-    });
-  }
-
-  segmentChanged(ev: any) {
-    this.viewChanged.emit(ev.detail.value);
+    // Moving this to event so parent can handle
+    // passing categories and subcategories
+    this.addTransactionButtonClicked.emit();
   }
 
   dateClicked() {

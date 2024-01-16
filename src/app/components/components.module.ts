@@ -9,6 +9,8 @@ import { CurrencyInputComponent } from './currency-input/currency-input.componen
 import { TransactionSorterComponent } from '../modals/transaction-sorter/transaction-sorter.component';
 import { ViewSubCategoryComponent } from '../modals/view-sub-category/view-sub-category.component';
 import { NgxCurrencyDirective } from 'ngx-currency';
+import { LoginButtonComponent } from './login-button/login-button.component';
+import { FormItemComponent } from './form-item/form-item.component';
 
 @NgModule({
   declarations: [
@@ -18,6 +20,8 @@ import { NgxCurrencyDirective } from 'ngx-currency';
     CurrencyInputComponent,
     ViewSubCategoryComponent,
     TransactionSorterComponent,
+    LoginButtonComponent,
+    FormItemComponent,
   ],
   exports: [
     HeaderComponent,
@@ -26,6 +30,8 @@ import { NgxCurrencyDirective } from 'ngx-currency';
     CurrencyInputComponent,
     ViewSubCategoryComponent,
     TransactionSorterComponent,
+    LoginButtonComponent,
+    FormItemComponent,
   ],
   imports: [
     CommonModule,

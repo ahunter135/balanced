@@ -9,11 +9,11 @@ import {
   getDocs,
   setDoc,
 } from '@angular/fire/firestore';
-import { UserService } from '../services/user.service';
 import { TransactionSorterComponent } from '../modals/transaction-sorter/transaction-sorter.component';
 import { ModalController } from '@ionic/angular';
-import { NgxCurrencyDirective } from 'ngx-currency';
-declare var Plaid: any;
+import { UserRepositoryService } from '../repositories/user-repository.service';
+import { generateRandomId } from '../utils/generation';
+import { PlaidService } from '../services/plaid.service';
 
 @Component({
   selector: 'app-tab2',
@@ -29,12 +29,12 @@ export class Tab2Page {
 
   constructor(
     private http: HttpService,
-    private userService: UserService,
-    private modalCtrl: ModalController
+    private modalCtrl: ModalController,
+    private userRepository: UserRepositoryService,
+    private plaidService: PlaidService,
   ) {}
 
   ngOnInit() {
-    // this.getInstitutionName();
     this.getInstitutions();
   }
 
@@ -55,7 +55,7 @@ export class Tab2Page {
           doc(
             getFirestore(),
             'users/',
-            this.userService.getActiveUser()?.uid as string,
+            this.userRepository.getCurrentUserId()!,
             'linked_accounts',
             this.selectedInstitute.id
           ),
@@ -87,65 +87,7 @@ export class Tab2Page {
   }
 
   async link() {
-    this.http
-      .post(
-        'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/createPlaidLinkToken',
-        {
-          user_id: this.userService.getActiveUser()?.uid,
-        }
-      )
-      .subscribe((resp) => {
-        console.log(resp);
-        const handler = Plaid.create({
-          token: resp.link_token,
-          onSuccess: (public_token: string, metadata: any) => {
-            this.http
-              .post(
-                'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/exchangePublicToken',
-                { public_token }
-              )
-              .subscribe(async (resp) => {
-                console.log(resp);
-                /** 
-              {
-                access_token: "access-sandbox-477ca4f5-493b-486b-b18e-9e339f501da6" This is the required access token to make requests
-                error: null
-                item_id: "yQkDd5JLpVIK14D4WR5JCVDvKwDzDztyvaBD5" This is the financial institution
-              }
-             */
-                const accessToken = resp.access_token;
-                const institution = resp.item_id;
-                const id = this.userService.generateRandomId();
-                const name = await this.getInstitutionName(accessToken);
-                setDoc(
-                  doc(
-                    getFirestore(),
-                    'users/',
-                    this.userService.getActiveUser()?.uid as string,
-                    'linked_accounts',
-                    id
-                  ),
-                  {
-                    access_token: accessToken,
-                    institution,
-                    name,
-                    id,
-                  }
-                );
-              });
-          },
-          onLoad: () => {
-            // This fires when the Plaid Prompt shows up for the first time
-          },
-          onExit: (err: any, metadata: any) => {},
-          onEvent: (eventName: any, metadata: any) => {
-            // This fires any time something happens within the Plaid Prompt
-          },
-          //required for OAuth; if not using OAuth, set to null or omit:
-          receivedRedirectUri: null,
-        });
-        handler.open();
-      });
+    this.plaidService.linkPlaidToUser();
   }
 
   async getInstitutions() {
@@ -153,7 +95,7 @@ export class Tab2Page {
       collection(
         getFirestore(),
         'users',
-        this.userService.getActiveUser()?.uid as string,
+        this.userRepository.getCurrentUserId()!,
         'linked_accounts'
       )
     );
@@ -167,21 +109,5 @@ export class Tab2Page {
         this.retrieveTransactions();
       }
     }
-  }
-  async getInstitutionName(token: string) {
-    return new Promise((resolve, reject) => {
-      this.http
-        .post(
-          'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/getInstitutionName',
-          {
-            accessToken: token,
-          }
-        )
-        .subscribe((resp) => {
-          console.log(resp);
-          this.institutionName = resp.name;
-          resolve(resp.name);
-        });
-    });
   }
 }

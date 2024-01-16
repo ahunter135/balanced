@@ -1,10 +1,6 @@
 import { Injectable } from '@angular/core';
-import { User } from '@angular/fire/auth';
-import { User as UserInt } from '../interfaces/user';
+import { User as FirestoreUser, Transaction } from 'src/app/types/firestore/user';
 import {
-  DocumentData,
-  QuerySnapshot,
-  addDoc,
   collection,
   doc,
   getDocs,
@@ -15,33 +11,17 @@ import {
   where,
 } from '@angular/fire/firestore';
 import { HttpService } from './http.service';
-import { Transaction } from '../interfaces/transaction';
-import { forkJoin, lastValueFrom } from 'rxjs';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
-  private activeUser: User | UserInt | null;
-  private pendingTransactions: Array<Transaction> = [];
-  constructor(private http: HttpService) {}
 
-  public getActiveUser() {
-    return this.activeUser;
-  }
+  constructor(private http: HttpService, private authService: AuthService) {}
 
-  public setActiveUser(user: User | UserInt | null) {
-    this.activeUser = user;
-  }
-
-  public getPendingTransactions() {
-    return this.pendingTransactions;
-  }
-  public setPendingTransactions(transactions: Array<Transaction>) {
-    this.pendingTransactions = transactions;
-  }
-
-  public async getUserTransactionsFromPlaid(user: UserInt) {
+  /* Replaced with functin in transaction.service.ts. Keeping for reference until new function is tested
+  public async getUserTransactionsFromPlaid(user: FirestoreUser) {
     let new_transactions: Array<Transaction>;
     // Step 1: Get the users linked accounts
     const linkedAccountsSnapshot: any = await getDocs(
@@ -49,7 +29,7 @@ export class UserService {
         collection(
           getFirestore(),
           'users',
-          this.activeUser?.uid as string,
+          this.activeUser['uid'] as string,
           'linked_accounts'
         )
       )
@@ -90,7 +70,7 @@ export class UserService {
           doc(
             getFirestore(),
             'users',
-            this.activeUser?.uid as string,
+            this.activeUser['uid'] as string,
             'linked_accounts',
             element.id
           ),
@@ -111,22 +91,14 @@ export class UserService {
       this.sortTransactions(this.pendingTransactions);
     });
   }
-
-  private sortTransactions(new_transactions: any) {
-    new_transactions.sort((a: any, b: any) => {
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
-      return dateB.getTime() - dateA.getTime();
-    });
-
-    return new_transactions;
-  }
+  */
 
   /**
    * We don't want any transactions older than 2 weeks old.
    * Remove them
    * @param new_transactions
    */
+   /* Keep for reference until new function is tested
   private removeOldTransactions(new_transactions: any) {
     const new_transaction_array = [];
     for (let i = 0; i < new_transactions.length; i++) {
@@ -144,72 +116,5 @@ export class UserService {
 
     return new_transaction_array;
   }
-
-  private async addTransactions(new_transactions: Array<Transaction>) {
-    let promises: Promise<any>[] = [];
-    new_transactions.forEach((transaction: any) => {
-      transaction = this.mapTransaction(transaction);
-      let promise = setDoc(
-        doc(
-          getFirestore(),
-          'users',
-          this.activeUser?.uid as string,
-          'transactions',
-          transaction.id
-        ),
-        {
-          ...transaction,
-        }
-      );
-
-      promises.push(promise);
-    });
-
-    await Promise.all(promises);
-  }
-
-  private mapTransaction(transaction: any) {
-    const new_transaction: Transaction = {
-      id: transaction.transaction_id,
-      amount: transaction.amount * 100,
-      category: '',
-      date: transaction.date,
-      name: transaction.name,
-      merchant_name: transaction.merchant_name,
-      pending: true,
-    };
-
-    return new_transaction;
-  }
-
-  private async getExistingPendingTransactions() {
-    const pendingDocsSnapshot = await getDocs(
-      query(
-        collection(
-          getFirestore(),
-          'users',
-          this.activeUser?.uid as string,
-          'transactions'
-        ),
-        where('pending', '==', true)
-      )
-    );
-    pendingDocsSnapshot.forEach((element) => {
-      this.pendingTransactions.push(element.data() as Transaction);
-    });
-  }
-
-  generateRandomId() {
-    // Generate a random number and convert it to a hexadecimal string
-    const randomNumber = Math.floor(Math.random() * 1000000);
-    const randomHex = randomNumber.toString(16);
-
-    // Get the current timestamp and convert it to a hexadecimal string
-    const timestamp = Date.now().toString(16);
-
-    // Concatenate the timestamp and random number to create the ID
-    const randomId = timestamp + randomHex;
-
-    return randomId;
-  }
+  */
 }

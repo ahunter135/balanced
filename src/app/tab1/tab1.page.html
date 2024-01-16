@@ -1,45 +1,44 @@
 <app-header
   [chosenMonth]="chosenDate.month"
   [chosenYear]="chosenDate.year"
-  (viewChanged)="viewChanged($event)"
-  (transactionAdded)="transactionAdded()"
   (requestDateChange)="requestDateChange()"
+  (addTransactionButtonClicked)="addTransaction()"
 ></app-header>
 
 <ion-content [fullscreen]="true">
   <div id="budget-remaining-container">
-    <span [innerHTML]="getLeftToBudget()"></span>
+    <span>
+      <span [ngClass]="leftToBudget < 0 ? 'over-budget' : 'on-budget'">
+        {{ formatCurrency(leftToBudget) }}
+      </span>
+      {{ leftToBudget < 0 ? 'over budget' : 'left to budget' }}
+    </span>
   </div>
   <div id="planned-income-container">
-    <span id="planned-income" *ngIf="currentView == 'budgeted'"
-      ><span class="title">Planned Income</span>
-      <strong>{{plannedIncome / 100 | currency}}</strong></span
-    >
-    <span id="planned-income" *ngIf="currentView == 'remaining'"
+    <span id="planned-income"
       ><span class="title">Remaining to Spend</span>
-      <strong>{{remainingToSpend / 100 | currency}}</strong></span
+      <strong>{{remainingToSpend | currency}}</strong></span
     >
   </div>
-  <span *ngFor="let item of user.categories; let i = index">
+  <span *ngFor="let item of categoriesArray; let i = index">
     <app-category
       [category]="item"
-      [subcategories]="item.subcategories"
-      [currentView]="currentView"
+      [subcategories]="item.subcategories || []"
+      (addNewSubEvent)="addNewSub(item)"
       [chosenDate]="chosenDate"
-      (addNewSubEvent)="addNewSub(false, i)"
       (requestSaveOfSubs)="saveAllSubs()"
-      (subcategorySelected)="subcategorySelected($event, i == 0)"
+      (subcategorySelected)="subcategorySelected($event)"
     ></app-category>
   </span>
 
   <div
     id="app-draggable-container"
-    *ngIf="userService.getPendingTransactions().length > 0"
-    (click)="revealPendingTransactions()"
+    *ngIf="unsortedTransactions.length > 0"
+    (click)="revealUnsortedTransactions()"
   >
     <div id="transaction-counter">
       <span class="counter-number"
-        >{{userService.getPendingTransactions().length}}</span
+        >{{unsortedTransactions.length}}</span
       >
     </div>
   </div>
@@ -51,11 +50,11 @@
     <div id="scrollable-container">
       <div
         id="card"
-        *ngFor="let item of userService.getPendingTransactions(); let i = index"
-        (click)="openTransactionSorter(i)"
+        *ngFor="let item of unsortedTransactions;"
+        (click)="openTransactionSorter(item)"
       >
         <div id="date">{{item.date | date:'MMM. d'}}</div>
-        <span id="amount">{{parseAmount(item.amount) / 100 | currency}}</span>
+        <span id="amount">{{(item.amount * -1) | currency}}</span>
         <div id="name">{{item.merchant_name || item.name}}</div>
       </div>
     </div>
