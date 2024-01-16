@@ -13,9 +13,9 @@ export const environment = {
     measurementId: 'G-X448BHFKZT',
   },
   production: false,
-  useFirestoreEmulator: true,
-  useFirebaseAuthEmulator: true,
-  useFunctionsEmulator: true,
+  useFirestoreEmulator: false,
+  useFirebaseAuthEmulator: false,
+  useFunctionsEmulator: false,
 };
 /*
  * For easier debugging in development mode, you can import the following file

@@ -1,4 +1,6 @@
+import { animate, keyframes, state, style, transition, trigger } from '@angular/animations';
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
 import { UserRepositoryService } from 'src/app/repositories/user-repository.service';
 import { AlertService } from 'src/app/services/alert.service';
@@ -10,8 +12,34 @@ import { User } from 'src/app/types/firestore/user';
   selector: 'app-create-account',
   templateUrl: './create-account.page.html',
   styleUrls: ['./create-account.page.scss'],
+  animations: [
+    trigger('login', [
+      state('focused', style({color: '#00eabb'})),
+      state('blurred', style({color: '#666'})),
+      transition('focused <=> blurred', [animate('0.1s')]),
+    ]),
+
+    trigger('createForm', [
+      transition(':leave', [
+        style({position: 'fixed', width: '100%'}),
+        animate('0.3s ease-in', style({transform: 'translateX(-100%)'})),
+      ]),
+    ]),
+    trigger('showPhrase', [
+      transition(':leave', [
+        animate('0.3s ease-in', style({transform: 'translateX(0%)'})),
+      ]),
+      transition(':enter', [
+        style({transform: 'translateX(100%)'}),
+        animate('0.3s 0.1s ease-out', style({transform: 'translateX(0%)'})),
+      ]),
+    ]),
+  ],
 })
 export class CreateAccountPage implements OnInit {
+  /* Animation states */
+  loginFocused: boolean = false;
+
   /* Switch from create account to show one-time phrase */
   state: 'create' | 'showphrase' = 'create';
   backupPhrase?: string;
@@ -25,7 +53,8 @@ export class CreateAccountPage implements OnInit {
 
   constructor(
     private alertService: AlertService,
-    private router: Router,
+    public router: Router,
+    public route: ActivatedRoute,
     private authService: AuthService,
     private cryptoService: CryptoService,
     private userRepository: UserRepositoryService,
@@ -59,6 +88,12 @@ export class CreateAccountPage implements OnInit {
       return;
     }
     this.showPhrase();
+  }
+
+  async navigateToLogin() {
+    this.router.navigate(['../login'], {
+      relativeTo: this.route,
+    });
   }
 
   async showPhrase() {

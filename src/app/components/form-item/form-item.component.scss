@@ -1,0 +1,22 @@
+.input-label {
+  display: block;
+  font-size: 14px;
+  padding-left: 3px;
+  margin-bottom: 5px;
+}
+
+.ion-item-blurred {
+  --border-width: 0 0 1px 0;
+  --border-color: #ccc;
+  transition: border-color 1s ease-out;
+}
+
+.ion-item-has-focus {
+  --border-width: 0 0 1px 0;
+  --border-color: #00eabb;
+  transition: border-color 1s ease-in;
+}
+
+ion-input {
+  --placeholder-color: #333;
+}

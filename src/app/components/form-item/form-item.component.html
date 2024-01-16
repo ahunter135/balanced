@@ -1,0 +1,10 @@
+<span class="input-label">{{ label }}</span>
+<ion-item lines="full" [ngClass]="isFocused ? 'ion-item-has-focus' : 'ion-item-blurred'">
+  <ion-icon aria-hidden="true" [name]="iconName" slot="start" size="small"
+    [@icon]="isFocused ? 'focused' : 'blurred'"></ion-icon>
+  <ion-input [placeholder]="placeholder" [type]="type"
+    (ionBlur)="isFocused = false"
+    (ionFocus)="isFocused = true"
+    [(ngModel)]="model[property]">
+  </ion-input>
+</ion-item>

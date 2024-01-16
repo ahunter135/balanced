@@ -1,3 +1,4 @@
+<!--
 <ion-content [fullscreen]="true">
   <div id="container">
     <div id="header">
@@ -44,6 +45,90 @@
       <div style="width: 60%; margin: 0 auto">
         <ion-button (click)="doneShowingPhrase()" expand="block">I've written them down</ion-button>
       </div>
+    </div>
+  </div>
+</ion-content>
+-->
+
+<!-- New Create Account Page -->
+<ion-content [fullscreen]="true">
+  <div id="form-container" *ngIf="state=='create'" [@createForm]>
+    <div class="title-container">
+      <h1 class="login-title">
+        Create Account
+      </h1>
+    </div>
+    <div class="login-input-container">
+      <div class="fullname-container">
+        <app-form-item
+          label="Full Name"
+          iconName="person-outline"
+          [model]="user"
+          property="name"
+          type="text"
+          placeholder="Type your full name"
+          ></app-form-item>
+      </div>
+
+      <div class="username-container">
+        <app-form-item
+          label="Email"
+          iconName="mail-outline"
+          [model]="user"
+          property="email"
+          type="email"
+          placeholder="Type your email"
+          ></app-form-item>
+      </div>
+
+      <div class="password-container">
+        <app-form-item
+          label="Password"
+          iconName="lock-closed-outline"
+          [model]="user"
+          property="password"
+          type="password"
+          placeholder="Type your password"
+          ></app-form-item>
+      </div>
+
+      <div class="login-button-container">
+        <app-login-button (buttonClick)="signUp()" text="LET'S GET BALANCED"></app-login-button>
+      </div>
+    </div>
+
+
+
+    <div class="login-text-container"
+      (mousedown)="loginFocused = true"
+      (mouseup)="loginFocused = false"
+      (click)="navigateToLogin()">
+      <span class="signup-button" expand="block"
+        [@login]="loginFocused ? 'focused' : 'blurred'">Back to Login</span>
+    </div>
+  </div>
+
+  <div *ngIf="state=='showphrase'" style="text-align:center" [@showPhrase]>
+    <div class="title-container">
+      <h1 class="login-title">
+        Backup Phrase
+      </h1>
+    </div>
+    <div id="phrase-instructions">
+      Write down these words and keep them in a safe place. You will need them to recover your data.
+    </div>
+    <div id="phrase-container" >
+      <div class="phrase">{{ backupPhraseWords ? backupPhraseWords[0] : '' }}</div>
+      <div class="phrase">-</div>
+      <div class="phrase">{{ backupPhraseWords ? backupPhraseWords[1] : '' }}</div>
+      <div class="phrase">-</div>
+      <div class="phrase">{{ backupPhraseWords ? backupPhraseWords[2] : '' }}</div>
+    </div>
+    <div style="width: 80%; margin: 40px auto 0 auto">
+      <app-login-button
+        (buttonClick)="doneShowingPhrase()"
+        text="I'VE WRITTEN THEM DOWN"
+        ></app-login-button>
     </div>
   </div>
 </ion-content>
