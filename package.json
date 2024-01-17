@@ -31,6 +31,7 @@
     "@capacitor/status-bar": "5.0.5",
     "@ionic/angular": "^7.0.0",
     "@lottiefiles/lottie-player": "^2.0.2",
+    "@teamhive/lottie-player": "^1.0.0",
     "@types/uuid": "^9.0.2",
     "cordova-plugin-purchase": "^13.9.0",
     "firebase": "^9.23.0",
