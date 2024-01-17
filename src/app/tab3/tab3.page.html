@@ -43,13 +43,17 @@
           <span class="row">
             <div class="plan" id="monthly">
               <h3>Monthly Plan</h3>
-              <p class="price">{{inapp.products[0].raw.price}}/month</p>
+              <p class="price" *ngIf="inapp.products.length > 0">
+                {{inapp.products[0].raw.price}}/month
+              </p>
               <p>After 7-day Free Trial</p>
               <button (click)="purchase('premium_sub')">Go Monthly</button>
             </div>
             <div class="plan" id="yearly">
               <h3>Yearly Plan</h3>
-              <p class="price">{{inapp.products[1].raw.price}}/year</p>
+              <p class="price" *ngIf="inapp.products.length > 0">
+                {{inapp.products[1].raw.price}}/year
+              </p>
               <p>After 7-day Free Trial</p>
               <button (click)="purchase('premium_yearly')">Go Yearly</button>
             </div>

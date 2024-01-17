@@ -7,14 +7,16 @@ ion-content {
 
 .centered {
   position: absolute;
-  top: 50%;
+  top: 35%;
   transform: translateY(-25%);
 }
 
 .title-container {
   width: 100%;
   text-align: center;
-
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
   .login-title {
     font-size: 30px;
   }
@@ -84,4 +86,8 @@ ion-toolbar {
   color: #7f7f7f;
   width: 90%;
   margin: 10px auto 0 auto;
+}
+lottie-player {
+  width: 250px;
+  text-align: center;
 }

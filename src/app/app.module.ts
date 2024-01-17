@@ -3,10 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouteReuseStrategy } from '@angular/router';
 
-import {
-  IonicModule,
-  IonicRouteStrategy,
-} from '@ionic/angular';
+import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -74,9 +71,7 @@ import {
   bootstrap: [AppComponent],
 })
 export class AppModule {
-  constructor(
-    private injector: Injector,
-  ) {
+  constructor(private injector: Injector) {
     AppInjector = this.injector;
   }
 }

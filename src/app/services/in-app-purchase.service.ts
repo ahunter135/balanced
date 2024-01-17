@@ -9,7 +9,7 @@ import { UserService } from './user.service';
 export class InAppPurchaseService {
   premium_id;
   premium_yearly_id;
-  products: any;
+  products: any = [];
   store: CdvPurchase.Store;
 
   loader: any;

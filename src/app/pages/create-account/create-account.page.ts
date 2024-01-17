@@ -66,9 +66,7 @@ export class CreateAccountPage implements OnInit {
     private userRepository: UserRepositoryService
   ) {}
 
-  ngOnInit() {
-    this.showPhrase();
-  }
+  ngOnInit() {}
 
   async signUp() {
     /* Verify if the user has filled all the fields */

@@ -1,9 +1,13 @@
 <!-- New Login Page -->
 <ion-content [fullscreen]="true">
   <div class="title-container">
-    <h1 class="login-title">
-      Login
-    </h1>
+    <lottie-player
+      slot="end"
+      autoplay
+      loop
+      src="https://lottie.host/dd7fc8ea-f12a-48ba-a12d-0ba33de0db3f/8ufu7Oo8sJ.json"
+    >
+    </lottie-player>
   </div>
 
   <div class="login-input-container">
@@ -15,7 +19,7 @@
         property="email"
         type="email"
         placeholder="Type your email"
-        ></app-form-item>
+      ></app-form-item>
     </div>
 
     <div class="password-container">
@@ -26,25 +30,42 @@
         property="password"
         type="password"
         placeholder="Type your password"
-        ></app-form-item>
+      ></app-form-item>
     </div>
 
-    <div class="forgot-password-container" (mousedown)="forgotPasswordFocused = true" (mouseup)="forgotPasswordFocused = false" (click)="forgotPassword()">
-      <span class="forgot-password-text" [@forgotPass]="forgotPasswordFocused ? 'focused' : 'blurred'"
-        >
+    <div
+      class="forgot-password-container"
+      (mousedown)="forgotPasswordFocused = true"
+      (mouseup)="forgotPasswordFocused = false"
+      (click)="forgotPassword()"
+    >
+      <span
+        class="forgot-password-text"
+        [@forgotPass]="forgotPasswordFocused ? 'focused' : 'blurred'"
+      >
         Forgot password?
       </span>
     </div>
 
     <div class="login-button-container">
-      <app-login-button (buttonClick)="login()" [text]="'Login'"></app-login-button>
+      <app-login-button
+        (buttonClick)="login()"
+        [text]="'Login'"
+      ></app-login-button>
     </div>
   </div>
 
-
-
-  <div class="signup-text-container" (mousedown)="signUpFocused = true" (mouseup)="signUpFocused = false" (click)="goToCreate()">
-    <span class="signup-button" expand="block"
-      [@signUp]="signUpFocused ? 'focused' : 'blurred'">Sign Up</span>
+  <div
+    class="signup-text-container"
+    (mousedown)="signUpFocused = true"
+    (mouseup)="signUpFocused = false"
+    (click)="goToCreate()"
+  >
+    <span
+      class="signup-button"
+      expand="block"
+      [@signUp]="signUpFocused ? 'focused' : 'blurred'"
+      >Sign Up</span
+    >
   </div>
 </ion-content>

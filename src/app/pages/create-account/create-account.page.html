@@ -8,7 +8,13 @@
 >
   <div id="form-container" *ngIf="state=='create'" [@createForm]>
     <div class="title-container">
-      <h1 class="login-title">Create Account</h1>
+      <lottie-player
+        slot="end"
+        autoplay
+        loop
+        src="https://lottie.host/dd7fc8ea-f12a-48ba-a12d-0ba33de0db3f/8ufu7Oo8sJ.json"
+      >
+      </lottie-player>
     </div>
     <div class="login-input-container">
       <div class="fullname-container">
@@ -47,7 +53,7 @@
       <div class="login-button-container">
         <app-login-button
           (buttonClick)="signUp()"
-          text="LET'S GET BALANCED"
+          text="LET'S GET BUDGETING"
         ></app-login-button>
       </div>
     </div>
