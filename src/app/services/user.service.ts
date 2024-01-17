@@ -40,6 +40,7 @@ export class UserService {
     this.isPremium = isPremium;
     updateDoc(doc(getFirestore(), 'users', user?.uid as string), {
       subscribed: isPremium,
+      token: this.authService.userToken,
     });
   }
 

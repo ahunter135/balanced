@@ -11,7 +11,7 @@ import {
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
+import { getApp, initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { environment } from '../environments/environment';
 import {
   provideAnalytics,
@@ -19,7 +19,11 @@ import {
   ScreenTrackingService,
   UserTrackingService,
 } from '@angular/fire/analytics';
-import { provideAuth, getAuth } from '@angular/fire/auth';
+import {
+  provideAuth,
+  initializeAuth,
+  indexedDBLocalPersistence,
+} from '@angular/fire/auth';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { provideFunctions, getFunctions } from '@angular/fire/functions';
 import { HttpClientModule } from '@angular/common/http';
@@ -40,7 +44,9 @@ import {
     AppRoutingModule,
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAnalytics(() => getAnalytics()),
-    provideAuth(() => getAuth()),
+    provideAuth(() =>
+      initializeAuth(getApp(), { persistence: indexedDBLocalPersistence })
+    ),
     provideFirestore(() => getFirestore()),
     provideFunctions(() => getFunctions()),
     HttpClientModule,

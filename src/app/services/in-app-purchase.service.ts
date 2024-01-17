@@ -85,6 +85,7 @@ export class InAppPurchaseService {
   }
 
   async startPurchase(flag: string) {
+    console.log(this.products);
     for (let i = 0; i < this.products.length; i++) {}
   }
 
