@@ -3,6 +3,8 @@ import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { AlertService } from '../services/alert.service';
 import { PlaidService } from '../services/plaid.service';
+import { UserService } from '../services/user.service';
+import { InAppPurchaseService } from '../services/in-app-purchase.service';
 
 @Component({
   selector: 'app-tab3',
@@ -17,6 +19,7 @@ export class Tab3Page {
     private router: Router,
     private alertService: AlertService,
     private plaidService: PlaidService,
+    public userService: UserService
   ) {}
 
   async link() {
@@ -31,4 +34,6 @@ export class Tab3Page {
       this.alertService.createAndShowToast('There was an error logging out');
     }
   }
+
+  purchase(flag: string) {}
 }

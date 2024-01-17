@@ -1,4 +1,11 @@
-import { animate, keyframes, state, style, transition, trigger } from '@angular/animations';
+import {
+  animate,
+  keyframes,
+  state,
+  style,
+  transition,
+  trigger,
+} from '@angular/animations';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
@@ -14,24 +21,24 @@ import { User } from 'src/app/types/firestore/user';
   styleUrls: ['./create-account.page.scss'],
   animations: [
     trigger('login', [
-      state('focused', style({color: '#00eabb'})),
-      state('blurred', style({color: '#666'})),
+      state('focused', style({ color: '#00eabb' })),
+      state('blurred', style({ color: '#666' })),
       transition('focused <=> blurred', [animate('0.1s')]),
     ]),
 
     trigger('createForm', [
       transition(':leave', [
-        style({position: 'fixed', width: '100%'}),
-        animate('0.3s ease-in', style({transform: 'translateX(-100%)'})),
+        style({ position: 'fixed', width: '100%' }),
+        animate('0.3s ease-in', style({ transform: 'translateX(-100%)' })),
       ]),
     ]),
     trigger('showPhrase', [
       transition(':leave', [
-        animate('0.3s ease-in', style({transform: 'translateX(0%)'})),
+        animate('0.3s ease-in', style({ transform: 'translateX(0%)' })),
       ]),
       transition(':enter', [
-        style({transform: 'translateX(100%)'}),
-        animate('0.3s 0.1s ease-out', style({transform: 'translateX(0%)'})),
+        style({ transform: 'translateX(100%)' }),
+        animate('0.3s 0.1s ease-out', style({ transform: 'translateX(0%)' })),
       ]),
     ]),
   ],
@@ -57,11 +64,10 @@ export class CreateAccountPage implements OnInit {
     public route: ActivatedRoute,
     private authService: AuthService,
     private cryptoService: CryptoService,
-    private userRepository: UserRepositoryService,
+    private userRepository: UserRepositoryService
   ) {}
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   async signUp() {
     /* Verify if the user has filled all the fields */
@@ -73,7 +79,11 @@ export class CreateAccountPage implements OnInit {
     }
 
     try {
-      this.createAccountUser = await this.authService.createAccount(this.user.email, this.user.password, { name: this.user.name });
+      this.createAccountUser = await this.authService.createAccount(
+        this.user.email,
+        this.user.password,
+        { name: this.user.name }
+      );
     } catch (error: any) {
       this.alertService.createAndShowToast(error.message);
     }
@@ -82,7 +92,9 @@ export class CreateAccountPage implements OnInit {
       if (!this.cryptoService.surrogateKey) {
         throw new Error('Something went wrong');
       }
-      this.authService.setRefreshTokenSurrogateKey(this.cryptoService.surrogateKey!);
+      this.authService.setRefreshTokenSurrogateKey(
+        this.cryptoService.surrogateKey!
+      );
     } catch (error: any) {
       this.panic();
       return;
@@ -97,8 +109,7 @@ export class CreateAccountPage implements OnInit {
   }
 
   async showPhrase() {
-    this.backupPhrase = this.cryptoService.generateBackupPhrase()
-      .toLowerCase();
+    this.backupPhrase = this.cryptoService.generateBackupPhrase().toLowerCase();
     this.backupPhraseWords = this.backupPhrase.split('-');
     this.state = 'showphrase';
   }
@@ -109,21 +120,26 @@ export class CreateAccountPage implements OnInit {
   }
 
   private async saveUserPhrase() {
-    if (!this.backupPhrase || !this.cryptoService.surrogateKey || !this.createAccountUser) {
+    if (
+      !this.backupPhrase ||
+      !this.cryptoService.surrogateKey ||
+      !this.createAccountUser
+    ) {
       // This should never happen
       this.panic();
       return;
     }
     try {
-      const { surrogateKey, salt } = await this.cryptoService.getKDFSurrogateAndSaltFromSurrogateKey(
-        this.backupPhrase,
-        this.cryptoService.surrogateKey
-      );
+      const { surrogateKey, salt } =
+        await this.cryptoService.getKDFSurrogateAndSaltFromSurrogateKey(
+          this.backupPhrase,
+          this.cryptoService.surrogateKey
+        );
       await this.userRepository.update(this.createAccountUser.id!, {
         encryption_data: {
           surrogate_key_backup_phrase: surrogateKey,
           backup_phrase_kdf_salt: salt,
-        }
+        },
       });
     } catch (error: any) {
       this.alertService.createAndShowToast(error.message);

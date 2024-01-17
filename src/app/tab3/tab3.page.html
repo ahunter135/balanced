@@ -14,13 +14,48 @@
   <ion-card>
     <ion-card-content>
       <ion-list>
-        <ion-item button (click)="link()">
+        <ion-item button (click)="link()" [disabled]="!userService.isPremium">
           <ion-label>Link Account</ion-label>
         </ion-item>
         <ion-item button (click)="signOut()">
           <ion-label>Sign Out</ion-label>
         </ion-item>
       </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="!userService.isPremium">
+    <ion-card-content>
+      <div class="container">
+        <header>
+          <h1>Unlock the Full Potential!</h1>
+        </header>
+        <section class="benefits">
+          <h2>Why Go Pro?</h2>
+          <ul>
+            <li>🚀 Automatic Transaction Imports</li>
+            <li>🕒 Save Time with No More Manual Entries</li>
+            <li>🎨 Future features like custom themes & icons</li>
+          </ul>
+        </section>
+        <section class="pricing">
+          <h2>Choose Your Plan</h2>
+          <span class="row">
+            <div class="plan" id="monthly">
+              <h3>Monthly Plan</h3>
+              <p class="price">$6.99/month</p>
+              <p>After 7-day Free Trial</p>
+              <button (click)="purchase('monthly')">Go Monthly</button>
+            </div>
+            <div class="plan" id="yearly">
+              <h3>Yearly Plan</h3>
+              <p class="price">$59.99/year</p>
+              <p>After 7-day Free Trial</p>
+              <button (click)="purchase('yearly')">Go Yearly</button>
+            </div>
+          </span>
+        </section>
+      </div>
     </ion-card-content>
   </ion-card>
 </ion-content>

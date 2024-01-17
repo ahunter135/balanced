@@ -1,5 +1,8 @@
 import { Injectable } from '@angular/core';
-import { User as FirestoreUser, Transaction } from 'src/app/types/firestore/user';
+import {
+  User as FirestoreUser,
+  Transaction,
+} from 'src/app/types/firestore/user';
 import {
   collection,
   doc,
@@ -8,6 +11,7 @@ import {
   query,
   setDoc,
   updateDoc,
+  getDoc,
   where,
 } from '@angular/fire/firestore';
 import { HttpService } from './http.service';
@@ -17,8 +21,27 @@ import { AuthService } from './auth.service';
   providedIn: 'root',
 })
 export class UserService {
+  isPremium: boolean;
+  constructor(private http: HttpService, private authService: AuthService) {
+    this.authService.getCurrentAuthUser().then(async (data) => {
+      if (data) {
+        const userDoc = await getDoc(
+          doc(getFirestore(), 'users', data.uid as string)
+        );
+        if (userDoc.exists()) {
+          this.isPremium = userDoc.data()['subscribed'];
+        }
+      }
+    });
+  }
 
-  constructor(private http: HttpService, private authService: AuthService) {}
+  public async updatePremiumStatus(isPremium: boolean) {
+    const user = await this.authService.getCurrentAuthUser();
+    this.isPremium = isPremium;
+    updateDoc(doc(getFirestore(), 'users', user?.uid as string), {
+      subscribed: isPremium,
+    });
+  }
 
   /* Replaced with functin in transaction.service.ts. Keeping for reference until new function is tested
   public async getUserTransactionsFromPlaid(user: FirestoreUser) {
@@ -98,7 +121,7 @@ export class UserService {
    * Remove them
    * @param new_transactions
    */
-   /* Keep for reference until new function is tested
+  /* Keep for reference until new function is tested
   private removeOldTransactions(new_transactions: any) {
     const new_transaction_array = [];
     for (let i = 0; i < new_transactions.length; i++) {

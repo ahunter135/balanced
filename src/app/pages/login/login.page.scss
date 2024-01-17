@@ -76,12 +76,14 @@ $gray-text: #666;
 ion-content {
   --background: #ffffff;
   font-family: "Rockwell";
+  position: absolute;
+  top: 50%;
+  transform: translateY(-25%);
 }
 
 .title-container {
   width: 100%;
   text-align: center;
-
 
   .login-title {
     font-size: 40px;
@@ -91,7 +93,6 @@ ion-content {
 .login-input-container {
   width: 90%;
   margin: 0 auto;
-
 }
 
 .username-container {
@@ -102,7 +103,7 @@ ion-content {
 .forgot-password-container {
   width: 100%;
   text-align: right;
-  margin-top:5px;
+  margin-top: 5px;
   color: $gray-text;
 }
 

@@ -54,9 +54,7 @@
 <ion-content [fullscreen]="true">
   <div id="form-container" *ngIf="state=='create'" [@createForm]>
     <div class="title-container">
-      <h1 class="login-title">
-        Create Account
-      </h1>
+      <h1 class="login-title">Create Account</h1>
     </div>
     <div class="login-input-container">
       <div class="fullname-container">
@@ -67,7 +65,7 @@
           property="name"
           type="text"
           placeholder="Type your full name"
-          ></app-form-item>
+        ></app-form-item>
       </div>
 
       <div class="username-container">
@@ -78,7 +76,7 @@
           property="email"
           type="email"
           placeholder="Type your email"
-          ></app-form-item>
+        ></app-form-item>
       </div>
 
       <div class="password-container">
@@ -89,46 +87,98 @@
           property="password"
           type="password"
           placeholder="Type your password"
-          ></app-form-item>
+        ></app-form-item>
       </div>
 
       <div class="login-button-container">
-        <app-login-button (buttonClick)="signUp()" text="LET'S GET BALANCED"></app-login-button>
+        <app-login-button
+          (buttonClick)="signUp()"
+          text="LET'S GET BALANCED"
+        ></app-login-button>
       </div>
     </div>
 
-
-
-    <div class="login-text-container"
+    <div
+      class="login-text-container"
       (mousedown)="loginFocused = true"
       (mouseup)="loginFocused = false"
-      (click)="navigateToLogin()">
-      <span class="signup-button" expand="block"
-        [@login]="loginFocused ? 'focused' : 'blurred'">Back to Login</span>
+      (click)="navigateToLogin()"
+    >
+      <span
+        class="signup-button"
+        expand="block"
+        [@login]="loginFocused ? 'focused' : 'blurred'"
+        >Back to Login</span
+      >
     </div>
   </div>
 
-  <div *ngIf="state=='showphrase'" style="text-align:center" [@showPhrase]>
+  <div *ngIf="state=='showphrase'" style="text-align: center" [@showPhrase]>
     <div class="title-container">
-      <h1 class="login-title">
-        Backup Phrase
+      <h1
+        class="login-title"
+        style="font-family: 'Courier New', Courier, monospace; color: #000"
+      >
+        🛡️ Your Secure Backup Phrase
       </h1>
     </div>
-    <div id="phrase-instructions">
-      Write down these words and keep them in a safe place. You will need them to recover your data.
+    <div
+      id="phrase-instructions"
+      style="
+        background-color: #e8f0fe;
+        padding: 20px;
+        border-radius: 10px;
+        font-family: 'Arial', sans-serif;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      "
+    >
+      <p>
+        🔒 <strong>Why this is important:</strong> Your backup phrase is the
+        master key to your financial data and bank transaction encryptions. It's
+        like a secret spell to safeguard your treasures!
+      </p>
+      <p>
+        📝 Write down these magic words and keep them in a safe place, like a
+        locked drawer or a personal safe. You'll need them to recover your data,
+        ensuring your financial information stays private and secure!
+      </p>
     </div>
-    <div id="phrase-container" >
-      <div class="phrase">{{ backupPhraseWords ? backupPhraseWords[0] : '' }}</div>
-      <div class="phrase">-</div>
-      <div class="phrase">{{ backupPhraseWords ? backupPhraseWords[1] : '' }}</div>
-      <div class="phrase">-</div>
-      <div class="phrase">{{ backupPhraseWords ? backupPhraseWords[2] : '' }}</div>
+    <div
+      id="phrase-container"
+      style="
+        background-color: #fff;
+        padding: 20px;
+        margin-top: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      "
+    >
+      <div
+        class="phrase"
+        style="font-family: 'Courier New', Courier, monospace; color: #000"
+      >
+        {{ backupPhraseWords ? backupPhraseWords[0] : '' }}
+      </div>
+      <div class="phrase" style="padding: 10px">-</div>
+      <div
+        class="phrase"
+        style="font-family: 'Courier New', Courier, monospace; color: #000"
+      >
+        {{ backupPhraseWords ? backupPhraseWords[1] : '' }}
+      </div>
+      <div class="phrase" style="padding: 10px">-</div>
+      <div
+        class="phrase"
+        style="font-family: 'Courier New', Courier, monospace; color: #000"
+      >
+        {{ backupPhraseWords ? backupPhraseWords[2] : '' }}
+      </div>
     </div>
     <div style="width: 80%; margin: 40px auto 0 auto">
       <app-login-button
         (buttonClick)="doneShowingPhrase()"
         text="I'VE WRITTEN THEM DOWN"
-        ></app-login-button>
+      ></app-login-button>
     </div>
   </div>
 </ion-content>
