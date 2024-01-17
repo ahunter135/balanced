@@ -20,7 +20,7 @@ export class Tab3Page {
     private alertService: AlertService,
     private plaidService: PlaidService,
     public userService: UserService,
-    private inapp: InAppPurchaseService
+    public inapp: InAppPurchaseService
   ) {}
 
   async link() {

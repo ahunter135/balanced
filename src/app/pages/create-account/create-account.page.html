@@ -1,5 +1,11 @@
 <!-- New Create Account Page -->
-<ion-content [fullscreen]="true">
+<ion-header [translucent]="true">
+  <ion-toolbar> </ion-toolbar>
+</ion-header>
+<ion-content
+  [fullscreen]="true"
+  [ngClass]="state == 'create' ? 'centered' : ''"
+>
   <div id="form-container" *ngIf="state=='create'" [@createForm]>
     <div class="title-container">
       <h1 class="login-title">Create Account</h1>
@@ -61,7 +67,11 @@
     </div>
   </div>
 
-  <div *ngIf="state=='showphrase'" style="text-align: center" [@showPhrase]>
+  <div
+    *ngIf="state=='showphrase'"
+    style="text-align: center; margin-top: 25px"
+    [@showPhrase]
+  >
     <div class="title-container">
       <h1
         class="login-title"
@@ -74,7 +84,7 @@
       id="phrase-instructions"
       style="
         background-color: #e8f0fe;
-        padding: 20px;
+        padding: 10px;
         border-radius: 10px;
         font-family: 'Arial', sans-serif;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -95,7 +105,7 @@
       id="phrase-container"
       style="
         background-color: #fff;
-        padding: 20px;
+        padding: 12px;
         margin-top: 20px;
         border-radius: 10px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -140,7 +150,7 @@
       </div>
         -->
     </div>
-    <div style="width: 80%; margin: 40px auto 0 auto">
+    <div style="width: 80%; margin: 10px auto 0 auto">
       <app-login-button
         (buttonClick)="doneShowingPhrase()"
         text="I'VE WRITTEN THEM DOWN"

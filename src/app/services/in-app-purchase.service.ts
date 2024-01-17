@@ -85,13 +85,20 @@ export class InAppPurchaseService {
   }
 
   async startPurchase(flag: string) {
-    for (let i = 0; i < this.products.length; i++) {}
+    let foundProduct;
+    for (let i = 0; i < this.products.length; i++) {
+      if (this.products[i].id == flag) {
+        foundProduct = this.products[i];
+        break;
+      }
+    }
+
+    this.purchase(foundProduct);
   }
 
   async purchase(product: CdvPurchase.Product) {
     this.loader = await this.loadingCtrl.create({
       message: 'Loading...',
-      duration: 12000,
     });
 
     await this.loader.present();
