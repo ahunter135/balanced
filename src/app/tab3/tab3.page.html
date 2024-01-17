@@ -11,19 +11,6 @@
     </ion-toolbar>
   </ion-header>
 
-  <ion-card>
-    <ion-card-content>
-      <ion-list>
-        <ion-item button (click)="link()" [disabled]="!userService.isPremium">
-          <ion-label>Link Account</ion-label>
-        </ion-item>
-        <ion-item button (click)="signOut()">
-          <ion-label>Sign Out</ion-label>
-        </ion-item>
-      </ion-list>
-    </ion-card-content>
-  </ion-card>
-
   <ion-card *ngIf="!userService.isPremium">
     <ion-card-content>
       <div class="container">
@@ -60,6 +47,19 @@
           </span>
         </section>
       </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-content>
+      <ion-list>
+        <ion-item button (click)="link()" [disabled]="!userService.isPremium">
+          <ion-label>Link Account</ion-label>
+        </ion-item>
+        <ion-item button (click)="signOut()">
+          <ion-label>Sign Out</ion-label>
+        </ion-item>
+      </ion-list>
     </ion-card-content>
   </ion-card>
 </ion-content>
