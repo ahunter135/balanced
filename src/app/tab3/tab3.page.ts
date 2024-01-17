@@ -19,7 +19,8 @@ export class Tab3Page {
     private router: Router,
     private alertService: AlertService,
     private plaidService: PlaidService,
-    public userService: UserService
+    public userService: UserService,
+    private inapp: InAppPurchaseService
   ) {}
 
   async link() {
@@ -35,5 +36,7 @@ export class Tab3Page {
     }
   }
 
-  purchase(flag: string) {}
+  purchase(flag: string) {
+    this.inapp.startPurchase(flag);
+  }
 }

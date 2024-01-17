@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { AlertController, LoadingController, Platform } from '@ionic/angular';
 import 'cordova-plugin-purchase';
 import { UserService } from './user.service';
@@ -15,7 +15,6 @@ export class InAppPurchaseService {
   loader: any;
   constructor(
     private platform: Platform,
-    private ref: ChangeDetectorRef,
     private loadingCtrl: LoadingController,
     private userService: UserService,
     private alertCtrl: AlertController
@@ -26,21 +25,24 @@ export class InAppPurchaseService {
     this.premium_id = this.platform.is('ios') ? 'premium_sub' : 'premium_sub';
 
     this.platform.ready().then(() => {
-      this.store = CdvPurchase.store;
+      if (this.platform.is('mobile')) {
+        this.store = CdvPurchase.store;
 
-      this.registerProducts();
+        this.registerProducts();
 
-      this.setupListeners();
+        this.setupListeners();
 
-      this.ref.detectChanges();
-      this.store.initialize([
-        this.platform.is('ios')
-          ? CdvPurchase.Platform.APPLE_APPSTORE
-          : CdvPurchase.Platform.GOOGLE_PLAY,
-      ]);
-      this.store.ready(() => {
-        this.products = this.store.products;
-      });
+        this.store.initialize([
+          this.platform.is('ios')
+            ? CdvPurchase.Platform.APPLE_APPSTORE
+            : CdvPurchase.Platform.GOOGLE_PLAY,
+        ]);
+        this.store.ready(() => {
+          this.products = this.store.products;
+        });
+      } else if (this.platform.is('desktop')) {
+        // Eventually will want to add stripe as a web purchase
+      }
     });
   }
 
@@ -74,7 +76,6 @@ export class InAppPurchaseService {
           }
           this.userService.updatePremiumStatus(p.owned);
         }
-        this.ref.detectChanges();
 
         return p.verify();
       })
