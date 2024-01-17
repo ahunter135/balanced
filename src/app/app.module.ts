@@ -1,10 +1,9 @@
-import { ChangeDetectorRef, NgModule } from '@angular/core';
+import { NgModule, Injector } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouteReuseStrategy } from '@angular/router';
 
 import {
-  IonRouterOutlet,
   IonicModule,
   IonicRouteStrategy,
 } from '@ionic/angular';
@@ -74,4 +73,12 @@ import {
   ],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(
+    private injector: Injector,
+  ) {
+    AppInjector = this.injector;
+  }
+}
+
+export let AppInjector: Injector;

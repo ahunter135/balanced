@@ -3,32 +3,24 @@
     <ion-buttons slot="start">
       <ion-button (click)="modalCtrl.dismiss()">Close</ion-button>
     </ion-buttons>
-    <ion-title>{{ subcategory.text }}</ion-title>
+    <ion-title>Subcategory Info</ion-title>
   </ion-toolbar>
 </ion-header>
 <ion-content>
   <ion-card>
     <ion-card-content>
+      <div id="category-header">
+        <ion-input
+          placeholder="Enter a name"
+          [(ngModel)]="subcategoryEditName"
+          (ionBlur)="saveNewName()"
+          [maxlength]="40"
+          ></ion-input>
+      </div>
       <ion-item lines="none" *ngIf="category.id == 'income'" class="header">
-        <div style="display: flex; flex-direction: row; justify-content: space-around; width: 100%">
-          <ion-label style="width: 33%;">{{ subcategory.actual_amount * -1 | currency }} </ion-label>
-          <ion-label style="width: 33%;">Received of</ion-label>
-          <input
-          placeholder="$0.00"
-          [(ngModel)]="planned_amount"
-          type="decimal"
-          (blur)="saveNewAmount()"
-          currencyMask
-          [options]="{ prefix: '$ ', thousands: ',', decimal: '.' }"
-          style="width: 33%"
-          class="ngx-currency-input"
-          />
-        </div>
-      </ion-item>
-      <ion-item lines="none" *ngIf="category.id != 'income'" class="header">
-        <div style="display: flex; flex-direction: row; justify-content: space-around; width: 100%">
-          <ion-label style="width: 33%">{{ subcategory.actual_amount | currency }}</ion-label>
-          <ion-label style="width: 33%">Spent of</ion-label>
+        <div class="amount-container">
+          <ion-label>{{ subcategory.actual_amount * -1 | currency }} </ion-label>
+          <ion-label>Received of</ion-label>
           <input
           placeholder="$0.00"
           [(ngModel)]="planned_amount"
@@ -36,7 +28,21 @@
           (blur)="saveNewAmount()"
           currencyMask
           [options]="{ prefix: '$ ', thousands: ',', decimal: '.', align: 'center', }"
-          style="width: 33%"
+          class="ngx-currency-input"
+          />
+        </div>
+      </ion-item>
+      <ion-item lines="none" *ngIf="category.id != 'income'" class="header">
+        <div class="amount-container">
+          <ion-label>{{ subcategory.actual_amount | currency }}</ion-label>
+          <ion-label>Spent of</ion-label>
+          <input
+          placeholder="$0.00"
+          [(ngModel)]="planned_amount"
+          type="decimal"
+          (blur)="saveNewAmount()"
+          currencyMask
+          [options]="{ prefix: '$ ', thousands: ',', decimal: '.', align: 'center', }"
           class="ngx-currency-input"
           />
         </div>

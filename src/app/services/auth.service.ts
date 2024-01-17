@@ -17,6 +17,7 @@ import { getDefaultCategories } from '../helpers/firestore/auth-helpers';
 import { CategoryRepositoryService } from '../repositories/category-repository.service';
 import { Observable } from 'rxjs';
 import { CryptoService } from './crypto.service';
+import { AlertService } from './alert.service';
 
 @Injectable({
   providedIn: 'root',
@@ -47,7 +48,8 @@ export class AuthService {
     private auth: Auth,
     private userRepository: UserRepositoryService,
     private categoryRepository: CategoryRepositoryService,
-    private cryptoService: CryptoService
+    private cryptoService: CryptoService,
+    private alertService: AlertService,
   ) {}
 
   async login(email: string, password: string): Promise<void> {
@@ -131,10 +133,13 @@ export class AuthService {
     });
   }
 
-  async logout(): Promise<Boolean> {
+  async logout(message: string | undefined = undefined): Promise<Boolean> {
     try {
       await this.auth.signOut();
       this._currentUserIdCached = null;
+      if (message) {
+        this.alertService.createAndShowToast(message);
+      }
       return true;
     } catch (error) {
       console.error(error);

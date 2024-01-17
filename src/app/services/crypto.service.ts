@@ -1,5 +1,7 @@
+import { AppInjector } from '../app.module';
+
 import { Injectable } from '@angular/core';
-import { generate, count } from 'random-words';
+import { generate } from 'random-words';
 import { generateRandomId } from '../utils/generation';
 
 import {
@@ -9,6 +11,10 @@ import {
   SYMMETRIC_KEY_LENGTH,
 } from 'src/app/constants/crypto/crypto';
 import { generatePbkdf2Params, generateSalt } from '../utils/crypto';
+import { timeout } from 'rxjs';
+import { AuthService } from './auth.service';
+import { UserRepositoryService } from '../repositories/user-repository.service';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -18,6 +24,13 @@ export class CryptoService {
   encoder: TextEncoder;
   private _surrogateKey?: string;
 
+  /** Set these when needed because of circular dependency
+    * and we don't need these all the time.
+    */
+  userRepository?: UserRepositoryService;
+  authService?: AuthService;
+  router?: Router;
+
   public set surrogateKey(key: string | undefined) {
     this._surrogateKey = key;
   }
@@ -26,7 +39,8 @@ export class CryptoService {
     return this._surrogateKey;
   }
 
-  constructor() {
+  constructor(
+  ) {
     this.subtleCrypto = window.crypto.subtle;
     this.encoder = new TextEncoder();
   }
@@ -71,19 +85,23 @@ export class CryptoService {
   async encryptObject(obj: any): Promise<string> {
     const objString: string = await this.encodeStringToBase64(JSON.stringify(obj));
 
-    const surrogateKey: string | undefined = this.surrogateKey;
-    if (!surrogateKey) {
+    if (!this.surrogateKey)
+      await this.tryRecoverNoSurrogateKey();
+    if (!this.surrogateKey) {
+      this.panic();
       throw new Error('Surrogate key not found');
     }
-    return this.encrypt(surrogateKey, objString);
+    return this.encrypt(this.surrogateKey, objString);
   }
 
   async decryptObject(encryptedObj: string): Promise<any> {
-    const surrogateKey: string | undefined = this.surrogateKey;
-    if (!surrogateKey) {
+    if (!this.surrogateKey)
+      await this.tryRecoverNoSurrogateKey();
+    if (!this.surrogateKey) {
+      this.panic();
       throw new Error('Surrogate key not found');
     }
-    const decryptedObjString: string = await this.decrypt(surrogateKey, encryptedObj);
+    const decryptedObjString: string = await this.decrypt(this.surrogateKey, encryptedObj);
     return JSON.parse(await this.decodeStringFromBase64(decryptedObjString));
   }
 
@@ -203,5 +221,57 @@ export class CryptoService {
 
   async decodeStringFromBase64(data: string): Promise<string> {
     return atob(data);
+  }
+
+  /** If for some reason the surrogate key is not set, this
+    * function will attempt to recover it from the user's
+    * doc manually. The user repository should automatically
+    * set the surrogate key on login, so this should be a
+    * last resort.
+    */
+  private async tryRecoverNoSurrogateKey(): Promise<void> {
+    if (!this.userRepository) {
+      this.userRepository = AppInjector.get(UserRepositoryService);
+    }
+    /* Case where user is logged in, it's just maybe not set */
+    await this.userRepository.getCurrentFirestoreUser();
+    /* If repo sets this, then we're good to go */
+    if (this.surrogateKey) return;
+
+    /* Wait for the user observable to emit a value, if takes
+      * longer than 5 seconds, then we assume the user is not
+      * logged in or something and we give up.
+      */
+    const userObservable = this.userRepository.currentFirestoreUser.pipe(
+      timeout(5000),
+    ).subscribe({
+      next: async (_) => {},
+      error: (_) => {},
+      complete: () => {
+        userObservable.unsubscribe();
+      }
+    });
+    /* Wait for timeout or for user to be set */
+    while (!userObservable.closed) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+    if (this.surrogateKey) return;
+    /* One last check */
+    await this.userRepository.getCurrentFirestoreUser();
+    if (this.surrogateKey) return;
+    this.panic();
+  }
+
+  private async panic(): Promise<void> {
+    this.surrogateKey = undefined;
+    if (!this.authService) {
+      this.authService = AppInjector.get(AuthService);
+    }
+    console.log('PANIC');
+    await this.authService.logout("Something went wrong. Please log in again.");
+    if (!this.router) {
+      this.router = AppInjector.get(Router);
+    }
+    this.router.navigate(['/login']);
   }
 }
