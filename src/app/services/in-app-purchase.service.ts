@@ -71,9 +71,6 @@ export class InAppPurchaseService {
       .approved((p: any) => {
         // Handle the product deliverable
         if (p.id === this.premium_id || p.id === this.premium_yearly_id) {
-          if (this.loader) {
-            this.loader.dismiss();
-          }
           this.userService.updatePremiumStatus(p.owned);
         }
 
@@ -94,7 +91,7 @@ export class InAppPurchaseService {
   async purchase(product: CdvPurchase.Product) {
     this.loader = await this.loadingCtrl.create({
       message: 'Loading...',
-      duration: 6500,
+      duration: 12000,
     });
 
     await this.loader.present();
