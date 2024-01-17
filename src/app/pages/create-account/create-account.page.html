@@ -117,23 +117,16 @@
       >
         {{ backupPhrase }}
       </div>
-      <div
-        id="copy-button-container"
-      >
-        <ion-button
-          (click)="copyPhrase()"
-          fill="outline"
-          >
+      <div id="copy-button-container">
+        <ion-button (click)="copyPhrase()" fill="clear">
           <ion-icon
             name="copy-outline"
             slot="icon-only"
-            style="
-            font-size: 28px;
-            "
-            ></ion-icon>
+            style="font-size: 20px"
+          ></ion-icon>
         </ion-button>
       </div>
-        <!--
+      <!--
       <div class="phrase" style="padding: 10px">-</div>
       <div
         class="phrase"

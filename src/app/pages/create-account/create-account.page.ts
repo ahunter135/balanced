@@ -66,11 +66,12 @@ export class CreateAccountPage implements OnInit {
     private userRepository: UserRepositoryService
   ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.showPhrase();
+  }
 
   async signUp() {
     /* Verify if the user has filled all the fields */
-    /*
     try {
       this.verifyUserValues();
     } catch (error: any) {
@@ -99,7 +100,6 @@ export class CreateAccountPage implements OnInit {
       this.panic();
       return;
     }
-    */
     this.showPhrase();
   }
 
