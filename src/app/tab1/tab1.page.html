@@ -5,7 +5,7 @@
   (addTransactionButtonClicked)="addTransaction()"
 ></app-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="ion-content-scroll-host">
   <div id="budget-remaining-container">
     <span>
       <span [ngClass]="leftToBudget < 0 ? 'over-budget' : 'on-budget'">
@@ -26,30 +26,28 @@
       src="{{ isUserReorderingCategories ? 'assets/svg/sort-active.svg' : 'assets/svg/sort-inactive.svg' }}" />
     </div>
   </div>
-  <ion-reorder-group [disabled]="!isUserReorderingCategories" (ionItemReorder)="doneReorderItems($event)">
-    <ion-item
-      id="{{item.id}}-ion-item"
-      class="category-item-container"
-      lines="none"
-      *ngFor="let item of categoriesArray; let i = index"
-    >
-    <app-category
-      style="width: 100%;"
-      [category]="item"
-      [subcategories]="item.subcategories || []"
-      (addNewSubEvent)="addNewSub(item)"
-      [chosenDate]="chosenDate"
-      [isUserReorderingCategories]="isUserReorderingCategories"
-      (requestSaveOfSubs)="saveAllSubs()"
-      (subcategorySelected)="subcategorySelected($event)"
-      ></app-category>
-    <ion-reorder id="{{item.id}}-reorder" class="reorder-button"></ion-reorder>
-    </ion-item>
-  </ion-reorder-group>
-  <!--
-  <span *ngFor="let item of categoriesArray; let i = index">
-  </span>
-  -->
+  <div>
+    <ion-reorder-group [disabled]="!isUserReorderingCategories" (ionItemReorder)="doneReorderItems($event)">
+      <ion-item
+        id="{{item.id}}-ion-item"
+        class="category-item-container"
+        lines="none"
+        *ngFor="let item of categoriesArray; let i = index"
+        >
+        <app-category
+          style="width: 100%;"
+          [category]="item"
+          [subcategories]="item.subcategories || []"
+          (addNewSubEvent)="addNewSub(item)"
+          [chosenDate]="chosenDate"
+          [isUserReorderingCategories]="isUserReorderingCategories"
+          (requestSaveOfSubs)="saveAllSubs()"
+          (subcategorySelected)="subcategorySelected($event)"
+          ></app-category>
+        <ion-reorder id="{{item.id}}-reorder" class="reorder-button"></ion-reorder>
+      </ion-item>
+    </ion-reorder-group>
+  </div>
 
   <div
     id="app-draggable-container"

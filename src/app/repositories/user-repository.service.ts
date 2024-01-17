@@ -98,18 +98,14 @@ export class UserRepositoryService
       * Login function handles this case.
       */
     try {
-      const [refreshTokenKDFKey, _] = await this.cryptoService.deriveKeyFromPlainText(
+      const surrogateKey = await this.cryptoService.getSurrogateFromKDFProvider(
         this.auth.currentUser.refreshToken,
+        user.encryption_data.surrogate_key_refresh_token,
         user.encryption_data.refresh_token_kdf_salt
-      );
-
-      const surrogateKey = await this.cryptoService.decrypt(
-        refreshTokenKDFKey,
-        user.encryption_data.surrogate_key_refresh_token
       );
       this.cryptoService.surrogateKey = surrogateKey;
     } catch (error) {
-
+      console.error(error);
     }
   }
 

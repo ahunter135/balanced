@@ -104,7 +104,8 @@ export class AuthService {
       refreshToken,
       base64SurrogateKey
     );
-    await this.userRepository.update(this.currentUserId!, {
+    if (!this.auth.currentUser) throw new Error("No user logged in");
+    await this.userRepository.update(this.auth.currentUser.uid, {
       encryption_data: {
         surrogate_key_refresh_token: surrogateKey,
         refresh_token_kdf_salt: salt,
