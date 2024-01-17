@@ -50,7 +50,6 @@ export class CreateAccountPage implements OnInit {
   /* Switch from create account to show one-time phrase */
   state: 'create' | 'showphrase' = 'create';
   backupPhrase?: string;
-  backupPhraseWords?: string[];
   user: any = {
     name: undefined,
     email: undefined,
@@ -71,6 +70,7 @@ export class CreateAccountPage implements OnInit {
 
   async signUp() {
     /* Verify if the user has filled all the fields */
+    /*
     try {
       this.verifyUserValues();
     } catch (error: any) {
@@ -99,6 +99,7 @@ export class CreateAccountPage implements OnInit {
       this.panic();
       return;
     }
+    */
     this.showPhrase();
   }
 
@@ -110,13 +111,27 @@ export class CreateAccountPage implements OnInit {
 
   async showPhrase() {
     this.backupPhrase = this.cryptoService.generateBackupPhrase().toLowerCase();
-    this.backupPhraseWords = this.backupPhrase.split('-');
+    console.log(this.backupPhrase);
     this.state = 'showphrase';
   }
 
   async doneShowingPhrase() {
     this.saveUserPhrase();
     this.router.navigateByUrl('');
+  }
+
+  /* Copy the backup phrase to the clipboard */
+  async copyPhrase() {
+    if (!this.backupPhrase) {
+      this.panic();
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(this.backupPhrase);
+      this.alertService.createAndShowToast('Copied to clipboard');
+    } catch (error: any) {
+      this.alertService.createAndShowToast(error.message);
+    }
   }
 
   private async saveUserPhrase() {

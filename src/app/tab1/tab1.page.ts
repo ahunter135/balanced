@@ -72,10 +72,11 @@ export class Tab1Page implements ITransactionSubscriber {
 
   async ngOnInit() {
     this.transactionPublisher.subscribe(this);
-    this.userSubscription = this.userRepository.currentFirestoreUser.subscribe((user) => {
-      this.user = user;
-      if (!user) return;
-      this.loadMonthData();
+    this.userSubscription = this.userRepository.currentFirestoreUser
+      .subscribe((user) => {
+        this.user = user;
+        if (!user) return;
+        this.loadMonthData();
     });
   }
 
