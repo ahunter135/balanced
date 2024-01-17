@@ -50,6 +50,9 @@ export class Tab1Page implements ITransactionSubscriber {
   leftToBudget: number = 0;
   remainingToSpend: number = 0;
 
+  /* Whether the user is currently reordering the categories */
+  isUserReorderingCategories: boolean = false;
+
   constructor(
     private userRepository: UserRepositoryService,
     private pickerCtrl: PickerController,
@@ -67,15 +70,10 @@ export class Tab1Page implements ITransactionSubscriber {
 
   }
 
-  async reorderItems(ev: any) {
-    console.log(ev);
-  }
-
   async ngOnInit() {
     this.transactionPublisher.subscribe(this);
     this.userSubscription = this.userRepository.currentFirestoreUser.subscribe((user) => {
       this.user = user;
-      console.log(this.user);
       if (!user) return;
       this.loadMonthData();
     });
@@ -440,5 +438,68 @@ export class Tab1Page implements ITransactionSubscriber {
         }
       }
     }
+  }
+
+  toggleReorder() {
+    if (this.isUserReorderingCategories) {
+      this.hideReorderButton();
+    } else {
+      this.showReorderButton();
+    }
+  }
+
+  showReorderButton() {
+    /** Have to do weird stuff because we have components inside the ion-item.
+      * This sets the reorder button to the right of the card.
+      */
+    const buttons = document.getElementsByClassName('reorder-button');
+    if (buttons.length == 0) return;
+    this.isUserReorderingCategories = true;
+    for (let i = 0; i < buttons.length; i++) {
+      const b = buttons[i] as HTMLElement;
+      const alignWith = document.getElementById(b.id.replace('-reorder', '') + '-card');
+      if (!alignWith) continue;
+      b.style.left = alignWith.clientWidth - 50 + 'px';
+      b.style.opacity = '1';
+    }
+  }
+
+  hideReorderButton() {
+    const buttons = document.getElementsByClassName('reorder-button');
+    if (buttons.length == 0) return;
+    for (let i = 0; i < buttons.length; i++) {
+      const b = buttons[i] as HTMLElement;
+      b.style.opacity = '0';
+    }
+    this.isUserReorderingCategories = false;
+  }
+
+  async doneReorderItems(ev: any) {
+    if (ev.detail.from == undefined || ev.detail.to == undefined) {
+      ev.detail.complete();
+      return;
+    }
+    if (ev.detail.from == ev.detail.to) {
+      ev.detail.complete();
+      return;
+    }
+    /** Hold the previous indexes of the categories so we
+      * know which to update in the database.
+      */
+    const previousIndexes = new Map<string, number>();
+    this.categoriesArray.forEach((category, index) => {
+      previousIndexes.set(category.id!, index);
+    });
+    const movedCategory = this.categoriesArray[ev.detail.from];
+    this.categoriesArray.splice(ev.detail.from, 1);
+    this.categoriesArray.splice(ev.detail.to, 0, movedCategory);
+
+    /* Update the indexes of the categories */
+    this.categoriesArray.forEach((category, index) => {
+      if (previousIndexes.get(category.id!) == index) return;
+      this.categoryRepository.update(this.user!.id!, category.id!, { index: index });
+    });
+    /* Call so ion-reorder knows we're done */
+    ev.detail.complete();
   }
 }

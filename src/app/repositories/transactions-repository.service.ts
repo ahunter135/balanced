@@ -119,7 +119,6 @@ export class TransactionsRepositoryService
     TRANSACTION_ENCRYPTED_FIELDS.forEach((field) => {
       transactionCopy[field] = decryptedObj[field];
     });
-    console.log(transactionCopy);
 
     return transactionCopy;
   }

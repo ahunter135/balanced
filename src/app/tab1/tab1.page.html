@@ -20,8 +20,15 @@
       <strong>{{remainingToSpend | currency}}</strong></span
     >
   </div>
-  <ion-reorder-group [disabled]="false" (ionItemReorder)="reorderItems($event)">
+  <div id="options-container">
+    <div class="option" (click)="toggleReorder()">
+      <img class="svg"
+      src="{{ isUserReorderingCategories ? 'assets/svg/sort-active.svg' : 'assets/svg/sort-inactive.svg' }}" />
+    </div>
+  </div>
+  <ion-reorder-group [disabled]="!isUserReorderingCategories" (ionItemReorder)="doneReorderItems($event)">
     <ion-item
+      id="{{item.id}}-ion-item"
       class="category-item-container"
       lines="none"
       *ngFor="let item of categoriesArray; let i = index"
@@ -32,10 +39,11 @@
       [subcategories]="item.subcategories || []"
       (addNewSubEvent)="addNewSub(item)"
       [chosenDate]="chosenDate"
+      [isUserReorderingCategories]="isUserReorderingCategories"
       (requestSaveOfSubs)="saveAllSubs()"
       (subcategorySelected)="subcategorySelected($event)"
       ></app-category>
-      <ion-reorder slot="end"></ion-reorder>
+    <ion-reorder id="{{item.id}}-reorder" class="reorder-button"></ion-reorder>
     </ion-item>
   </ion-reorder-group>
   <!--

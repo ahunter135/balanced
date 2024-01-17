@@ -23,6 +23,7 @@ export class CategoryComponent implements OnInit {
   @Input() subcategories: Array<Subcategory>;
   @Input() isChecklist: boolean = false;
   @Input() chosenDate: any;
+  @Input() isUserReorderingCategories: boolean = false;
   @Output() addNewSubEvent = new EventEmitter();
   @Output() requestSaveOfSubs = new EventEmitter();
   @Output() subcategorySelected = new EventEmitter();

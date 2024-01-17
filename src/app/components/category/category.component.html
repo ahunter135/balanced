@@ -1,4 +1,6 @@
-<ion-card>
+<ion-card
+  [ngStyle]="{ 'padding-right': isUserReorderingCategories ? '34px' : '0' }"
+  id="{{category.id}}-card">
   <ion-card-header>
     <ion-card-subtitle id="subtitle">
       <span id="title">{{ category.id }}</span>

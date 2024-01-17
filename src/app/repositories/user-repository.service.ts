@@ -8,6 +8,7 @@ import { getAuth } from 'firebase/auth';
 import { CryptoService } from '../services/crypto.service';
 import { Auth } from '@angular/fire/auth';
 import { Observable } from 'rxjs';
+import { CLONE_PROPERTY, isObjectClone } from '../helpers/firestore/repository-helpers';
 
 @Injectable({
   providedIn: 'root'
@@ -34,6 +35,16 @@ export class UserRepositoryService
       }
     });
   });
+
+  override async add(user: DocumentData, id?: string): Promise<User | undefined> {
+    user = this.cloneAndRemovePropertiesUser(user);
+    return super.add(user, id);
+  }
+
+  override async update(userId: string, user: DocumentData): Promise<boolean> {
+    user = this.cloneAndRemovePropertiesUser(user);
+    return super.update(userId, user);
+  }
 
   /** Get the current user from Firestore
   * @param ignoreCached Whether to ignore the cached user. Set to true to force a new fetch.
@@ -100,5 +111,16 @@ export class UserRepositoryService
     } catch (error) {
 
     }
+  }
+
+  private cloneAndRemovePropertiesUser(item: DocumentData): DocumentData {
+    if (!isObjectClone(item)) {
+      item = structuredClone(item);
+      item[CLONE_PROPERTY] = true;
+    }
+    if (item['categories']) {
+      delete item['categories'];
+    }
+    return item;
   }
 }

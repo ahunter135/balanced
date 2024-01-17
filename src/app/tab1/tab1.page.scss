@@ -38,6 +38,7 @@
   display: block;
   margin: auto;
   width: 92%;
+  margin-bottom: 10px;
   #planned-income {
     .title {
       color: #464646;
@@ -143,4 +144,20 @@
 .card-container.slide-up {
   transform: translateY(0);
   opacity: 1;
+}
+
+#options-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  width: 92%;
+  margin: 0 auto;
+  padding: 0 10px;
+}
+
+ion-reorder {
+  position: absolute;
+  z-index: 99;
+  opacity: 0.0;
 }

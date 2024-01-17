@@ -91,14 +91,16 @@
         </ion-toolbar>
       </ion-header>
       <ion-content>
-        <span *ngFor="let cat of categories">
-          <app-category
-            [category]="cat"
-            [isChecklist]="true"
-            [subcategories]="cat.subcategories || []"
-            (subcategorySelected)="subcategorySelected($event, cat)"
-          ></app-category>
-        </span>
+        <div style="width: 90%; margin: 0 auto">
+          <span *ngFor="let cat of categories">
+            <app-category
+              [category]="cat"
+              [isChecklist]="true"
+              [subcategories]="cat.subcategories || []"
+              (subcategorySelected)="subcategorySelected($event, cat)"
+              ></app-category>
+          </span>
+        </div>
       </ion-content>
     </ng-template>
   </ion-modal>

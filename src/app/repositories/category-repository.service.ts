@@ -5,6 +5,7 @@ import { CATEGORIES_SUBCOLLECTION_NAME, USER_COLLECTION_NAME } from '../constant
 import { CollectionReference, DocumentData, Query, collection, getFirestore } from 'firebase/firestore';
 import { FirestoreDocumentQueryResult } from '../types/firestore/doc-data';
 import { ISubCollectionRepository } from './interfaces/repository';
+import { CLONE_PROPERTY, isObjectClone } from '../helpers/firestore/repository-helpers';
 
 @Injectable({
   providedIn: 'root'
@@ -34,10 +35,12 @@ export class CategoryRepositoryService
   }
 
   async add(userId: string, category: DocumentData, id?: string): Promise<Category | undefined> {
+    category = this.cloneAndRemoveProperties(category);
     return super._add(CategoryRepositoryService.makeCollectionRef(userId), category, id);
   }
 
   async update(userId: string, categoryId: string, category: DocumentData): Promise<boolean> {
+    category = this.cloneAndRemoveProperties(category);
     return super._update(CategoryRepositoryService.makeCollectionRef(userId), categoryId, category);
   }
 
@@ -47,5 +50,16 @@ export class CategoryRepositoryService
 
   static makeCollectionRef(userId: string): CollectionReference<DocumentData> {
     return collection(getFirestore(), USER_COLLECTION_NAME, userId, CATEGORIES_SUBCOLLECTION_NAME);
+  }
+
+  protected cloneAndRemoveProperties(item: DocumentData): DocumentData {
+    if (!isObjectClone(item)) {
+      item = structuredClone(item);
+      item[CLONE_PROPERTY] = true;
+    }
+    if (item['transactions']) {
+      delete item['subcategories'];
+    }
+    return item;
   }
 }
