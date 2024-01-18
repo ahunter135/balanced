@@ -5,6 +5,17 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      margin-top: 15px;
+    "
+  >
+    <ion-button [routerLink]="['..']"> Go Back </ion-button>
+  </div>
+
   <ion-card>
     <ion-card-header color="primary">
       <ion-card-title>Sample Title</ion-card-title>
@@ -21,8 +32,19 @@
           [ngClass]="{'active': theme.value == activeTheme}"
         ></div>
       </div>
-      <div style="text-align: center">
-        <ion-button [routerLink]="['..']"> Save </ion-button>
+    </ion-card-content>
+  </ion-card>
+  <ion-card>
+    <ion-card-content>
+      <div id="sample-container"></div>
+      <div id="theme-container">
+        <img
+          *ngFor="let index of logos"
+          (click)="chooseIcon(index)"
+          class="theme"
+          [src]="'assets/app-icons/logo' + index + '.png'"
+          [ngClass]="{'active': index == activeIcon}"
+        />
       </div>
     </ion-card-content>
   </ion-card>

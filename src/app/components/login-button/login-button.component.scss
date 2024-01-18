@@ -1,8 +1,3 @@
 .login-button {
-  --background: linear-gradient(to right, #a2e2d5, #66e3ca, #00eabb);
-  --background-hover:linear-gradient(to right, #a2e2d5, #66e3ca, #00eabb);
-  --background-pressed:linear-gradient(to right, #a2e2d5, #66e3ca, #00eabb);
-  --background-focused:linear-gradient(to right, #a2e2d5, #66e3ca, #00eabb);
-  --background-activated:linear-gradient(to left, #a2e2d5, #66e3ca, #00eabb);
-  --ripple-color: #00eabb;
+  --background: var(--ion-color-primary);
 }

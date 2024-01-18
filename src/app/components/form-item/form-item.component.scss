@@ -15,8 +15,14 @@
   --border-width: 0 0 1px 0;
   --border-color: var(--ion-color-primary);
   transition: border-color 1s ease-in;
+  --color: var(--ion-color-primary);
+  color: var(--ion-color-primary);
 }
 
 ion-input {
   --placeholder-color: #333;
+}
+
+.form-icon {
+  color: var(--ion-color-primary);
 }

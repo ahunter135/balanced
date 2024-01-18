@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
+import { AppIcon } from '@capacitor-community/app-icon';
 
 @Component({
   selector: 'app-themes',
@@ -7,6 +8,9 @@ import { Preferences } from '@capacitor/preferences';
   styleUrls: ['./themes.page.scss'],
 })
 export class ThemesPage implements OnInit {
+  logos: Array<number> = [];
+  activeIcon: number = 0;
+  logoCount = 19;
   themes = [
     { value: '#00eabb', darkText: false },
     { value: '#9aecc2', darkText: true },
@@ -29,7 +33,11 @@ export class ThemesPage implements OnInit {
   constructor() {}
 
   ngOnInit() {
+    for (let i = 0; i < this.logoCount; i++) {
+      this.logos.push(i);
+    }
     this.getTheme();
+    this.getName();
   }
 
   async getTheme() {
@@ -52,4 +60,26 @@ export class ThemesPage implements OnInit {
       );
     }
   }
+
+  async chooseIcon(logo: number) {
+    this.changeIcon('logo' + logo);
+    this.activeIcon = logo;
+  }
+
+  changeIcon = async (iconName: string) => {
+    await AppIcon.change({ name: iconName, suppressNotification: true });
+  };
+
+  getName = async () => {
+    const { value } = await AppIcon.getName();
+    if (value) {
+      const numOnly = value.replace(/\D/g, '');
+      this.activeIcon = parseInt(numOnly);
+    }
+  };
+
+  resetIcon = async () => {
+    const disable: string[] = ['logo' + this.activeIcon]; // all added aliaces names
+    await AppIcon.reset({ suppressNotification: true, disable });
+  };
 }

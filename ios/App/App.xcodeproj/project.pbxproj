@@ -8,6 +8,25 @@
 
 /* Begin PBXBuildFile section */
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
+		4F25B9FA2B59A0660031A457 /* logo4.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25B9E92B59A0630031A457 /* logo4.png */; };
+		4F25B9FB2B59A0660031A457 /* logo7.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25B9EA2B59A0640031A457 /* logo7.png */; };
+		4F25B9FC2B59A0660031A457 /* logo9.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25B9EB2B59A0640031A457 /* logo9.png */; };
+		4F25B9FD2B59A0660031A457 /* logo8.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25B9EC2B59A0640031A457 /* logo8.png */; };
+		4F25B9FE2B59A0660031A457 /* logo11.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25B9ED2B59A0650031A457 /* logo11.png */; };
+		4F25B9FF2B59A0660031A457 /* logo15.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25B9EE2B59A0650031A457 /* logo15.png */; };
+		4F25BA002B59A0660031A457 /* logo12.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25B9EF2B59A0650031A457 /* logo12.png */; };
+		4F25BA012B59A0660031A457 /* logo3.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25B9F02B59A0650031A457 /* logo3.png */; };
+		4F25BA022B59A0660031A457 /* logo1.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25B9F12B59A0650031A457 /* logo1.png */; };
+		4F25BA032B59A0660031A457 /* logo5.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25B9F22B59A0650031A457 /* logo5.png */; };
+		4F25BA042B59A0660031A457 /* logo6.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25B9F32B59A0650031A457 /* logo6.png */; };
+		4F25BA052B59A0660031A457 /* logo13.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25B9F42B59A0650031A457 /* logo13.png */; };
+		4F25BA062B59A0660031A457 /* logo10.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25B9F52B59A0660031A457 /* logo10.png */; };
+		4F25BA072B59A0660031A457 /* logo14.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25B9F62B59A0660031A457 /* logo14.png */; };
+		4F25BA082B59A0660031A457 /* logo2.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25B9F72B59A0660031A457 /* logo2.png */; };
+		4F25BA092B59A0660031A457 /* logo16.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25B9F82B59A0660031A457 /* logo16.png */; };
+		4F25BA0B2B59A1160031A457 /* logo0.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25BA0A2B59A1160031A457 /* logo0.png */; };
+		4F25BA0E2B59A41C0031A457 /* logo17.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25BA0C2B59A41C0031A457 /* logo17.png */; };
+		4F25BA0F2B59A41C0031A457 /* logo18.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F25BA0D2B59A41C0031A457 /* logo18.png */; };
 		4F3B35742B585AB300078F3E /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4F3B35732B585AB300078F3E /* GoogleService-Info.plist */; };
 		4F965DA12B5860E200A09516 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F965DA02B5860E200A09516 /* StoreKit.framework */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
@@ -21,6 +40,25 @@
 
 /* Begin PBXFileReference section */
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
+		4F25B9E92B59A0630031A457 /* logo4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = logo4.png; path = "../../../../../../../Desktop/app-logos/logo4.png"; sourceTree = "<group>"; };
+		4F25B9EA2B59A0640031A457 /* logo7.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo7.png; sourceTree = "<group>"; };
+		4F25B9EB2B59A0640031A457 /* logo9.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo9.png; sourceTree = "<group>"; };
+		4F25B9EC2B59A0640031A457 /* logo8.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo8.png; sourceTree = "<group>"; };
+		4F25B9ED2B59A0650031A457 /* logo11.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo11.png; sourceTree = "<group>"; };
+		4F25B9EE2B59A0650031A457 /* logo15.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo15.png; sourceTree = "<group>"; };
+		4F25B9EF2B59A0650031A457 /* logo12.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo12.png; sourceTree = "<group>"; };
+		4F25B9F02B59A0650031A457 /* logo3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = logo3.png; path = "../../../../../../../Desktop/app-logos/logo3.png"; sourceTree = "<group>"; };
+		4F25B9F12B59A0650031A457 /* logo1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = logo1.png; path = "../../../../../../../Desktop/app-logos/logo1.png"; sourceTree = "<group>"; };
+		4F25B9F22B59A0650031A457 /* logo5.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = logo5.png; path = "../../../../../../../Desktop/app-logos/logo5.png"; sourceTree = "<group>"; };
+		4F25B9F32B59A0650031A457 /* logo6.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo6.png; sourceTree = "<group>"; };
+		4F25B9F42B59A0650031A457 /* logo13.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo13.png; sourceTree = "<group>"; };
+		4F25B9F52B59A0660031A457 /* logo10.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo10.png; sourceTree = "<group>"; };
+		4F25B9F62B59A0660031A457 /* logo14.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo14.png; sourceTree = "<group>"; };
+		4F25B9F72B59A0660031A457 /* logo2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = logo2.png; path = "../../../../../../../Desktop/app-logos/logo2.png"; sourceTree = "<group>"; };
+		4F25B9F82B59A0660031A457 /* logo16.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo16.png; sourceTree = "<group>"; };
+		4F25BA0A2B59A1160031A457 /* logo0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo0.png; sourceTree = "<group>"; };
+		4F25BA0C2B59A41C0031A457 /* logo17.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo17.png; sourceTree = "<group>"; };
+		4F25BA0D2B59A41C0031A457 /* logo18.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo18.png; sourceTree = "<group>"; };
 		4F3B35732B585AB300078F3E /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		4F965D9F2B5860D900A09516 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		4F965DA02B5860E200A09516 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
@@ -59,6 +97,32 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		4F25B9CF2B599BF40031A457 /* AlternateIcons */ = {
+			isa = PBXGroup;
+			children = (
+				4F25BA0C2B59A41C0031A457 /* logo17.png */,
+				4F25BA0D2B59A41C0031A457 /* logo18.png */,
+				4F25BA0A2B59A1160031A457 /* logo0.png */,
+				4F25B9F12B59A0650031A457 /* logo1.png */,
+				4F25B9F72B59A0660031A457 /* logo2.png */,
+				4F25B9F02B59A0650031A457 /* logo3.png */,
+				4F25B9E92B59A0630031A457 /* logo4.png */,
+				4F25B9F22B59A0650031A457 /* logo5.png */,
+				4F25B9F32B59A0650031A457 /* logo6.png */,
+				4F25B9EA2B59A0640031A457 /* logo7.png */,
+				4F25B9EC2B59A0640031A457 /* logo8.png */,
+				4F25B9EB2B59A0640031A457 /* logo9.png */,
+				4F25B9F52B59A0660031A457 /* logo10.png */,
+				4F25B9ED2B59A0650031A457 /* logo11.png */,
+				4F25B9EF2B59A0650031A457 /* logo12.png */,
+				4F25B9F42B59A0650031A457 /* logo13.png */,
+				4F25B9F62B59A0660031A457 /* logo14.png */,
+				4F25B9EE2B59A0650031A457 /* logo15.png */,
+				4F25B9F82B59A0660031A457 /* logo16.png */,
+			);
+			path = AlternateIcons;
+			sourceTree = "<group>";
+		};
 		504EC2FB1FED79650016851F = {
 			isa = PBXGroup;
 			children = (
@@ -80,6 +144,7 @@
 		504EC3061FED79650016851F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				4F25B9CF2B599BF40031A457 /* AlternateIcons */,
 				4F965D9F2B5860D900A09516 /* App.entitlements */,
 				4F3B35732B585AB300078F3E /* GoogleService-Info.plist */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
@@ -164,13 +229,32 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4F25BA012B59A0660031A457 /* logo3.png in Resources */,
 				504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */,
+				4F25BA052B59A0660031A457 /* logo13.png in Resources */,
+				4F25B9FD2B59A0660031A457 /* logo8.png in Resources */,
+				4F25BA082B59A0660031A457 /* logo2.png in Resources */,
+				4F25BA092B59A0660031A457 /* logo16.png in Resources */,
+				4F25B9FC2B59A0660031A457 /* logo9.png in Resources */,
+				4F25BA0E2B59A41C0031A457 /* logo17.png in Resources */,
+				4F25BA032B59A0660031A457 /* logo5.png in Resources */,
+				4F25B9FE2B59A0660031A457 /* logo11.png in Resources */,
+				4F25BA042B59A0660031A457 /* logo6.png in Resources */,
 				50B271D11FEDC1A000F3C39B /* public in Resources */,
 				504EC30F1FED79650016851F /* Assets.xcassets in Resources */,
+				4F25BA0F2B59A41C0031A457 /* logo18.png in Resources */,
 				50379B232058CBB4000EE86E /* capacitor.config.json in Resources */,
+				4F25BA0B2B59A1160031A457 /* logo0.png in Resources */,
+				4F25B9FA2B59A0660031A457 /* logo4.png in Resources */,
+				4F25BA022B59A0660031A457 /* logo1.png in Resources */,
+				4F25B9FF2B59A0660031A457 /* logo15.png in Resources */,
+				4F25BA072B59A0660031A457 /* logo14.png in Resources */,
+				4F25B9FB2B59A0660031A457 /* logo7.png in Resources */,
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,
+				4F25BA002B59A0660031A457 /* logo12.png in Resources */,
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,
 				4F3B35742B585AB300078F3E /* GoogleService-Info.plist in Resources */,
+				4F25BA062B59A0660031A457 /* logo10.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -357,7 +441,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = G9V929JBBQ;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = WiseWallets;
@@ -385,7 +469,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = G9V929JBBQ;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = WiseWallets;
