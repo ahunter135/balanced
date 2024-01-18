@@ -13,7 +13,7 @@
 
 .ion-item-has-focus {
   --border-width: 0 0 1px 0;
-  --border-color: #00eabb;
+  --border-color: var(--ion-color-primary);
   transition: border-color 1s ease-in;
 }
 
