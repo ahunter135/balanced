@@ -15,7 +15,9 @@ ion-toolbar {
 
 header {
   text-align: center;
-  padding: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
 }
 
 header h1 {
@@ -93,4 +95,10 @@ button {
 
 button:hover {
   background-color: #00cea5;
+}
+
+lottie-player {
+  width: 225px;
+  margin-top: -90px;
+  text-align: center;
 }

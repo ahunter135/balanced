@@ -1,15 +1,10 @@
 <ion-header color="primary">
   <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-button [routerLink]="['..']">
-        <ion-icon name="arrow-back"></ion-icon>
-      </ion-button>
-    </ion-buttons>
     <ion-title> App Themes </ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content [fullscreen]="true">
   <ion-card>
     <ion-card-header color="primary">
       <ion-card-title>Sample Title</ion-card-title>
@@ -25,6 +20,9 @@
           [ngStyle]="{'background-color': theme.value}"
           [ngClass]="{'active': theme.value == activeTheme}"
         ></div>
+      </div>
+      <div style="text-align: center">
+        <ion-button [routerLink]="['..']"> Save </ion-button>
       </div>
     </ion-card-content>
   </ion-card>
