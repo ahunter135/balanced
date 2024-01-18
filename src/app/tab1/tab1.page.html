@@ -3,6 +3,7 @@
   [chosenYear]="chosenDate.year"
   (requestDateChange)="requestDateChange()"
   (addTransactionButtonClicked)="addTransaction()"
+  (refreshButtonClicked)="loadMonthData()"
 ></app-header>
 
 <ion-content [fullscreen]="true" class="ion-content-scroll-host">
@@ -22,20 +23,25 @@
   </div>
   <div id="options-container">
     <div class="option" (click)="toggleReorder()">
-      <img class="svg"
-      src="{{ isUserReorderingCategories ? 'assets/svg/sort-active.svg' : 'assets/svg/sort-inactive.svg' }}" />
+      <img
+        class="svg"
+        src="{{ isUserReorderingCategories ? 'assets/svg/sort-active.svg' : 'assets/svg/sort-inactive.svg' }}"
+      />
     </div>
   </div>
   <div>
-    <ion-reorder-group [disabled]="!isUserReorderingCategories" (ionItemReorder)="doneReorderItems($event)">
+    <ion-reorder-group
+      [disabled]="!isUserReorderingCategories"
+      (ionItemReorder)="doneReorderItems($event)"
+    >
       <ion-item
         id="{{item.id}}-ion-item"
         class="category-item-container"
         lines="none"
         *ngFor="let item of categoriesArray; let i = index"
-        >
+      >
         <app-category
-          style="width: 100%;"
+          style="width: 100%"
           [category]="item"
           [subcategories]="item.subcategories || []"
           (addNewSubEvent)="addNewSub(item)"
@@ -43,8 +49,11 @@
           [isUserReorderingCategories]="isUserReorderingCategories"
           (requestSaveOfSubs)="saveAllSubs()"
           (subcategorySelected)="subcategorySelected($event)"
-          ></app-category>
-        <ion-reorder id="{{item.id}}-reorder" class="reorder-button"></ion-reorder>
+        ></app-category>
+        <ion-reorder
+          id="{{item.id}}-reorder"
+          class="reorder-button"
+        ></ion-reorder>
       </ion-item>
     </ion-reorder-group>
   </div>
@@ -55,9 +64,12 @@
     (click)="revealUnsortedTransactions()"
   >
     <div id="transaction-counter">
-      <span class="counter-number"
-        >{{unsortedTransactions.length}}</span
-      >
+      <span *ngIf="isCardContainerVisible">
+        <ion-icon name="close" style="color: white; font-size: 30px"></ion-icon>
+      </span>
+      <span *ngIf="!isCardContainerVisible" class="counter-number">
+        {{unsortedTransactions.length}}
+      </span>
     </div>
   </div>
   <div

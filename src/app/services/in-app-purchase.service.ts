@@ -68,15 +68,19 @@ export class InAppPurchaseService {
   setupListeners() {
     this.store
       .when()
-      .approved((p: any) => {
+      .approved((p: CdvPurchase.Transaction) => {
         // Handle the product deliverable
-        if (p.id === this.premium_id || p.id === this.premium_yearly_id) {
-          this.userService.updatePremiumStatus(p.owned);
+        if (
+          p.products[0].id === this.premium_id ||
+          p.products[0].id === this.premium_yearly_id
+        ) {
+          this.userService.updatePremiumStatus(true);
         }
 
         return p.verify();
       })
       .verified((p: any) => p.finish())
+      .unverified((p: any) => p.finish())
       .finished(() => {
         if (this.loader) {
           this.loader.dismiss();
@@ -104,15 +108,20 @@ export class InAppPurchaseService {
     await this.loader.present();
     let offer = product.getOffer()!;
     if (offer) {
-      this.store.order(offer).then(
-        (p) => {
-          // Purchase in progress!
-        },
-        (e) => {
+      this.store
+        .order(offer)
+        .then(
+          (p) => {
+            // Purchase in progress!
+          },
+          (e) => {
+            this.loader.dismiss();
+            this.presentAlert('Failed', `Failed to purchase: ${e}`);
+          }
+        )
+        .finally(() => {
           this.loader.dismiss();
-          this.presentAlert('Failed', `Failed to purchase: ${e}`);
-        }
-      );
+        });
     }
   }
 

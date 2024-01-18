@@ -56,6 +56,13 @@
         <ion-item button (click)="link()" [disabled]="!userService.isPremium">
           <ion-label>Link Account</ion-label>
         </ion-item>
+        <ion-item
+          button
+          (click)="goToThemes()"
+          [disabled]="!userService.isPremium"
+        >
+          <ion-label>Change App Theme</ion-label>
+        </ion-item>
         <ion-item button (click)="signOut()">
           <ion-label>Sign Out</ion-label>
         </ion-item>

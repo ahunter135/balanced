@@ -1,0 +1,31 @@
+<ion-header color="primary">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button [routerLink]="['..']">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title> App Themes </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-card>
+    <ion-card-header color="primary">
+      <ion-card-title>Sample Title</ion-card-title>
+      <ion-card-subtitle>Sample Subtitle</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <div id="sample-container"></div>
+      <div id="theme-container">
+        <div
+          class="theme"
+          *ngFor="let theme of themes"
+          (click)="chooseTheme(theme)"
+          [ngStyle]="{'background-color': theme.value}"
+          [ngClass]="{'active': theme.value == activeTheme}"
+        ></div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

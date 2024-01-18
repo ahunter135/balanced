@@ -6,6 +6,10 @@ const routes: Routes = [
   {
     path: '',
     component: Tab3Page,
+  },
+  {
+    path: 'themes',
+    loadChildren: () => import('./themes/themes.module').then( m => m.ThemesPageModule)
   }
 ];
 

@@ -6,6 +6,9 @@
       <span><ion-icon name="chevron-down" slot="icon-only"></ion-icon></span>
     </div>
     <ion-buttons slot="end">
+      <ion-button (click)="refresh()">
+        <ion-icon name="refresh" slot="icon-only"></ion-icon>
+      </ion-button>
       <ion-button (click)="addTransaction()">
         <ion-icon name="add" slot="icon-only"></ion-icon>
       </ion-button>

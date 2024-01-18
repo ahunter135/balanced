@@ -39,4 +39,8 @@ export class Tab3Page {
   purchase(flag: string) {
     this.inapp.startPurchase(flag);
   }
+
+  goToThemes() {
+    this.router.navigateByUrl('tabs/tab3/themes');
+  }
 }

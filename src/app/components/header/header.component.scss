@@ -5,18 +5,18 @@
     .month {
       font-family: "Impact";
       font-size: 40px;
-      color: white;
+      color: var(--ion-color-primary-contrast);
     }
     .year {
       font-size: 30px;
-      color: white;
+      color: var(--ion-color-primary-contrast);
       padding-left: 10px;
       font-weight: 300;
     }
   }
 
   ion-icon {
-    color: white;
+    color: var(--ion-color-primary-contrast);
   }
 }
 

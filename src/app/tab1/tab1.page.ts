@@ -2,7 +2,7 @@ import {
   User,
   Category,
   Subcategory,
-  Transaction
+  Transaction,
 } from 'src/app/types/firestore/user';
 import { Component, ViewEncapsulation } from '@angular/core';
 import { generateRandomId } from '../utils/generation';
@@ -10,19 +10,33 @@ import { ModalController, PickerController } from '@ionic/angular';
 import { TransactionSorterComponent } from '../modals/transaction-sorter/transaction-sorter.component';
 import { ViewSubCategoryComponent } from '../modals/view-sub-category/view-sub-category.component';
 import { LocaleStringMonthYear, NumberMonthYear } from '../types/dates/dates';
-import { getMonthYearLocaleString, getNumberMonthYearFromDate, getStartAndEndOfMonth } from '../helpers/formatters/dates';
+import {
+  getMonthYearLocaleString,
+  getNumberMonthYearFromDate,
+  getStartAndEndOfMonth,
+} from '../helpers/formatters/dates';
 import { UserRepositoryService } from '../repositories/user-repository.service';
-import { dateTransactionSort, defaultCategorySort } from '../helpers/sorters/user-related-sorters';
+import {
+  dateTransactionSort,
+  defaultCategorySort,
+} from '../helpers/sorters/user-related-sorters';
 import { CategoryRepositoryService } from '../repositories/category-repository.service';
 import { SubcategoryRepositoryService } from '../repositories/subcategory-repository.service';
 import { buildSubcategoryByDateQuery } from '../helpers/queries/subcategories';
-import { MONTH_NAMES_AND_VALUES, PICKER_YEAR_NAMES_AND_VALUES } from '../constants/dates/dates';
+import {
+  MONTH_NAMES_AND_VALUES,
+  PICKER_YEAR_NAMES_AND_VALUES,
+} from '../constants/dates/dates';
 import { TransactionService } from '../services/transaction.service';
 import { AddTransactionComponent } from '../modals/add-transaction/add-transaction.component';
 import { TransactionPublisherService } from '../services/transaction-publisher.service';
-import { ITransactionSubscriber, TransactionEvent } from '../services/interfaces/transaction-publisher';
+import {
+  ITransactionSubscriber,
+  TransactionEvent,
+} from '../services/interfaces/transaction-publisher';
 import { ObjValueMap } from '../utils/data-structures';
 import { Subscription } from 'rxjs';
+import { UserService } from '../services/user.service';
 
 @Component({
   selector: 'app-tab1',
@@ -61,23 +75,24 @@ export class Tab1Page implements ITransactionSubscriber {
     private subcategoryRepository: SubcategoryRepositoryService,
     private transactionService: TransactionService,
     private transactionPublisher: TransactionPublisherService,
+    private userService: UserService
   ) {
     // Set the app to load the current month
     // Storing as a number to easily compare
     this.chosenDateNumber = getNumberMonthYearFromDate();
     this.transactions = new ObjValueMap<NumberMonthYear, Array<Transaction>>();
     this.categories = new ObjValueMap<NumberMonthYear, Array<Category>>();
-
   }
 
   async ngOnInit() {
     this.transactionPublisher.subscribe(this);
-    this.userSubscription = this.userRepository.currentFirestoreUser
-      .subscribe((user) => {
+    this.userSubscription = this.userRepository.currentFirestoreUser.subscribe(
+      (user) => {
         this.user = user;
         if (!user) return;
         this.loadMonthData();
-    });
+      }
+    );
   }
 
   async ngOnDestroy() {
@@ -85,14 +100,18 @@ export class Tab1Page implements ITransactionSubscriber {
     this.userSubscription?.unsubscribe();
   }
 
-  get chosenDate(): LocaleStringMonthYear { return this._chosenDate; }
-  get chosenDateNumber(): NumberMonthYear { return this._chosenDateNumber; }
+  get chosenDate(): LocaleStringMonthYear {
+    return this._chosenDate;
+  }
+  get chosenDateNumber(): NumberMonthYear {
+    return this._chosenDateNumber;
+  }
   set chosenDateNumber(value: NumberMonthYear) {
     this._chosenDateNumber = value;
     this._chosenDate = getMonthYearLocaleString(value);
   }
 
-  get startAndEndOfMonth(): { start: Date, end: Date } {
+  get startAndEndOfMonth(): { start: Date; end: Date } {
     return getStartAndEndOfMonth(this.chosenDateNumber);
   }
 
@@ -124,7 +143,9 @@ export class Tab1Page implements ITransactionSubscriber {
       transactions.sort(dateTransactionSort);
       categories.sort(defaultCategorySort);
       this.transactions.set(this.chosenDateNumber, transactions);
-      this.unsortedTransactions = transactions.filter((t) => !t.subcategoryId || t.subcategoryId == '');
+      this.unsortedTransactions = transactions.filter(
+        (t) => !t.subcategoryId || t.subcategoryId == ''
+      );
       this.categories.set(this.chosenDateNumber, categories);
       this.calculatePlannedAndBudget(categories);
     });
@@ -132,19 +153,27 @@ export class Tab1Page implements ITransactionSubscriber {
 
   async grabUserCategoriesForSelectedMonth(): Promise<Array<Category>> {
     if (!this.user) return [];
-    const queryResult = await this.categoryRepository.getAllFromParent(this.user!.id!);
+    const queryResult = await this.categoryRepository.getAllFromParent(
+      this.user!.id!
+    );
     const categories: Array<Category> = queryResult.docs;
     const promises: Array<Promise<any>> = [];
     /* Grab all subcategories for each category for chosen date */
     for (let i = 0; i < categories.length; i++) {
       promises.push(
-        this.subcategoryRepository.getByQuery(
-          buildSubcategoryByDateQuery(this.user!.id!, queryResult.docs[i].id!, this.chosenDateNumber)
-        ).then((subQueryResult) => {
-          if (subQueryResult.size == 0) categories[i].subcategories = [];
-          else categories[i].subcategories = subQueryResult.docs;
-          categories[i].subcategories!.sort(defaultCategorySort);
-        })
+        this.subcategoryRepository
+          .getByQuery(
+            buildSubcategoryByDateQuery(
+              this.user!.id!,
+              queryResult.docs[i].id!,
+              this.chosenDateNumber
+            )
+          )
+          .then((subQueryResult) => {
+            if (subQueryResult.size == 0) categories[i].subcategories = [];
+            else categories[i].subcategories = subQueryResult.docs;
+            categories[i].subcategories!.sort(defaultCategorySort);
+          })
       );
     }
     await Promise.all(promises);
@@ -153,17 +182,20 @@ export class Tab1Page implements ITransactionSubscriber {
 
   async grabTransactionsForSelectedMonth(): Promise<Array<Transaction>> {
     if (!this.user) return [];
+    if (!this.userService.isPremium) return [];
     const { start, end } = this.startAndEndOfMonth;
     return this.transactionService.getTransactions(
-      true,    // includePending
-      true,    // syncPlaid
-      start,   // startDate
-      end,     // endDate
+      true, // includePending
+      true, // syncPlaid
+      start, // startDate
+      end // endDate
     );
   }
 
   updateSubcategoryActualAmounts(): boolean {
-    const currentMonthTransactions = this.transactions.get(this.chosenDateNumber);
+    const currentMonthTransactions = this.transactions.get(
+      this.chosenDateNumber
+    );
     if (!currentMonthTransactions) return false;
     const currentMonthCategories = this.categories.get(this.chosenDateNumber);
     if (!currentMonthCategories) return false;
@@ -183,10 +215,16 @@ export class Tab1Page implements ITransactionSubscriber {
     }
 
     for (let i = 0; i < currentMonthCategories.length; i++) {
-      for (let j = 0; j < currentMonthCategories[i].subcategories!.length; j++) {
+      for (
+        let j = 0;
+        j < currentMonthCategories[i].subcategories!.length;
+        j++
+      ) {
         const subcategory = currentMonthCategories[i].subcategories![j];
         if (subcategoryActualAmounts.has(subcategory.id!)) {
-          subcategory.actual_amount = subcategoryActualAmounts.get(subcategory.id!)!;
+          subcategory.actual_amount = subcategoryActualAmounts.get(
+            subcategory.id!
+          )!;
         } else {
           subcategory.actual_amount = 0;
         }
@@ -214,10 +252,10 @@ export class Tab1Page implements ITransactionSubscriber {
     }
 
     this.plannedIncome = incomePlannedAmount;
-    this.leftToBudget = (-1 * this.plannedIncome) - expensePlannedAmount;
+    this.leftToBudget = -1 * this.plannedIncome - expensePlannedAmount;
     if (this.leftToBudget <= -0 && this.leftToBudget > -0.01)
       this.leftToBudget = 0; // -0 shows up sometimes
-    this.remainingToSpend = (-1 * this.plannedIncome) - actualAmountSpent;
+    this.remainingToSpend = -1 * this.plannedIncome - actualAmountSpent;
   }
 
   /**
@@ -278,7 +316,7 @@ export class Tab1Page implements ITransactionSubscriber {
       component: AddTransactionComponent,
       componentProps: {
         categories: this.categoriesArray,
-        user: this.user
+        user: this.user,
       },
     });
 
@@ -323,7 +361,10 @@ export class Tab1Page implements ITransactionSubscriber {
         {
           text: 'Confirm',
           handler: (value) => {
-            this.chosenDateNumber = { month: value.month.value, year: value.year.value };
+            this.chosenDateNumber = {
+              month: value.month.value,
+              year: value.year.value,
+            };
             // New date has been selected, grab all that months transactions
             this.loadMonthData();
           },
@@ -387,24 +428,28 @@ export class Tab1Page implements ITransactionSubscriber {
 
   /* Function that receives transaction events from the TransactionPublisher */
   async onTransactionEvent(event: TransactionEvent): Promise<void> {
-    const { addedTransactions, removedTransactions, modifiedTransactions } = event;
+    const { addedTransactions, removedTransactions, modifiedTransactions } =
+      event;
     const promises: Array<Promise<void>> = [];
 
     /** These return maps with subcategory ids as keys and amounts as values
-      * to be added to the subcategory amounts.
-      */
+     * to be added to the subcategory amounts.
+     */
     promises.push(this.handleAddedTransactions(addedTransactions));
     promises.push(this.handleRemovedTransactions(removedTransactions));
     promises.push(this.handleModifiedTransactions(modifiedTransactions));
 
     Promise.all(promises).then((results) => {
       this.calculatePlannedAndBudget(this.categoriesArray);
-      this.unsortedTransactions = this.transactionsArray
-        .filter((t) => !t.subcategoryId || t.subcategoryId == '');
+      this.unsortedTransactions = this.transactionsArray.filter(
+        (t) => !t.subcategoryId || t.subcategoryId == ''
+      );
     });
   }
 
-  async handleAddedTransactions(transactions: Array<Transaction>): Promise<void> {
+  async handleAddedTransactions(
+    transactions: Array<Transaction>
+  ): Promise<void> {
     if (!transactions || transactions.length == 0) return;
 
     for (let i = 0; i < transactions.length; i++) {
@@ -416,7 +461,9 @@ export class Tab1Page implements ITransactionSubscriber {
     }
   }
 
-  async handleRemovedTransactions(transactions: Array<Transaction>): Promise<void> {
+  async handleRemovedTransactions(
+    transactions: Array<Transaction>
+  ): Promise<void> {
     for (let i = 0; i < transactions.length; i++) {
       const transaction: Transaction = transactions[i];
       const transactionMonthYear = getNumberMonthYearFromDate(transaction.date);
@@ -427,7 +474,9 @@ export class Tab1Page implements ITransactionSubscriber {
     }
   }
 
-  async handleModifiedTransactions(transactions: Array<Transaction>): Promise<void> {
+  async handleModifiedTransactions(
+    transactions: Array<Transaction>
+  ): Promise<void> {
     for (let i = 0; i < transactions.length; i++) {
       const transaction: Transaction = transactions[i];
       const transactionMonthYear = getNumberMonthYearFromDate(transaction.date);
@@ -451,14 +500,16 @@ export class Tab1Page implements ITransactionSubscriber {
 
   showReorderButton() {
     /** Have to do weird stuff because we have components inside the ion-item.
-      * This sets the reorder button to the right of the card.
-      */
+     * This sets the reorder button to the right of the card.
+     */
     const buttons = document.getElementsByClassName('reorder-button');
     if (buttons.length == 0) return;
     this.isUserReorderingCategories = true;
     for (let i = 0; i < buttons.length; i++) {
       const b = buttons[i] as HTMLElement;
-      const alignWith = document.getElementById(b.id.replace('-reorder', '') + '-card');
+      const alignWith = document.getElementById(
+        b.id.replace('-reorder', '') + '-card'
+      );
       if (!alignWith) continue;
       b.style.left = alignWith.clientWidth - 50 + 'px';
       b.style.opacity = '1';
@@ -485,8 +536,8 @@ export class Tab1Page implements ITransactionSubscriber {
       return;
     }
     /** Hold the previous indexes of the categories so we
-      * know which to update in the database.
-      */
+     * know which to update in the database.
+     */
     const previousIndexes = new Map<string, number>();
     this.categoriesArray.forEach((category, index) => {
       previousIndexes.set(category.id!, index);
@@ -498,7 +549,9 @@ export class Tab1Page implements ITransactionSubscriber {
     /* Update the indexes of the categories */
     this.categoriesArray.forEach((category, index) => {
       if (previousIndexes.get(category.id!) == index) return;
-      this.categoryRepository.update(this.user!.id!, category.id!, { index: index });
+      this.categoryRepository.update(this.user!.id!, category.id!, {
+        index: index,
+      });
     });
     /* Call so ion-reorder knows we're done */
     ev.detail.complete();

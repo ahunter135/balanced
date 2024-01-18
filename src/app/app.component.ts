@@ -11,6 +11,8 @@ import {
 } from '@capacitor/push-notifications';
 import { UserService } from './services/user.service';
 import { AuthService } from './services/auth.service';
+import { Preferences } from '@capacitor/preferences';
+
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -19,6 +21,30 @@ import { AuthService } from './services/auth.service';
 export class AppComponent {
   constructor(private authService: AuthService) {
     this.configureFirebaseEnvironment();
+    this.setTheme();
+  }
+
+  async setTheme() {
+    const currentTheme = await Preferences.get({ key: 'theme' });
+    console.log(currentTheme.value);
+    if (currentTheme.value) {
+      const htmlEl = document.querySelector('html');
+      if (htmlEl) {
+        htmlEl.style.setProperty(
+          '--ion-color-primary',
+          JSON.parse(currentTheme.value).value
+        );
+        htmlEl.style.setProperty(
+          '--ion-color-primary-contrast',
+          JSON.parse(currentTheme.value).darkText ? '#000000' : '#FFFFFF'
+        );
+      }
+    } else {
+      const htmlEl = document.querySelector('html');
+      if (htmlEl) {
+        htmlEl.style.setProperty('--ion-color-primary', '#00eabb');
+      }
+    }
   }
 
   ngOnInit() {
