@@ -73,11 +73,7 @@
     </div>
   </div>
 
-  <div
-    *ngIf="state=='showphrase'"
-    style="text-align: center; margin-top: 25px"
-    [@showPhrase]
-  >
+  <div *ngIf="state=='showphrase'" style="text-align: center" [@showPhrase]>
     <div class="title-container">
       <h1
         class="login-title"
@@ -94,6 +90,7 @@
         border-radius: 10px;
         font-family: 'Arial', sans-serif;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        font-size: 17px;
       "
     >
       <p>
@@ -119,7 +116,11 @@
     >
       <div
         class="phrase"
-        style="font-family: 'Courier New', Courier, monospace; color: #000"
+        style="
+          font-family: 'Courier New', Courier, monospace;
+          color: #000;
+          font-size: 20px;
+        "
       >
         {{ backupPhrase }}
       </div>

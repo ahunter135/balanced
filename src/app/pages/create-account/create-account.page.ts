@@ -9,6 +9,7 @@ import {
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
+import { LoadingController } from '@ionic/angular';
 import { UserRepositoryService } from 'src/app/repositories/user-repository.service';
 import { AlertService } from 'src/app/services/alert.service';
 import { AuthService } from 'src/app/services/auth.service';
@@ -63,16 +64,20 @@ export class CreateAccountPage implements OnInit {
     public route: ActivatedRoute,
     private authService: AuthService,
     private cryptoService: CryptoService,
-    private userRepository: UserRepositoryService
+    private userRepository: UserRepositoryService,
+    private loaderCtrl: LoadingController
   ) {}
 
   ngOnInit() {}
 
   async signUp() {
+    const loader = await this.loaderCtrl.create();
+    loader.present();
     /* Verify if the user has filled all the fields */
     try {
       this.verifyUserValues();
     } catch (error: any) {
+      loader.dismiss();
       this.alertService.createAndShowToast(error.message);
       return;
     }
@@ -84,6 +89,7 @@ export class CreateAccountPage implements OnInit {
         { name: this.user.name }
       );
     } catch (error: any) {
+      loader.dismiss();
       this.alertService.createAndShowToast(error.message);
     }
 
@@ -95,9 +101,11 @@ export class CreateAccountPage implements OnInit {
         this.cryptoService.surrogateKey!
       );
     } catch (error: any) {
+      loader.dismiss();
       this.panic();
       return;
     }
+    loader.dismiss();
     this.showPhrase();
   }
 

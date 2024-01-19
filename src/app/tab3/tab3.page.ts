@@ -5,6 +5,8 @@ import { AlertService } from '../services/alert.service';
 import { PlaidService } from '../services/plaid.service';
 import { UserService } from '../services/user.service';
 import { InAppPurchaseService } from '../services/in-app-purchase.service';
+import { AlertController } from '@ionic/angular';
+import { User, deleteUser } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-tab3',
@@ -20,7 +22,8 @@ export class Tab3Page {
     private alertService: AlertService,
     private plaidService: PlaidService,
     public userService: UserService,
-    public inapp: InAppPurchaseService
+    public inapp: InAppPurchaseService,
+    private alertCtrl: AlertController
   ) {}
 
   async link() {
@@ -42,5 +45,29 @@ export class Tab3Page {
 
   goToThemes() {
     this.router.navigateByUrl('tabs/tab3/themes');
+  }
+
+  async deleteAccount() {
+    const alertW = await this.alertCtrl.create({
+      header: 'Are you sure you want to delete your account?',
+      buttons: [
+        {
+          text: 'Yes',
+          role: 'destructive',
+          handler: async () => {
+            const user = (await this.authService.getCurrentAuthUser()) as User;
+            deleteUser(user).then(() => window.location.reload());
+          },
+        },
+        {
+          text: 'No',
+          handler: async () => {
+            return;
+          },
+        },
+      ],
+    });
+
+    alertW.present();
   }
 }
