@@ -426,7 +426,11 @@ export class Tab1Page implements ITransactionSubscriber {
     });
 
     // Remove the minus sign if the value is negative
-    return value < 0 ? formatter.format(-value) : formatter.format(value);
+    return value < 0
+      ? formatter.format(-value)
+      : value == 0
+      ? '$0.00'
+      : formatter.format(value);
   }
 
   /* Function that receives transaction events from the TransactionPublisher */
