@@ -1,4 +1,4 @@
-import { getPickerYears } from "src/app/helpers/formatters/dates";
+import { getPickerYears } from 'src/app/helpers/formatters/dates';
 
 export const MONTH_NAMES_AND_VALUES = [
   { text: 'January', value: 0, selected: false },

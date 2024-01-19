@@ -415,15 +415,18 @@ export class Tab1Page implements ITransactionSubscriber {
   }
 
   formatCurrency(
-    number: number,
+    value: number,
     currencyCode: string = 'USD',
     locale: string = 'en-US'
   ): string {
-    // Use Intl.NumberFormat to format the number as currency
-    return new Intl.NumberFormat(locale, {
+    const formatter = new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currencyCode,
-    }).format(number);
+      currency: 'USD',
+      // Other options you want to set
+    });
+
+    // Remove the minus sign if the value is negative
+    return value < 0 ? formatter.format(-value) : formatter.format(value);
   }
 
   /* Function that receives transaction events from the TransactionPublisher */
