@@ -9,9 +9,10 @@ import {
 import {
   Category,
   Subcategory,
-  Transaction
+  Transaction,
 } from 'src/app/types/firestore/user';
 import { IonInput } from '@ionic/angular';
+import { Keyboard } from '@capacitor/keyboard';
 
 @Component({
   selector: 'app-category',
@@ -31,8 +32,7 @@ export class CategoryComponent implements OnInit {
   @ViewChild('fieldsContainer') fieldsContainer: any;
   transactions = [] as Array<Transaction>;
   checker: any;
-  constructor(
-  ) {}
+  constructor() {}
 
   ngOnInit() {
     this.checkDOMChange();
@@ -60,7 +60,7 @@ export class CategoryComponent implements OnInit {
   getSubcategoryRemainingAmount(subcategory: Subcategory): number {
     if (!this.category.id) return 0;
     if (this.category.id === 'income') {
-      return subcategory.actual_amount + (subcategory.planned_amount * -1);
+      return subcategory.actual_amount + subcategory.planned_amount * -1;
     } else {
       return subcategory.planned_amount - subcategory.actual_amount;
     }
@@ -87,5 +87,23 @@ export class CategoryComponent implements OnInit {
 
   selectSubCategory(index: number) {
     this.subcategorySelected.emit(this.subcategories[index]);
+  }
+
+  hideKeyboard(ev: any) {
+    if (ev.key == 'Enter' || ev.key == 'enter') {
+      Keyboard.hide();
+    }
+  }
+
+  formatCurrency(value: number): string {
+    // Use the built-in JavaScript Intl.NumberFormat object for formatting
+    const formatter = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      // Other options you want to set
+    });
+
+    // Remove the minus sign if the value is negative
+    return value < 0 ? formatter.format(-value) : formatter.format(value);
   }
 }

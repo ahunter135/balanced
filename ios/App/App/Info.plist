@@ -48,14 +48,12 @@
 	<dict>
 		<key>CFBundleAlternateIcons</key>
 		<dict>
-		<!-- The names to reference in your code -->
 			<key>logo0</key>
 			<dict>
 				<key>UIPrerenderedIcon</key>
 				<true />
 				<key>CFBundleIconFiles</key>
 				<array>
-					<!-- Filenames-->
 					<string>logo0</string>
 				</array>
 			</dict>
@@ -65,7 +63,6 @@
 				<true />
 				<key>CFBundleIconFiles</key>
 				<array>
-					<!-- Filenames-->
 					<string>logo2</string>
 				</array>
 			</dict>
@@ -75,7 +72,6 @@
 				<true />
 				<key>CFBundleIconFiles</key>
 				<array>
-					<!-- Filenames-->
 					<string>logo3</string>
 				</array>
 			</dict>
@@ -85,7 +81,6 @@
 				<true />
 				<key>CFBundleIconFiles</key>
 				<array>
-					<!-- Filenames-->
 					<string>logo4</string>
 				</array>
 			</dict>
@@ -95,7 +90,6 @@
 				<true />
 				<key>CFBundleIconFiles</key>
 				<array>
-					<!-- Filenames-->
 					<string>logo5</string>
 				</array>
 			</dict>
@@ -105,7 +99,6 @@
 				<true />
 				<key>CFBundleIconFiles</key>
 				<array>
-					<!-- Filenames-->
 					<string>logo6</string>
 				</array>
 			</dict>
@@ -115,7 +108,6 @@
 				<true />
 				<key>CFBundleIconFiles</key>
 				<array>
-					<!-- Filenames-->
 					<string>logo7</string>
 				</array>
 			</dict>
@@ -125,7 +117,6 @@
 				<true />
 				<key>CFBundleIconFiles</key>
 				<array>
-					<!-- Filenames-->
 					<string>logo8</string>
 				</array>
 			</dict>
@@ -135,7 +126,6 @@
 				<true />
 				<key>CFBundleIconFiles</key>
 				<array>
-					<!-- Filenames-->
 					<string>logo9</string>
 				</array>
 			</dict>
@@ -145,7 +135,6 @@
 				<true />
 				<key>CFBundleIconFiles</key>
 				<array>
-					<!-- Filenames-->
 					<string>logo10</string>
 				</array>
 			</dict>
@@ -155,7 +144,6 @@
 				<true />
 				<key>CFBundleIconFiles</key>
 				<array>
-					<!-- Filenames-->
 					<string>logo11</string>
 				</array>
 			</dict>
@@ -165,7 +153,6 @@
 				<true />
 				<key>CFBundleIconFiles</key>
 				<array>
-					<!-- Filenames-->
 					<string>logo12</string>
 				</array>
 			</dict>
@@ -175,7 +162,6 @@
 				<true />
 				<key>CFBundleIconFiles</key>
 				<array>
-					<!-- Filenames-->
 					<string>logo13</string>
 				</array>
 			</dict>
@@ -185,7 +171,6 @@
 				<true />
 				<key>CFBundleIconFiles</key>
 				<array>
-					<!-- Filenames-->
 					<string>logo14</string>
 				</array>
 			</dict>
@@ -195,7 +180,6 @@
 				<true />
 				<key>CFBundleIconFiles</key>
 				<array>
-					<!-- Filenames-->
 					<string>logo15</string>
 				</array>
 			</dict>
@@ -205,8 +189,34 @@
 				<true />
 				<key>CFBundleIconFiles</key>
 				<array>
-					<!-- Filenames-->
 					<string>logo16</string>
+				</array>
+			</dict>
+			<key>logo17</key>
+			<dict>
+				<key>UIPrerenderedIcon</key>
+				<true />
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>logo17</string>
+				</array>
+			</dict>
+			<key>logo18</key>
+			<dict>
+				<key>UIPrerenderedIcon</key>
+				<true />
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>logo18</string>
+				</array>
+			</dict>
+			<key>logo19</key>
+			<dict>
+				<key>UIPrerenderedIcon</key>
+				<true />
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>logo19</string>
 				</array>
 			</dict>
 		</dict>

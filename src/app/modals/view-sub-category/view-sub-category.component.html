@@ -15,20 +15,23 @@
           [(ngModel)]="subcategoryEditName"
           (ionBlur)="saveNewName()"
           [maxlength]="40"
-          ></ion-input>
+        ></ion-input>
       </div>
       <ion-item lines="none" *ngIf="category.id == 'income'" class="header">
         <div class="amount-container">
-          <ion-label>{{ subcategory.actual_amount * -1 | currency }} </ion-label>
+          <ion-label
+            >{{ subcategory.actual_amount * -1 | currency }}
+          </ion-label>
           <ion-label>Received of</ion-label>
           <input
-          placeholder="$0.00"
-          [(ngModel)]="planned_amount"
-          type="decimal"
-          (blur)="saveNewAmount()"
-          currencyMask
-          [options]="{ prefix: '$ ', thousands: ',', decimal: '.', align: 'center', }"
-          class="ngx-currency-input"
+            placeholder="$0.00"
+            [(ngModel)]="planned_amount"
+            type="decimal"
+            (blur)="saveNewAmount()"
+            currencyMask
+            [options]="{ prefix: '$ ', thousands: ',', decimal: '.', align: 'center', }"
+            class="ngx-currency-input"
+            inputmode="decimal"
           />
         </div>
       </ion-item>
@@ -37,13 +40,14 @@
           <ion-label>{{ subcategory.actual_amount | currency }}</ion-label>
           <ion-label>Spent of</ion-label>
           <input
-          placeholder="$0.00"
-          [(ngModel)]="planned_amount"
-          type="decimal"
-          (blur)="saveNewAmount()"
-          currencyMask
-          [options]="{ prefix: '$ ', thousands: ',', decimal: '.', align: 'center', }"
-          class="ngx-currency-input"
+            placeholder="$0.00"
+            [(ngModel)]="planned_amount"
+            type="decimal"
+            (blur)="saveNewAmount()"
+            currencyMask
+            [options]="{ prefix: '$ ', thousands: ',', decimal: '.', align: 'center', }"
+            class="ngx-currency-input"
+            inputmode="decimal"
           />
         </div>
       </ion-item>
@@ -59,9 +63,7 @@
           <ion-label
             >{{ item.date | date : "MMM. d" }} - {{ item.name }}</ion-label
           >
-          <ion-note slot="end">{{
-            (item.amount * -1) | currency
-          }}</ion-note>
+          <ion-note slot="end">{{ item.amount * -1 | currency }}</ion-note>
         </ion-item>
       </ion-list>
     </ion-card-content>

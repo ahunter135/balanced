@@ -10,7 +10,6 @@
   </ion-toolbar>
 </ion-header>
 <ion-content>
-
   <ion-card>
     <ion-card-content>
       <ion-list>
@@ -31,6 +30,7 @@
             currencyMask
             [options]="{ prefix: '$ ', thousands: ',', decimal: '.' }"
             class="ngx-currency-input"
+            inputmode="decimal"
           />
         </ion-item>
         <ion-item>
@@ -40,6 +40,10 @@
             placeholder="Name"
             slot="end"
             type="text"
+            autocapitalize="sentences"
+            enterkeyhint="done"
+            autocorrect="on"
+            (keydown)="hideKeyboard($event)"
           ></ion-input>
         </ion-item>
         <ion-item>
@@ -49,6 +53,10 @@
             placeholder="Name"
             slot="end"
             type="text"
+            autocapitalize="sentences"
+            enterkeyhint="done"
+            autocorrect="on"
+            (keydown)="hideKeyboard($event)"
           ></ion-input>
         </ion-item>
       </ion-list>
@@ -98,7 +106,7 @@
               [isChecklist]="true"
               [subcategories]="cat.subcategories || []"
               (subcategorySelected)="subcategorySelected($event, cat)"
-              ></app-category>
+            ></app-category>
           </span>
         </div>
       </ion-content>

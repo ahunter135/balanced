@@ -10,6 +10,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { generateRandomId } from 'src/app/utils/generation';
 import { AlertService } from 'src/app/services/alert.service';
 import { TransactionPublisherService } from 'src/app/services/transaction-publisher.service';
+import { Keyboard } from '@capacitor/keyboard';
 
 @Component({
   selector: 'app-add-transaction',
@@ -38,7 +39,7 @@ export class AddTransactionComponent implements OnInit {
   constructor(
     public modalCtrl: ModalController,
     private alertService: AlertService,
-    private transactionPublisher: TransactionPublisherService,
+    private transactionPublisher: TransactionPublisherService
   ) {
     this.newTransactionForm = new FormGroup({
       amount: new FormControl(this.newTransaction.amount),
@@ -46,20 +47,21 @@ export class AddTransactionComponent implements OnInit {
     this.setupModal();
   }
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   async setupModal() {
     this.presentingElement = await this.modalCtrl.getTop();
   }
 
   async add() {
-    if (!this.newTransaction.amount ||
-        this.newTransaction.amount == 0) {
+    if (!this.newTransaction.amount || this.newTransaction.amount == 0) {
       this.alertService.createAndShowToast('Please enter an amount');
       return;
     }
-    let newTransactionObject: Transaction = Object.assign({}, this.newTransaction);
+    let newTransactionObject: Transaction = Object.assign(
+      {},
+      this.newTransaction
+    );
     if (this.selectedCat.id == 'income') {
       newTransactionObject.amount = -1 * newTransactionObject.amount;
     }
@@ -88,10 +90,15 @@ export class AddTransactionComponent implements OnInit {
 
   subcategorySelected(ev: any, cat: Category) {
     this.modalCtrl.dismiss();
-    console.log(ev);
     this.selectedSub = ev;
     this.selectedCat = cat;
     this.newTransaction.subcategoryId = ev.id;
     this.newTransaction.pending = false;
+  }
+
+  hideKeyboard(ev: any) {
+    if (ev.key == 'Enter' || ev.key == 'enter') {
+      Keyboard.hide();
+    }
   }
 }

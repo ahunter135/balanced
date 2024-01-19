@@ -11,10 +11,11 @@ ion-toolbar {
 
 header {
   text-align: center;
-  padding: 20px;
   --background: var(--ion-color-primary);
 }
-
+ion-toolbar {
+  height: 100px;
+}
 header h1 {
   color: var(--ion-color-primary);
 }

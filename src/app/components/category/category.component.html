@@ -1,6 +1,7 @@
 <ion-card
   [ngStyle]="{ 'padding-right': isUserReorderingCategories ? '34px' : '0' }"
-  id="{{category.id}}-card">
+  id="{{ category.id }}-card"
+>
   <ion-card-header>
     <ion-card-subtitle id="subtitle">
       <span id="title">{{ category.id }}</span>
@@ -22,10 +23,14 @@
             (click)="openBudgetItem(i)"
           >
             <ion-label>{{ sub.text }}</ion-label>
-            <ion-note style="text-align: end">{{
-                getSubcategoryRemainingAmount(sub)
-                | currency
-            }}</ion-note>
+            <ion-note
+              style="text-align: end"
+              [ngClass]="
+                getSubcategoryRemainingAmount(sub) < 0 ? 'negative' : ''
+              "
+            >
+              {{ formatCurrency(getSubcategoryRemainingAmount(sub)) }}
+            </ion-note>
           </span>
           <span *ngIf="sub.isEditing" class="new-sub">
             <ion-input
@@ -34,11 +39,14 @@
               (ionFocus)="stopTimeout()"
               (ionBlur)="shouldWeSaveOrRemove()"
               (keyup.enter)="triggerIonBlur()"
+              autocapitalize="sentences"
+              enterkeyhint="done"
+              autocorrect="on"
+              (keydown)="hideKeyboard($event)"
               #nameInput
             ></ion-input>
             <ion-note style="text-align: end">{{
-                getSubcategoryRemainingAmount(sub)
-                | currency
+              getSubcategoryRemainingAmount(sub) | currency
             }}</ion-note>
           </span>
         </ion-item>
@@ -55,7 +63,11 @@
       </span>
 
       <ion-item *ngIf="!isChecklist">
-        <ion-label class="add-new" (click)="addNewSub()" style="cursor: pointer">
+        <ion-label
+          class="add-new"
+          (click)="addNewSub()"
+          style="cursor: pointer"
+        >
           <ion-icon name="add"></ion-icon> Add New Category
         </ion-label>
       </ion-item>
