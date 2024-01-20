@@ -60,7 +60,7 @@ export class UserRepositoryService
     }
 
     const user = await this.get(authUserId);
-    this.cryptoService.trySetSurrogateKey(user);
+    await this.cryptoService.trySetSurrogateKey(user);
     this.cachedUser = user;
     return user;
   }

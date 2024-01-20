@@ -16,7 +16,6 @@ import { CategoryRepositoryService } from '../repositories/category-repository.s
 import { Observable } from 'rxjs';
 import { CryptoService } from './crypto.service';
 import { AlertService } from './alert.service';
-import { FieldValue, deleteField } from 'firebase/firestore';
 import { SecureStoragePlugin } from 'capacitor-secure-storage-plugin';
 import { USER_SECURE_STORAGE_KEY } from '../constants/crypto/crypto';
 
@@ -61,6 +60,7 @@ export class AuthService {
         throw new Error('Something went wrong');
 
       if (!user.encryption_data.surrogate_key_hashed_password) {
+        /* Once Austin's account is migrated, remove this */
         await this.loginGetSurrogateFromPasswordDeprecated(user, password);
       } else {
         await this.loginGetSurrogateFromPassword(user, password);
@@ -84,7 +84,6 @@ export class AuthService {
         user.encryption_data!.password_kdf_salt
     );
     this.cryptoService.surrogateKey = surrogateKeyPassword;
-    console.log("Got surrogate key from password", surrogateKeyPassword);
     /* Migration code */
     let passwordHash: string;
     while (true) {
@@ -105,21 +104,16 @@ export class AuthService {
           hashed_password_salt: base64Salt,
         },
       });
-      console.log("Updated surrogate key hash and salt");
 
       const freshUser = await this.userRepository.getCurrentFirestoreUser();
-      console.log("Got new user", freshUser);
       if (!freshUser || !freshUser.encryption_data)
         throw new Error('Something went wrong');
       if (!freshUser.encryption_data.surrogate_key_hashed_password ||
           !freshUser.encryption_data.hashed_password_salt) {
-        console.log("New data not set, retrying");
       } else {
-        console.log("New data set, breaking");
         break;
       }
     }
-    console.log("Deleting old fields");
     /* Delete old fields */
     await this.userRepository.update(user.id!, {
       encryption_data: {
@@ -129,7 +123,6 @@ export class AuthService {
         refresh_token_kdf_salt: '',
       },
     });
-    console.log("Deleted old fields");
     /* Save password has to secure storage */
     const success = await this.secureStore(USER_SECURE_STORAGE_KEY, passwordHash);
     if (success.value) {
@@ -196,27 +189,6 @@ export class AuthService {
     return newFirestoreUser;
   }
 
-  /** This is not going to be used anymore, once all accounts have
-    * been migrated to the new encryption scheme, delete this
-    * function.
-    * @deprecated
-    */
-  async setRefreshTokenSurrogateKey(base64SurrogateKey: string): Promise<void> {
-    const refreshToken = this.getRefreshToken();
-    const { surrogateKey, salt } =
-      await this.cryptoService.getKDFSurrogateAndSaltFromSurrogateKey(
-        refreshToken,
-        base64SurrogateKey
-      );
-    if (!this.auth.currentUser) throw new Error('No user logged in');
-    await this.userRepository.update(this.auth.currentUser.uid, {
-      encryption_data: {
-        surrogate_key_refresh_token: surrogateKey,
-        refresh_token_kdf_salt: salt,
-      },
-    });
-  }
-
   async logout(message: string | undefined = undefined): Promise<Boolean> {
     try {
       await this.auth.signOut();
@@ -261,12 +233,6 @@ export class AuthService {
     return SecureStoragePlugin.remove({
       key,
     });
-  }
-
-  private getRefreshToken(): string {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('No user logged in');
-    return user.refreshToken;
   }
 
   private async createUserStuff(
