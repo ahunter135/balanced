@@ -71,7 +71,7 @@ export class CollectionRepository<T extends FirestoreDocument>
   }
 
   async delete(id: string, shouldHardDelete: boolean = false): Promise<boolean> {
-    if (shouldHardDelete) {
+    if (!shouldHardDelete) {
       return this.update(id, { is_deleted: true });
     }
 

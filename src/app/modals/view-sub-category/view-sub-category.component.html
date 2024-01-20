@@ -1,7 +1,7 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
-      <ion-button (click)="modalCtrl.dismiss()">Close</ion-button>
+      <ion-button (click)="modalController.dismiss()">Close</ion-button>
     </ion-buttons>
     <ion-title>Subcategory Info</ion-title>
   </ion-toolbar>
@@ -59,12 +59,23 @@
     </ion-card-header>
     <ion-card-content>
       <ion-list>
-        <ion-item *ngFor="let item of transactions">
-          <ion-label
-            >{{ item.date | date : "MMM. d" }} - {{ item.name }}</ion-label
-          >
-          <ion-note slot="end">{{ item.amount * -1 | currency }}</ion-note>
-        </ion-item>
+        <ion-item-sliding *ngFor="let item of transactions">
+          <ion-item
+            button="true"
+            detail="true"
+            (click)="openEditTransaction(item)"
+            >
+            <ion-label
+              >{{ item.date | date : "MMM. d" }} - {{ item.name }}</ion-label
+            >
+            <ion-note slot="end">{{ item.amount * -1 | currency }}</ion-note>
+          </ion-item>
+          <ion-item-options side="end">
+            <ion-item-option color="danger" (click)="deleteTransaction(item)">
+              <ion-icon name="trash"></ion-icon>
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
       </ion-list>
     </ion-card-content>
   </ion-card>

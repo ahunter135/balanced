@@ -4,6 +4,8 @@ import { User, Transaction, Category, Subcategory } from 'src/app/types/firestor
 import { SubcategoryRepositoryService } from 'src/app/repositories/subcategory-repository.service';
 import { dateTransactionSort } from 'src/app/helpers/sorters/user-related-sorters';
 import { AlertService } from 'src/app/services/alert.service';
+import { TransactionSorterComponent } from '../transaction-sorter/transaction-sorter.component';
+import { TransactionPublisherService } from 'src/app/services/transaction-publisher.service';
 
 @Component({
   selector: 'app-view-sub-category',
@@ -21,9 +23,10 @@ export class ViewSubCategoryComponent implements OnInit {
 
 
   constructor(
-    public modalCtrl: ModalController,
+    public modalController: ModalController,
     private subCategoryRepository: SubcategoryRepositoryService,
     private alertService: AlertService,
+    private transactionPublisher: TransactionPublisherService,
   ) {}
 
   ngOnInit() {
@@ -80,5 +83,22 @@ export class ViewSubCategoryComponent implements OnInit {
       }
     );
     this.subcategory.text = this.subcategoryEditName;
+  }
+
+  async deleteTransaction(item: Transaction) {
+    this.transactions.splice(this.transactions.indexOf(item), 1);
+    this.transactionPublisher.publishEvent({
+      from: 'manual',
+      addedTransactions: [],
+      modifiedTransactions: [],
+      removedTransactions: [item],
+    });
+  }
+
+  async openEditTransaction(item: Transaction) {
+    this.modalController.dismiss({
+      transaction: item,
+      action: 'edit',
+    });
   }
 }

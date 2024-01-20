@@ -14,6 +14,7 @@ import { plaidTransactionToFirestoreTransaction } from '../helpers/mappers/trans
 import { TransactionPublisherService } from './transaction-publisher.service';
 import { LoadingController } from '@ionic/angular';
 import { TransactionEvent } from './interfaces/transaction-publisher';
+import { UserService } from './user.service';
 
 declare var Plaid: any;
 
@@ -21,16 +22,22 @@ declare var Plaid: any;
   providedIn: 'root'
 })
 export class PlaidService {
+  public get plaidAvailable(): boolean {
+    return this.userService.isPremium;
+  }
+
   constructor(
     private http: HttpService,
     private linkedAccountsRepository: LinkedAccountsRepositoryService,
     private userRepository: UserRepositoryService,
     private transactionPublisher: TransactionPublisherService,
     private loadingController: LoadingController,
+    private userService: UserService,
   ) {
   }
 
   async linkPlaidToUser(): Promise<void> {
+    if (!this.plaidAvailable) return;
     const loader = await this.loadingController.create();
     await loader.present();
     this.http.post(
@@ -51,6 +58,7 @@ export class PlaidService {
   }
 
   async syncPlaidTransactions(): Promise<void> {
+    if (!this.plaidAvailable) return;
     const userId = this.userRepository.getCurrentUserId();
     if (!userId) throw new Error('User is not logged in');
 

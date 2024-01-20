@@ -182,13 +182,12 @@ export class Tab1Page implements ITransactionSubscriber {
 
   async grabTransactionsForSelectedMonth(): Promise<Array<Transaction>> {
     if (!this.user) return [];
-    if (!this.userService.isPremium) return [];
     const { start, end } = this.startAndEndOfMonth;
     return this.transactionService.getTransactions(
-      true, // includePending
-      true, // syncPlaid
-      start, // startDate
-      end // endDate
+      true,                       // includePending
+      this.userService.isPremium, // syncPlaid (only sync if premium)
+      start,                      // startDate
+      end                         // endDate
     );
   }
 
@@ -408,7 +407,12 @@ export class Tab1Page implements ITransactionSubscriber {
       breakpoints: [0, 0.6, 0.8, 1],
     });
 
-    modal.onDidDismiss().then(() => {
+    modal.onDidDismiss().then((event: any) => {
+      if (event && event.data &&
+          event.data.action == 'edit' &&
+          event.data.transaction) {
+        this.openTransactionSorter(event.data.transaction);
+      }
       this.calculatePlannedAndBudget(this.categoriesArray);
     });
     modal.present();

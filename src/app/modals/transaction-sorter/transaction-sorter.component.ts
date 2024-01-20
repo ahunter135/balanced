@@ -18,17 +18,29 @@ export class TransactionSorterComponent implements AfterViewInit {
 
   newTransactionForm: FormGroup;
   presentingElement: any;
+  isIncome: boolean;
 
   /* Component props */
   transaction: Transaction;
   categories: Array<Category>;
   user: User | undefined;
 
+  /* Make income positive for user input */
+  transactionAmountUserView: number;
+
   selectedSub: string;
+
   constructor(
     public modalCtrl: ModalController,
     private transactionPublisher: TransactionPublisherService,
-  ) {}
+  ) {
+    this.transactionAmountUserView = 0;
+  }
+
+  async ngOnInit() {
+    this.isIncome = this.transaction.amount < 0;
+    this.transactionAmountUserView = this.getAmount();
+  }
 
   async ngAfterViewInit() {
     const off = this.transaction.date.getTimezoneOffset();
@@ -38,6 +50,13 @@ export class TransactionSorterComponent implements AfterViewInit {
   }
 
   async save() {
+    /* Set back to negative if income */
+    if (this.isIncome) {
+      this.transaction.amount = -this.transactionAmountUserView;
+    } else {
+      this.transaction.amount = this.transactionAmountUserView;
+    }
+    console.log(this.transaction);
     this.transactionPublisher.publishEvent({
       from: 'manual',
       addedTransactions: [],
@@ -47,10 +66,11 @@ export class TransactionSorterComponent implements AfterViewInit {
     this.modalCtrl.dismiss();
   }
 
-  subcategorySelected(ev: any) {
+  subcategorySelected(ev: any, cat: Category) {
     this.modalCtrl.dismiss();
     this.transaction.subcategoryId = ev.id;
-    console.log(this.transaction);
+    /* If new category is income, we need to set amount < 0 */
+    this.isIncome = cat.id === 'income';
   }
 
   dateChanged(ev: any) {
