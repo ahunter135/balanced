@@ -60,10 +60,7 @@ export class UserRepositoryService
     }
 
     const user = await this.get(authUserId);
-    if (user) {
-      /* Set the surrogate key in the crypto service */
-      await this.setSurrogateKey(user);
-    }
+    this.cryptoService.trySetSurrogateKey(user);
     this.cachedUser = user;
     return user;
   }
@@ -82,31 +79,6 @@ export class UserRepositoryService
 
   static makeCollectionRef(): CollectionReference<DocumentData> {
     return collection(getFirestore(), USER_COLLECTION_NAME);
-  }
-
-  private async setSurrogateKey(user: User): Promise<void> {
-    // Don't work twice
-    if (this.cryptoService.surrogateKey)
-      return;
-
-    if (!this.auth.currentUser || !this.auth.currentUser.refreshToken)
-      return;
-
-    if (!user.encryption_data)
-      return;
-    /* Silently fail when the user does not have a refresh token.
-      * Login function handles this case.
-      */
-    try {
-      const surrogateKey = await this.cryptoService.getSurrogateFromKDFProvider(
-        this.auth.currentUser.refreshToken,
-        user.encryption_data.surrogate_key_refresh_token,
-        user.encryption_data.refresh_token_kdf_salt
-      );
-      this.cryptoService.surrogateKey = surrogateKey;
-    } catch (error) {
-      console.error(error);
-    }
   }
 
   private cloneAndRemovePropertiesUser(item: DocumentData): DocumentData {

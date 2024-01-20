@@ -9,12 +9,16 @@ import {
   KEY_DERIVATION_ALGORITHM,
   SYMMETRIC_ALGORITHM,
   SYMMETRIC_KEY_LENGTH,
+  USER_SECURE_STORAGE_KEY,
 } from 'src/app/constants/crypto/crypto';
 import { generatePbkdf2Params, generateSalt } from '../utils/crypto';
 import { timeout } from 'rxjs';
 import { AuthService } from './auth.service';
 import { UserRepositoryService } from '../repositories/user-repository.service';
 import { Router } from '@angular/router';
+
+import { SecureStoragePlugin } from 'capacitor-secure-storage-plugin';
+import { User } from '../types/firestore/user';
 
 @Injectable({
   providedIn: 'root'
@@ -105,6 +109,30 @@ export class CryptoService {
     return JSON.parse(await this.decodeStringFromBase64(decryptedObjString));
   }
 
+  async trySetSurrogateKey(user: User | undefined): Promise<void> {
+    if (!user || !user.encryption_data || this._surrogateKey)
+      return;
+    try {
+      const valueObj = await SecureStoragePlugin.get({ key: USER_SECURE_STORAGE_KEY });
+      if (valueObj.value) {
+        const surrogateKeyPassword =
+          await this.getSurrogateFromKDFProvider(
+            valueObj.value,
+            user.encryption_data.surrogate_key_hashed_password,
+            user.encryption_data.hashed_password_salt
+        );
+        this.surrogateKey = surrogateKeyPassword;
+      } else {
+        console.log('No surrogate key found in secure storage');
+      }
+    } catch (error: any) {
+      /** This can happen on login when no password hash is in keychain.
+        * In that case, login is responsible for setting the surrogate key
+        * and password hash.
+        */
+    }
+  }
+
   /* Low level crypto functions */
 
   /** Generate a key from a plain text source (like a password) to use for encryption */
@@ -149,6 +177,20 @@ export class CryptoService {
       true,
       ['encrypt', 'decrypt']
     );
+  }
+
+  /** Hashes a string using SHA-512
+    * @param plaintext The string to hash
+    * @returns A base64 encoded string of the hash
+    */
+  async digest(plaintext: string): Promise<string> {
+    const textB64: string = await this.encodeStringToBase64(plaintext);
+    const textBuffer: ArrayBuffer = await this.decodeFromBase64(textB64);
+    const digestBuffer: ArrayBuffer = await this.subtleCrypto.digest(
+      'SHA-512',
+      textBuffer
+    );
+    return this.encodeToBase64(digestBuffer);
   }
 
   async encrypt(key: string | CryptoKey, data: string): Promise<string> {

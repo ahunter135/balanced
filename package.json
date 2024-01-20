@@ -35,6 +35,7 @@
     "@lottiefiles/lottie-player": "^2.0.2",
     "@teamhive/lottie-player": "^1.0.0",
     "@types/uuid": "^9.0.2",
+    "capacitor-secure-storage-plugin": "^0.9.0",
     "cordova-plugin-purchase": "^13.9.0",
     "firebase": "^9.23.0",
     "ionicons": "^7.0.0",

@@ -10,3 +10,5 @@ export const TRANSACTION_ENCRYPTED_FIELDS = [
   'name',
   'merchant_name',
 ];
+
+export const USER_SECURE_STORAGE_KEY = 'do_not_delete_this_or_you_will_lose_your_job_and_be_sad';

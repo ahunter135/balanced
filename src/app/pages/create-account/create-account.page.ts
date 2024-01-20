@@ -97,9 +97,6 @@ export class CreateAccountPage implements OnInit {
       if (!this.cryptoService.surrogateKey) {
         throw new Error('Something went wrong');
       }
-      this.authService.setRefreshTokenSurrogateKey(
-        this.cryptoService.surrogateKey!
-      );
     } catch (error: any) {
       loader.dismiss();
       this.panic();
@@ -117,13 +114,12 @@ export class CreateAccountPage implements OnInit {
 
   async showPhrase() {
     this.backupPhrase = this.cryptoService.generateBackupPhrase().toLowerCase();
-    console.log(this.backupPhrase);
     this.state = 'showphrase';
   }
 
   async doneShowingPhrase() {
-    this.saveUserPhrase();
-    this.router.navigateByUrl('');
+    await this.saveUserPhrase();
+    this.router.navigate(['']);
   }
 
   /* Copy the backup phrase to the clipboard */

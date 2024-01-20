@@ -11,14 +11,22 @@ export type User = FirestoreDocument & {
 
 export type UserEncryptionData = {
   /* Surrogate key encrypted with three different keys */
-  surrogate_key_password: string;
+  surrogate_key_password: string;          // Deprecated
   surrogate_key_backup_phrase: string;
-  surrogate_key_refresh_token: string;
+  surrogate_key_refresh_token: string;     // Deprecated
 
   /* Salts used for key derivation */
-  password_kdf_salt: string;
+  password_kdf_salt: string;               // Deprecated
   backup_phrase_kdf_salt: string;
-  refresh_token_kdf_salt: string;
+  refresh_token_kdf_salt: string;          // Deprecated
+
+  /** New session persistence and login data
+    * This replaces the insecure and bad version
+    * that used the plaintext password and refresh token
+    */
+  surrogate_key_hashed_password: string;
+  hashed_password_salt: string;
+
 }
 
 /* Subcollection of User */

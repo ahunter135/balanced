@@ -9,9 +9,9 @@ import {
   PushNotifications,
   Token,
 } from '@capacitor/push-notifications';
-import { UserService } from './services/user.service';
 import { AuthService } from './services/auth.service';
 import { Preferences } from '@capacitor/preferences';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
   selector: 'app-root',
@@ -76,41 +76,44 @@ export class AppComponent {
   }
 
   ngOnInit() {
-    PushNotifications.requestPermissions().then((result) => {
-      if (result.receive === 'granted') {
-        // Register with Apple / Google to receive push via APNS/FCM
-        PushNotifications.register();
-      } else {
-        // Show some error
-      }
-    });
+    /* Wrapped this to prevent browser errors */
+    if (Capacitor.isNativePlatform()) {
+      PushNotifications.requestPermissions().then((result) => {
+        if (result.receive === 'granted') {
+          // Register with Apple / Google to receive push via APNS/FCM
+          PushNotifications.register();
+        } else {
+          // Show some error
+        }
+      });
 
-    // On success, we should be able to receive notifications
-    PushNotifications.addListener('registration', (token: Token) => {
-      this.authService.userToken = token.value;
-      console.log(token.value);
-    });
+      // On success, we should be able to receive notifications
+      PushNotifications.addListener('registration', (token: Token) => {
+        this.authService.userToken = token.value;
+        console.log(token.value);
+      });
 
-    // Some issue with our setup and push will not work
-    PushNotifications.addListener('registrationError', (error: any) => {
-      // alert('Error on registration: ' + JSON.stringify(error));
-    });
+      // Some issue with our setup and push will not work
+      PushNotifications.addListener('registrationError', (error: any) => {
+        // alert('Error on registration: ' + JSON.stringify(error));
+      });
 
-    // Show us the notification payload if the app is open on our device
-    PushNotifications.addListener(
-      'pushNotificationReceived',
-      (notification: PushNotificationSchema) => {
-        // alert('Push received: ' + JSON.stringify(notification));
-      }
-    );
+      // Show us the notification payload if the app is open on our device
+      PushNotifications.addListener(
+        'pushNotificationReceived',
+        (notification: PushNotificationSchema) => {
+          // alert('Push received: ' + JSON.stringify(notification));
+        }
+      );
 
-    // Method called when tapping on a notification
-    PushNotifications.addListener(
-      'pushNotificationActionPerformed',
-      (notification: ActionPerformed) => {
-        // alert('Push action performed: ' + JSON.stringify(notification));
-      }
-    );
+      // Method called when tapping on a notification
+      PushNotifications.addListener(
+        'pushNotificationActionPerformed',
+        (notification: ActionPerformed) => {
+          // alert('Push action performed: ' + JSON.stringify(notification));
+        }
+      );
+    }
   }
 
   configureFirebaseEnvironment() {
