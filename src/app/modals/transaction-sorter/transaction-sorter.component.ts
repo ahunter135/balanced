@@ -73,6 +73,12 @@ export class TransactionSorterComponent implements AfterViewInit {
     this.isIncome = cat.id === 'income';
   }
 
+  selectedNoSub() {
+    this.modalCtrl.dismiss();
+    this.transaction.subcategoryId = '';
+    this.isIncome = false;
+  }
+
   dateChanged(ev: any) {
     this.transaction.date = new Date(ev.detail.value);
   }

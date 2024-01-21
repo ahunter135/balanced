@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { PlaidService } from './plaid.service';
 import { TransactionsRepositoryService } from '../repositories/transactions-repository.service';
-import { Transaction } from '../types/firestore/user';
+import { Transaction, User } from '../types/firestore/user';
 import { buildTransactionsQuery } from '../helpers/queries/transactions';
 import { UserRepositoryService } from '../repositories/user-repository.service';
 import { ITransactionSubscriber, TransactionEvent } from './interfaces/transaction-publisher';

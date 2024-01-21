@@ -6,7 +6,7 @@ import {
 } from 'src/app/types/firestore/user';
 import { Component, ViewEncapsulation } from '@angular/core';
 import { generateRandomId } from '../utils/generation';
-import { ModalController, PickerController } from '@ionic/angular';
+import { AlertController, LoadingController, ModalController, PickerController } from '@ionic/angular';
 import { TransactionSorterComponent } from '../modals/transaction-sorter/transaction-sorter.component';
 import { ViewSubCategoryComponent } from '../modals/view-sub-category/view-sub-category.component';
 import { LocaleStringMonthYear, NumberMonthYear } from '../types/dates/dates';
@@ -37,6 +37,8 @@ import {
 import { ObjValueMap } from '../utils/data-structures';
 import { Subscription } from 'rxjs';
 import { UserService } from '../services/user.service';
+import { TransactionsRepositoryService } from '../repositories/transactions-repository.service';
+import { allSubcategoryTransactions } from '../helpers/queries/transactions';
 
 @Component({
   selector: 'app-tab1',
@@ -67,6 +69,8 @@ export class Tab1Page implements ITransactionSubscriber {
   /* Whether the user is currently reordering the categories */
   isUserReorderingCategories: boolean = false;
 
+  isUserRemovingCategories: boolean = false;
+
   constructor(
     private userRepository: UserRepositoryService,
     private pickerCtrl: PickerController,
@@ -74,8 +78,11 @@ export class Tab1Page implements ITransactionSubscriber {
     private categoryRepository: CategoryRepositoryService,
     private subcategoryRepository: SubcategoryRepositoryService,
     private transactionService: TransactionService,
+    private transactionRepository: TransactionsRepositoryService,
     private transactionPublisher: TransactionPublisherService,
-    private userService: UserService
+    private userService: UserService,
+    private alertController: AlertController,
+    private loadingController: LoadingController,
   ) {
     // Set the app to load the current month
     // Storing as a number to easily compare
@@ -122,6 +129,10 @@ export class Tab1Page implements ITransactionSubscriber {
 
   get transactionsArray(): Array<Transaction> {
     return this.transactions.get(this.chosenDateNumber) || [];
+  }
+
+  set transactionsArray(value: Array<Transaction>) {
+    this.transactions.set(this.chosenDateNumber, value);
   }
 
   get categoriesLength(): number {
@@ -265,6 +276,8 @@ export class Tab1Page implements ITransactionSubscriber {
    * @param index - category cards are stored as an array, so need to know which was clicked
    */
   addNewSub(item: Category) {
+    /* Make sure delete buttons go away */
+    this.isUserRemovingCategories = false;
     const newSub: Subcategory = {
       text: '',
       index: item.subcategories!.length,
@@ -480,7 +493,9 @@ export class Tab1Page implements ITransactionSubscriber {
       const transactionMonthYear = getNumberMonthYearFromDate(transaction.date);
       if (this.transactions.has(transactionMonthYear)) {
         const transactionsArray = this.transactions.get(transactionMonthYear)!;
-        transactionsArray.splice(transactionsArray.indexOf(transaction), 1);
+        const index = transactionsArray.findIndex((t) => t.id == transaction.id);
+        if (index >= 0)
+          transactionsArray.splice(index, 1);
       }
     }
   }
@@ -493,12 +508,240 @@ export class Tab1Page implements ITransactionSubscriber {
       const transactionMonthYear = getNumberMonthYearFromDate(transaction.date);
       if (this.transactions.has(transactionMonthYear)) {
         const transactionsArray = this.transactions.get(transactionMonthYear)!;
-        const index = transactionsArray.indexOf(transaction);
+        const index = transactionsArray.findIndex((t) => t.id == transaction.id);
         if (index >= 0) {
           transactionsArray[index] = transaction;
         }
       }
     }
+  }
+
+  async addCategory() {
+    const alert = await this.alertController.create({
+      header: 'Add a new category',
+      inputs: [
+        {
+          name: 'categoryName',
+          type: 'text',
+          placeholder: 'Category name',
+        },
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+        },
+        {
+          text: 'Add',
+          handler: this.addCategoryHandler.bind(this),
+        },
+      ],
+    });
+    alert.present();
+  }
+
+  async addCategoryHandler(data: any) {
+    if (!data || !data.categoryName || data.categoryName.length == 0) {
+      return;
+    }
+    const loader = await this.loadingController.create();
+    await loader.present();
+    try {
+      let id = data.categoryName.toLowerCase();
+      /* Make sure id is unique */
+      if (this.categoriesArray.find((c) => c.id == id))
+        throw new Error('Category already exists');
+
+      const newCategory: Category = {
+        id,
+        index: this.categoriesArray.length,
+        editable: true,
+      };
+      this.categoriesArray.push(newCategory);
+      await this.categoryRepository.add(
+        this.user!.id!,
+        newCategory,
+        newCategory.id!
+      );
+    } catch (err) {
+      console.log(err);
+    } finally {
+      loader.dismiss();
+    }
+  }
+
+  toggleRemoveCategories() {
+    this.isUserRemovingCategories = !this.isUserRemovingCategories;
+  }
+
+  /** Bad naming, but this will be used for category and
+    * subcategory removal.
+    */
+  async deleteCategory(ev: any) {
+    const headerCustomText = ev.cat && ev.sub ? ev.sub.text : ev.cat.id;
+    let message = 'Are you sure you want to delete this?';
+    if (ev.cat && !ev.sub) {
+      message += ' All subcategories, even past ones, will be permanently deleted too.';
+    }
+    const initialAlert = await this.alertController.create({
+      header: 'Delete ' + headerCustomText + '?',
+      message,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+        },
+        {
+          text: 'Delete',
+          handler: () => {
+            /* Case 1: Just subcategory, no category */
+            if (ev.cat && ev.sub) {
+              this.handleDeleteOnlySubcategory(ev.cat, ev.sub);
+            }
+            /* Case 2: Just category and all subcategories by extension */
+            else if (ev.cat && !ev.sub) {
+              this.handleDeleteWholeCategory(ev.cat);
+            }
+          },
+        },
+      ],
+    });
+
+    await initialAlert.present();
+  }
+
+  async handleDeleteOnlySubcategory(category: Category, subcategory: Subcategory) {
+    const loader = await this.loadingController.create();
+    await loader.present();
+    console.log(`Deleting subcategory ${subcategory.text} in ${category.id}`);
+    const transactionsInSubcategory = this.transactionsArray
+      .filter((t) => t.subcategoryId == subcategory.id);
+    const length = transactionsInSubcategory.length;
+
+    /* Handle differently if no transactions */
+    if (length == 0) {
+      this.removeSubcategoryFromDatabaseAndArray(category, subcategory);
+      loader.dismiss();
+      return;
+    }
+    /* Handle when there are transactions */
+    const handleTransactionsAlert = await this.alertController.create({
+      header: 'Where should the transactions go?',
+      message: `There ${length > 1 ? 'are' : 'is'} ${length} transaction${length > 1 ? 's' : ''}
+        in this category. What would you like to do with ${length > 1 ? 'them' : 'it'}?`,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+        },
+        {
+          text: 'Move to unsorted',
+          handler: () => {
+            transactionsInSubcategory.forEach((t) => {
+              t.subcategoryId = '';
+            });
+            this.transactionPublisher.publishEvent({
+              from: 'manual',
+              addedTransactions: [],
+              modifiedTransactions: transactionsInSubcategory,
+              removedTransactions: [],
+            });
+            this.removeSubcategoryFromDatabaseAndArray(category, subcategory);
+          },
+        },
+        {
+          text: 'Delete',
+          handler: () => {
+            this.transactionPublisher.publishEvent({
+              from: 'manual',
+              addedTransactions: [],
+              modifiedTransactions: [],
+              removedTransactions: transactionsInSubcategory,
+            });
+            this.removeSubcategoryFromDatabaseAndArray(category, subcategory);
+          },
+        },
+      ],
+    });
+    loader.dismiss();
+    await handleTransactionsAlert.present();
+  }
+
+  async handleDeleteWholeCategory(category: Category) {
+    console.log(`Deleting category  ${category.id}`);
+    const loader = await this.loadingController.create();
+    await loader.present();
+    const allSubcategories = await this.subcategoryRepository.getAllFromParent(
+      this.user!.id!,
+      category.id!
+    );
+    /* No subcategories, just delete */
+    if (allSubcategories.size == 0) {
+      await this.removeCategoryFromDatabaseAndArray(category, []);
+      loader.dismiss();
+      return;
+    }
+    /* Handle when there are subcategories */
+    let promises: Array<Promise<any>> = [];
+    /* Get all transactions in all subcategories */
+    for (let i = 0; i < allSubcategories.size; i++) {
+      const promise = this.transactionRepository.getByQuery(
+        allSubcategoryTransactions(
+          this.user!.id!,
+          allSubcategories.docs[i].id!,
+        )
+      );
+      promises.push(promise);
+    }
+    const results = await Promise.all(promises);
+    const transactions: Array<Transaction> = [];
+    /* Flatten the results */
+    results.forEach((result) => {
+      result.docs.forEach((doc: Transaction) => {
+        transactions.push(doc);
+      });
+    });
+    const length = transactions.length;
+    const handleTransactionsAlert = await this.alertController.create({
+      header: 'Where should the transactions go?',
+      message: `There ${length > 1 ? 'are' : 'is'} ${length} transaction${length > 1 ? 's' : ''}
+        in this category. What would you like to do with ${length > 1 ? 'them' : 'it'}?`,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+        },
+        {
+          text: 'Move to unsorted',
+          handler: () => {
+            transactions.forEach((t) => {
+              t.subcategoryId = '';
+            });
+            this.transactionPublisher.publishEvent({
+              from: 'manual',
+              addedTransactions: [],
+              modifiedTransactions: transactions,
+              removedTransactions: [],
+            });
+            this.removeCategoryFromDatabaseAndArray(category, allSubcategories.docs);
+          },
+        },
+        {
+          text: 'Delete',
+          handler: () => {
+            this.transactionPublisher.publishEvent({
+              from: 'manual',
+              addedTransactions: [],
+              modifiedTransactions: [],
+              removedTransactions: transactions,
+            });
+            this.removeCategoryFromDatabaseAndArray(category, allSubcategories.docs);
+          },
+        },
+      ],
+    });
+    loader.dismiss();
+    await handleTransactionsAlert.present();
   }
 
   toggleReorder() {
@@ -566,5 +809,36 @@ export class Tab1Page implements ITransactionSubscriber {
     });
     /* Call so ion-reorder knows we're done */
     ev.detail.complete();
+  }
+
+  private async removeCategoryFromDatabaseAndArray(category: Category, subcategories: Array<Subcategory>) {
+    let promises: Array<Promise<any>> = [];
+    /* Delete all subcategories */
+    subcategories.forEach((subcategory) => {
+      promises.push(
+        this.removeSubcategoryFromDatabaseAndArray(category, subcategory)
+      );
+    });
+    await Promise.all(promises);
+    this.categoryRepository.delete(
+      this.user!.id!,
+      category.id!,
+      true
+    );
+    const index = this.categoriesArray.findIndex((c) => c.id == category.id);
+    if (index >= 0)
+      this.categoriesArray.splice(index, 1);
+  }
+
+  private async removeSubcategoryFromDatabaseAndArray(category: Category, subcategory: Subcategory) {
+    this.subcategoryRepository.delete(
+      this.user!.id!,
+      category.id!,
+      subcategory.id!,
+      true
+    );
+    const index = category.subcategories!.findIndex((s) => s.id == subcategory.id);
+    if (index >= 0)
+      category.subcategories!.splice(index, 1);
   }
 }

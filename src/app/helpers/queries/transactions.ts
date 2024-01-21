@@ -28,3 +28,13 @@ export function buildTransactionsQuery(
     )
   );
 }
+
+export function allSubcategoryTransactions(
+  userId: string,
+  subcategoryId: string,
+): Query {
+  return query(
+    TransactionsRepositoryService.makeCollectionRef(userId),
+    where('subcategoryId', '==', subcategoryId),
+  );
+}

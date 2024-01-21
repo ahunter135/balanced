@@ -2,75 +2,103 @@
   [ngStyle]="{ 'padding-right': isUserReorderingCategories ? '34px' : '0' }"
   id="{{ category.id }}-card"
 >
-  <ion-card-header>
-    <ion-card-subtitle id="subtitle">
-      <span id="title">{{ category.id }}</span>
-      <span id="category" *ngIf="!isChecklist">Remaining</span>
-    </ion-card-subtitle>
-  </ion-card-header>
-  <ion-card-content>
-    <ion-list lines="none">
-      <span *ngIf="!isChecklist">
-        <ion-item
-          class="target"
-          *ngFor="let sub of subcategories; let i = index"
-          [button]="!sub.isEditing"
-          detail="false"
-        >
-          <span
-            *ngIf="!sub.isEditing"
-            class="saved-sub"
-            (click)="openBudgetItem(i)"
-          >
-            <ion-label>{{ sub.text }}</ion-label>
-            <ion-note
-              style="text-align: end"
-              [ngClass]="
-                getSubcategoryRemainingAmount(sub) < 0 ? 'negative' : ''
-              "
-            >
-              {{ formatCurrency(getSubcategoryRemainingAmount(sub)) }}
-            </ion-note>
+  <div style="display: flex; align-items: center; justify-content: space-between">
+    <div
+      [ngStyle]="{ 'width': isUserRemovingCategories && category.id !== 'income' ? '90%' : '100%' }">
+      <ion-card-header>
+        <ion-card-subtitle id="subtitle">
+          <span id="title">{{ category.id }}</span>
+          <span id="category" *ngIf="!isChecklist">Remaining</span>
+        </ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list lines="none">
+          <span *ngIf="!isChecklist">
+            <ion-item
+              class="target"
+              *ngFor="let sub of subcategories; let i = index"
+              [button]="!sub.isEditing && !isUserRemovingCategories"
+              detail="false"
+              >
+              <ion-icon
+                style="color: var(--ion-color-danger); padding-right: 10px"
+                name="remove-circle-outline"
+                *ngIf="isUserRemovingCategories"
+                (click)="deleteCategory(category, sub)"
+                ></ion-icon>
+              <span
+                *ngIf="!sub.isEditing"
+                class="saved-sub"
+                (click)="openBudgetItem(i)"
+                >
+                <ion-label>{{ sub.text }}</ion-label>
+                <ion-note
+                  style="text-align: end"
+                  [ngClass]="
+                  getSubcategoryRemainingAmount(sub) < 0 ? 'negative' : ''
+                  "
+                  >
+                  {{ formatCurrency(getSubcategoryRemainingAmount(sub)) }}
+                </ion-note>
+              </span>
+              <span *ngIf="sub.isEditing" class="new-sub">
+                <ion-input
+                  placeholder="Name"
+                  [(ngModel)]="sub.text"
+                  (ionFocus)="stopTimeout()"
+                  (ionBlur)="shouldWeSaveOrRemove()"
+                  (keyup.enter)="triggerIonBlur()"
+                  autocapitalize="sentences"
+                  enterkeyhint="done"
+                  autocorrect="on"
+                  (keydown)="hideKeyboard($event)"
+                  #nameInput
+                  ></ion-input>
+                <ion-note style="text-align: end">{{
+                  getSubcategoryRemainingAmount(sub) | currency
+                  }}</ion-note>
+              </span>
+            </ion-item>
           </span>
-          <span *ngIf="sub.isEditing" class="new-sub">
-            <ion-input
-              placeholder="Name"
-              [(ngModel)]="sub.text"
-              (ionFocus)="stopTimeout()"
-              (ionBlur)="shouldWeSaveOrRemove()"
-              (keyup.enter)="triggerIonBlur()"
-              autocapitalize="sentences"
-              enterkeyhint="done"
-              autocorrect="on"
-              (keydown)="hideKeyboard($event)"
-              #nameInput
-            ></ion-input>
-            <ion-note style="text-align: end">{{
-              getSubcategoryRemainingAmount(sub) | currency
-            }}</ion-note>
+          <span *ngIf="isChecklist">
+            <ion-item
+              class="target"
+              *ngFor="let sub of subcategories; let i = index"
+              button
+              (click)="selectSubCategory(i)"
+              >
+              <ion-label labelPlacement="start">{{ sub.text }}</ion-label>
+            </ion-item>
           </span>
-        </ion-item>
-      </span>
-      <span *ngIf="isChecklist">
-        <ion-item
-          class="target"
-          *ngFor="let sub of subcategories; let i = index"
-          button
-          (click)="selectSubCategory(i)"
-        >
-          <ion-label labelPlacement="start">{{ sub.text }}</ion-label>
-        </ion-item>
-      </span>
 
-      <ion-item *ngIf="!isChecklist">
-        <ion-label
-          class="add-new"
-          (click)="addNewSub()"
-          style="cursor: pointer"
+          <ion-item *ngIf="!isChecklist">
+            <ion-label
+              class="add-new"
+              (click)="addNewSub()"
+              style="cursor: pointer"
+              >
+              <ion-icon name="add"></ion-icon> Add New Category
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </div>
+    <div
+      style="display: flex; justify-content: flex-end"
+      *ngIf="isUserRemovingCategories && category.id !== 'income'"
+      >
+      <ion-button
+        fill="clear"
+        size="medium"
+        (click)="deleteCategory(category, undefined)"
         >
-          <ion-icon name="add"></ion-icon> Add New Category
-        </ion-label>
-      </ion-item>
-    </ion-list>
-  </ion-card-content>
+        <ion-icon
+          name="remove-circle-outline"
+          slot="icon-only"
+          style="color: var(--ion-color-danger)"
+          (click)="deleteCategory(category, undefined)"
+          ></ion-icon>
+      </ion-button>
+    </div>
+  </div>
 </ion-card>

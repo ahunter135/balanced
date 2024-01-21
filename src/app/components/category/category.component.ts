@@ -13,6 +13,7 @@ import {
 } from 'src/app/types/firestore/user';
 import { IonInput } from '@ionic/angular';
 import { Keyboard } from '@capacitor/keyboard';
+import { AlertService } from 'src/app/services/alert.service';
 
 @Component({
   selector: 'app-category',
@@ -25,14 +26,20 @@ export class CategoryComponent implements OnInit {
   @Input() isChecklist: boolean = false;
   @Input() chosenDate: any;
   @Input() isUserReorderingCategories: boolean = false;
+  @Input() isUserRemovingCategories: boolean = false;
   @Output() addNewSubEvent = new EventEmitter();
   @Output() requestSaveOfSubs = new EventEmitter();
   @Output() subcategorySelected = new EventEmitter();
+  @Output() requestDeleteCategory = new EventEmitter();
   @ViewChild('nameInput', { static: false }) nameInput: IonInput;
   @ViewChild('fieldsContainer') fieldsContainer: any;
+
   transactions = [] as Array<Transaction>;
   checker: any;
-  constructor() {}
+
+  constructor(
+    private alertService: AlertService,
+  ) {}
 
   ngOnInit() {
     this.checkDOMChange();
@@ -76,6 +83,20 @@ export class CategoryComponent implements OnInit {
       /* Let caller figure out what to do */
       this.requestSaveOfSubs.emit();
     }
+  }
+
+  async deleteCategory(cat: Category, sub: Subcategory | undefined) {
+    /* Don't allow income to be deleted */
+    if (cat.id === 'income' && !sub) {
+      this.alertService.createAndShowToast(
+        "You cannot delete the income category",
+      );
+      return;
+    }
+    this.requestDeleteCategory.emit({
+      cat,
+      sub,
+    });
   }
 
   async openBudgetItem(index: number) {

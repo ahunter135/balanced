@@ -55,6 +55,10 @@ const configuration = getPlaidConfig();
 const client = new PlaidApi(configuration);
 
 exports.createPlaidLinkToken = onRequest({ cors: true }, async (req, res) => {
+  if (!(await isUserPremium(req.body.user_id))) {
+    res.status(403).send("This feature is only available to premium users");
+    return;
+  }
   try {
     const configs = {
       user: {
@@ -78,6 +82,10 @@ exports.createPlaidLinkToken = onRequest({ cors: true }, async (req, res) => {
 });
 
 exports.exchangePublicToken = onRequest({ cors: true }, async (req, res) => {
+  if (!(await isUserPremium(req.body.userId))) {
+    res.status(403).send("This feature is only available to premium users");
+    return;
+  }
   try {
     console.log(req.body);
     const tokenResponse = await client.itemPublicTokenExchange({
@@ -142,6 +150,10 @@ exports.exchangePublicToken = onRequest({ cors: true }, async (req, res) => {
 });
 
 exports.getTransactionData = onRequest({ cors: true }, async (req, res) => {
+  if (!(await isUserPremium(req.body.userId))) {
+    res.status(403).send("This feature is only available to premium users");
+    return;
+  }
   try {
     const linkedAccountSecrets = await getLinkedAccountSecret(
       req.body.userId,
@@ -245,6 +257,11 @@ const authorizeAndCreateTransfer = async (accessToken) => {
   return transferResponse.data.transfer.id;
 };
 
+const isUserPremium = async (userId) => {
+  const user = await getUser(userId);
+  return user.data().subscribed;
+};
+
 const syncPlaidTransactions = async (
   accessToken,
   userId,
@@ -346,6 +363,14 @@ const getLinkedAccountSecret = async (userId, linkedAccountId) => {
     .collection(LINKED_ACCOUNT_SUBCOLLECTION_NAME)
     .doc(linkedAccountId)
     .collection(LINKED_ACCOUNT_SECRET_SUBCOLLECTION_NAME)
+    .get();
+};
+
+const getUser = async (userId) => {
+  return admin
+    .firestore()
+    .collection(USER_COLLECTION_NAME)
+    .doc(userId)
     .get();
 };
 

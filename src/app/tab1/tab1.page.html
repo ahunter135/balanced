@@ -76,6 +76,15 @@
         />
       </svg>
     </div>
+    <div
+      (click)="toggleRemoveCategories()"
+    >
+      <ion-icon
+        name="remove-outline"
+        style="font-size: 35px;"
+        [ngStyle]="{ color: isUserRemovingCategories ? 'var(--ion-color-primary)' : '#666' }"
+        ></ion-icon>
+    </div>
   </div>
   <div>
     <ion-reorder-group
@@ -95,7 +104,9 @@
           (addNewSubEvent)="addNewSub(item)"
           [chosenDate]="chosenDate"
           [isUserReorderingCategories]="isUserReorderingCategories"
+          [isUserRemovingCategories]="isUserRemovingCategories"
           (requestSaveOfSubs)="saveAllSubs()"
+          (requestDeleteCategory)="deleteCategory($event)"
           (subcategorySelected)="subcategorySelected($event)"
         ></app-category>
         <ion-reorder
@@ -104,6 +115,17 @@
         ></ion-reorder>
       </ion-item>
     </ion-reorder-group>
+      <div style="display: flex; justify-content: center;">
+        <ion-button
+          class="add-new-category-button"
+          (click)="addCategory()"
+          fill="clear"
+          *ngIf="!isUserReorderingCategories && !isUserRemovingCategories"
+          >
+          <ion-icon name="add" slot="start"></ion-icon>
+          Add New Category
+        </ion-button>
+    </div>
   </div>
 
   <div
