@@ -76,14 +76,12 @@
         />
       </svg>
     </div>
-    <div
-      (click)="toggleRemoveCategories()"
-    >
+    <div (click)="toggleRemoveCategories()">
       <ion-icon
-        name="remove-outline"
-        style="font-size: 35px;"
+        name="pencil-outline"
+        style="font-size: 26px"
         [ngStyle]="{ color: isUserRemovingCategories ? 'var(--ion-color-primary)' : '#666' }"
-        ></ion-icon>
+      ></ion-icon>
     </div>
   </div>
   <div>
@@ -115,16 +113,16 @@
         ></ion-reorder>
       </ion-item>
     </ion-reorder-group>
-      <div style="display: flex; justify-content: center;">
-        <ion-button
-          class="add-new-category-button"
-          (click)="addCategory()"
-          fill="clear"
-          *ngIf="!isUserReorderingCategories && !isUserRemovingCategories"
-          >
-          <ion-icon name="add" slot="start"></ion-icon>
-          Add New Category
-        </ion-button>
+    <div style="display: flex; justify-content: center">
+      <ion-button
+        class="add-new-category-button"
+        (click)="addCategory()"
+        fill="clear"
+        *ngIf="!isUserReorderingCategories && !isUserRemovingCategories"
+      >
+        <ion-icon name="add" slot="start"></ion-icon>
+        Add New Category
+      </ion-button>
     </div>
   </div>
 

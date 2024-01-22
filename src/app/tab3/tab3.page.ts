@@ -27,14 +27,10 @@ export class Tab3Page {
     private alertService: AlertService,
     private plaidService: PlaidService,
     private alertCtrl: AlertController,
-    private userRepository: UserRepositoryService,
+    private userRepository: UserRepositoryService
   ) {}
 
-  ngOnInit() {
-    // WEEWOOWEEWOO!! If I forget to take this out, wow
-    this.viewLinkedAccounts();
-    console.warn("CARTER LEFT SOMETHING IN TAB3 ONINIT");
-  }
+  ngOnInit() {}
 
   async link() {
     this.plaidService.linkPlaidToUser();
@@ -85,7 +81,7 @@ export class Tab3Page {
     const user = await this.userRepository.getCurrentFirestoreUser();
     if (!user) {
       /* How could this happen? */
-      throw new Error("Tab3: user is undefined");
+      throw new Error('Tab3: user is undefined');
     }
     const modal = await this.modalController.create({
       component: ViewLinkedAccountsComponent,

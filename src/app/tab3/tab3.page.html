@@ -51,6 +51,16 @@
               <button (click)="purchase('premium_yearly')">Go Yearly</button>
             </div>
           </span>
+          <div>
+            <p>
+              <a href="https://elcodev.com/privacy-policy">Privacy Policy</a>
+            </p>
+            <p>
+              <a href="https://elcodev.com/terms-conditions"
+                >Terms & Conditions</a
+              >
+            </p>
+          </div>
         </section>
       </div>
     </ion-card-content>
@@ -62,9 +72,9 @@
         <ion-item button (click)="link()" [disabled]="!userService.isPremium">
           <ion-label>Link Account</ion-label>
         </ion-item>
-        <ion-item button (click)="viewLinkedAccounts()" *ngIf="userService.isPremium">
+        <!-- <ion-item button (click)="viewLinkedAccounts()" *ngIf="userService.isPremium">
           <ion-label>View Linked Accounts</ion-label>
-        </ion-item>
+        </ion-item> -->
         <ion-item
           button
           (click)="goToThemes()"
