@@ -8,6 +8,7 @@ import {
   CREATE_PLAID_LINK_TOKEN_URL,
   GET_TRANSACTION_DATA_URL,
   EXCHANGE_PLAID_PUBLIC_TOKEN_URL,
+  REMOVE_LINKED_ACCOUNT_URL,
 } from '../constants/http/urls';
 import { PlaidHandler, PlaidOnSuccessMetadata, PlaidTransaction } from '../types/plaid/plaid';
 import { plaidTransactionToFirestoreTransaction } from '../helpers/mappers/transactions';
@@ -111,6 +112,21 @@ export class PlaidService {
       modifiedTransactions,
       true,     // publishTransactionEvent
     );
+  }
+
+  async removePlaidLinkedAccount(linkedAccount: LinkedAccount): Promise<void> {
+    const userId = this.userRepository.getCurrentUserId();
+    if (!userId) throw new Error('User is not logged in');
+
+    this.http.post(
+      REMOVE_LINKED_ACCOUNT_URL,
+      {
+        user_id: userId,
+        linked_account_id: linkedAccount.id
+      }
+    ).subscribe((resp) => {
+      console.log(resp);
+    });
   }
 
   private createPlaidHandler(token: string): PlaidHandler {

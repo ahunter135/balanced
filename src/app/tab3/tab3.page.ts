@@ -5,8 +5,10 @@ import { AlertService } from '../services/alert.service';
 import { PlaidService } from '../services/plaid.service';
 import { UserService } from '../services/user.service';
 import { InAppPurchaseService } from '../services/in-app-purchase.service';
-import { AlertController } from '@ionic/angular';
+import { AlertController, ModalController } from '@ionic/angular';
 import { User, deleteUser } from '@angular/fire/auth';
+import { ViewLinkedAccountsComponent } from '../modals/view-linked-accounts/view-linked-accounts.component';
+import { UserRepositoryService } from '../repositories/user-repository.service';
 
 @Component({
   selector: 'app-tab3',
@@ -17,14 +19,22 @@ export class Tab3Page {
   institutionName: string;
 
   constructor(
+    public modalController: ModalController,
+    public userService: UserService,
+    public inapp: InAppPurchaseService,
     private authService: AuthService,
     private router: Router,
     private alertService: AlertService,
     private plaidService: PlaidService,
-    public userService: UserService,
-    public inapp: InAppPurchaseService,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private userRepository: UserRepositoryService,
   ) {}
+
+  ngOnInit() {
+    // WEEWOOWEEWOO!! If I forget to take this out, wow
+    this.viewLinkedAccounts();
+    console.warn("CARTER LEFT SOMETHING IN TAB3 ONINIT");
+  }
 
   async link() {
     this.plaidService.linkPlaidToUser();
@@ -69,5 +79,21 @@ export class Tab3Page {
     });
 
     alertW.present();
+  }
+
+  async viewLinkedAccounts() {
+    const user = await this.userRepository.getCurrentFirestoreUser();
+    if (!user) {
+      /* How could this happen? */
+      throw new Error("Tab3: user is undefined");
+    }
+    const modal = await this.modalController.create({
+      component: ViewLinkedAccountsComponent,
+      componentProps: {
+        user,
+      },
+    });
+
+    modal.present();
   }
 }

@@ -213,6 +213,50 @@ exports.getInstitutionName = onRequest({ cors: true }, async (req, res) => {
   }
 });
 
+/* Removes a linked account from a user, called when user initiates */
+exports.removeLinkedAccount = onRequest(
+  { cors: true },
+  async (req, res) => {
+    if(!req.body.linked_account_id ||
+       !req.body.user_id) {
+      res.status(400).send({ message: "Missing required parameters" });
+      return;
+    }
+
+    const linkedAccountSecret = await getLinkedAccountSecret(
+      req.body.user_id,
+      req.body.linked_account_id
+    );
+    if (linkedAccountSecret.empty) {
+      res.status(404).send("Linked account not found");
+      return;
+    }
+    const accessToken = linkedAccountSecret.docs[0].data().access_token;
+    const request = {
+      access_token: accessToken,
+    };
+    try {
+      const response = await client.itemRemove(request);
+      /* Success, delete linked account doc */
+      await deleteLinkedAccountSecret(
+        req.body.user_id,
+        req.body.linked_account_id,
+        linkedAccountSecret.docs[0].id
+      );
+      await deleteLinkedAccount(
+        req.body.user_id,
+        req.body.linked_account_id
+      );
+      res.status(200).send({ message: "Linked account removed" });
+      return;
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+      return;
+    }
+  }
+);
+
 // This is a helper function to authorize and create a Transfer after successful
 // exchange of a public_token for an access_token. The TRANSFER_ID is then used
 // to obtain the data about that particular Transfer.
@@ -323,6 +367,16 @@ const updateLinkedAccount = async (userId, linkedAccountId, linkedAccount) => {
     .set(linkedAccount);
 };
 
+const deleteLinkedAccount = async (userId, linkedAccountId) => {
+  return admin
+    .firestore()
+    .collection(USER_COLLECTION_NAME)
+    .doc(userId)
+    .collection(LINKED_ACCOUNT_SUBCOLLECTION_NAME)
+    .doc(linkedAccountId)
+    .delete();
+};
+
 const addLinkedAccountSecret = async (
   userId,
   linkedAccountId,
@@ -365,6 +419,22 @@ const getLinkedAccountSecret = async (userId, linkedAccountId) => {
     .collection(LINKED_ACCOUNT_SECRET_SUBCOLLECTION_NAME)
     .get();
 };
+
+const deleteLinkedAccountSecret = async (
+  userId,
+  linkedAccountId,
+  linkedAccountSecretId
+) => {
+  return admin
+    .firestore()
+    .collection(USER_COLLECTION_NAME)
+    .doc(userId)
+    .collection(LINKED_ACCOUNT_SUBCOLLECTION_NAME)
+    .doc(linkedAccountId)
+    .collection(LINKED_ACCOUNT_SECRET_SUBCOLLECTION_NAME)
+    .doc(linkedAccountSecretId)
+    .delete();
+}
 
 const getUser = async (userId) => {
   return admin

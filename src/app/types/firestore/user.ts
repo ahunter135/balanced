@@ -70,4 +70,24 @@ export type LinkedAccount = FirestoreDocument & {
   institution_name: string;
   last_transaction_retrieval: Date;
   transaction_sync_cursor: string;
+  link_status: LinkedAccountStatus;
+}
+
+/** This seems a little abstract, but it serves as a way
+  * to keep track of the status of a linked account.
+  * These fields should let the frontend know what to do
+  * with the linked account.
+  */
+export type LinkedAccountStatus = {
+  required_action: "RELINK" |
+    "ACKNOWLEDGE_REVOKED" |
+    "NOTIFY_PENDING_EXPIRATION" |
+    "NONE";
+  // There are some more, but these are the ones we care about
+  last_webhook: "ERROR" |
+    "LOGIN_REPAIRED" |
+    "PENDING_EXPIRATION" |
+    "USER_PERMISSION_REVOKED" | // revoked ones will never be used because we deleted linked accounts
+    "USER_ACCOUNT_REVOKED" |
+    "NONE";
 }

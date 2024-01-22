@@ -12,3 +12,4 @@ export const EXCHANGE_PLAID_PUBLIC_TOKEN_URL = baseUrl + 'exchangePublicToken';
 
 export const GET_INSTITUTION_NAME_URL = baseUrl + 'getInstitutionName';
 
+export const REMOVE_LINKED_ACCOUNT_URL = baseUrl + 'removeLinkedAccount';

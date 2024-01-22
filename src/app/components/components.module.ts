@@ -8,6 +8,7 @@ import { AddTransactionComponent } from '../modals/add-transaction/add-transacti
 import { CurrencyInputComponent } from './currency-input/currency-input.component';
 import { TransactionSorterComponent } from '../modals/transaction-sorter/transaction-sorter.component';
 import { ViewSubCategoryComponent } from '../modals/view-sub-category/view-sub-category.component';
+import { ViewLinkedAccountsComponent } from '../modals/view-linked-accounts/view-linked-accounts.component';
 import { NgxCurrencyDirective } from 'ngx-currency';
 import { LoginButtonComponent } from './login-button/login-button.component';
 import { FormItemComponent } from './form-item/form-item.component';
@@ -19,6 +20,7 @@ import { FormItemComponent } from './form-item/form-item.component';
     AddTransactionComponent,
     CurrencyInputComponent,
     ViewSubCategoryComponent,
+    ViewLinkedAccountsComponent,
     TransactionSorterComponent,
     LoginButtonComponent,
     FormItemComponent,
@@ -29,6 +31,7 @@ import { FormItemComponent } from './form-item/form-item.component';
     AddTransactionComponent,
     CurrencyInputComponent,
     ViewSubCategoryComponent,
+    ViewLinkedAccountsComponent,
     TransactionSorterComponent,
     LoginButtonComponent,
     FormItemComponent,
