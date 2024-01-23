@@ -12,6 +12,7 @@ import {
 import { AuthService } from './services/auth.service';
 import { Preferences } from '@capacitor/preferences';
 import { Capacitor } from '@capacitor/core';
+import { InAppPurchaseService } from './services/in-app-purchase.service';
 
 @Component({
   selector: 'app-root',
@@ -19,7 +20,10 @@ import { Capacitor } from '@capacitor/core';
   styleUrls: ['app.component.scss'],
 })
 export class AppComponent {
-  constructor(private authService: AuthService) {
+  constructor(
+    private authService: AuthService,
+    private purchaseService: InAppPurchaseService
+  ) {
     this.configureFirebaseEnvironment();
     this.setTheme();
   }

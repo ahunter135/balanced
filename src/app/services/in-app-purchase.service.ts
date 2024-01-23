@@ -79,6 +79,9 @@ export class InAppPurchaseService {
 
         return p.verify();
       })
+      .productUpdated((p: CdvPurchase.Product) => {
+        this.userService.updatePremiumStatus(p.owned);
+      })
       .verified((p: any) => p.finish())
       .unverified((p: any) => p.finish())
       .finished(() => {
@@ -86,6 +89,8 @@ export class InAppPurchaseService {
           this.loader.dismiss();
         }
       });
+
+    this.store.restorePurchases();
   }
 
   async startPurchase(flag: string) {
