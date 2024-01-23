@@ -70,7 +70,7 @@ export type LinkedAccount = FirestoreDocument & {
   institution_name: string;
   last_transaction_retrieval: Date;
   transaction_sync_cursor: string;
-  link_status: LinkedAccountStatus;
+  link_status?: LinkedAccountStatus;
 }
 
 /** This seems a little abstract, but it serves as a way
