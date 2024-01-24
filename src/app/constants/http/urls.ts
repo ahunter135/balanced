@@ -8,6 +8,8 @@ export const GET_TRANSACTION_DATA_URL = baseUrl + 'getTransactionData';
 
 export const CREATE_PLAID_LINK_TOKEN_URL = baseUrl + 'createPlaidLinkToken';
 
+export const CREATE_PLAID_UPDATE_LINK_TOKEN_URL = baseUrl + 'relinkPlaidLinkToken';
+
 export const EXCHANGE_PLAID_PUBLIC_TOKEN_URL = baseUrl + 'exchangePublicToken';
 
 export const GET_INSTITUTION_NAME_URL = baseUrl + 'getInstitutionName';

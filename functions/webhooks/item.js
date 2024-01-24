@@ -1,5 +1,11 @@
 const admin = require("firebase-admin");
 const { onRequest } = require("firebase-functions/v2/https");
+const {
+  queryForAccessToken,
+  updateLinkedAccountStatus,
+  deleteLinkedAccount,
+  deleteLinkedAccountSecret
+} = require("../crud/linked-accounts");
 
 
 /** Plaid webhook for item events. Docs: https://plaid.com/docs/api/items/
@@ -33,20 +39,41 @@ exports.plaidItemWebhook = onRequest(
       return;
     }
 
+    let linkedAccountSecretDoc;
+    try {
+      // Get the access token from the item id
+      linkedAccountSecretDoc = await queryForAccessToken(
+        req.body.item_id
+      );
+      if (!linkedAccountSecretDoc) {
+        throw new Error();
+      }
+    } catch (err) {
+      res.status(400).send("Yo bro, we don't have that :(");
+      return;
+    }
+    const linkedAccountDoc = linkedAccountSecretDoc.ref.parent.doc();
+
     try {
       switch (req.body.webhook_code) {
         case "ERROR":
-          await plaidItemWebhookOnError(req.body);
+          if (!req.body.error &&
+            req.body.error.error_code != "ITEM_LOGIN_REQUIRED")
+            break;
+          await plaidItemWebhookOnError(linkedAccountDoc);
           break;
         case "LOGIN_REPAIRED":
-          await plaidItemWebhookOnLoginRepaired(req.body);
+          await plaidItemWebhookOnLoginRepaired(linkedAccountDoc);
           break;
         case "PENDING_EXPIRATION":
-          await plaidItemWebhookOnPendingExpiration(req.body);
+          await plaidItemWebhookOnPendingExpiration(linkedAccountDoc);
           break;
         case "USER_PERMISSION_REVOKED":
         case "USER_ACCOUNT_REVOKED":
-          await plaidItemWebhookOnRevoked(req.body);
+          await plaidItemWebhookOnRevoked(
+            linkedAccountDoc,
+            linkedAccountSecretDoc
+          );
           break;
         default:
           throw new Error("Invalid webhook code");
@@ -60,20 +87,50 @@ exports.plaidItemWebhook = onRequest(
 
 // Handlers for each webhook code
 
-
-const plaidItemWebhookOnError = async (body) => {
-
+/** On error, changet the required_action to "relink" and set the
+  * last_webhook to "ERROR"
+  */
+const plaidItemWebhookOnError = async (linkedAccountDoc) => {
+  await updateLinkedAccountStatus(
+    linkedAccountDoc,
+    "RELINK",
+    "ERROR"
+  );
 };
 
-const plaidItemWebhookOnLoginRepaired = async (body) => {
-
+/** On login repaired, set the required_action to "NONE" and set the
+  * last_webhook to "LOGIN_REPAIRED"
+  */
+const plaidItemWebhookOnLoginRepaired = async (linkedAccountDoc) => {
+  await updateLinkedAccountStatus(
+    linkedAccountDoc,
+    "NONE",
+    "LOGIN_REPAIRED"
+  );
 };
 
-const plaidItemWebhookOnPendingExpiration = async (body) => {
-
+/** On pending expiration, set the required_action to "NOTIFY_PENDING_EXPIRATION"
+  * and set the last_webhook to "PENDING_EXPIRATION"
+  */
+const plaidItemWebhookOnPendingExpiration = async (linkedAccountDoc) => {
+  await updateLinkedAccountStatus(
+    linkedAccountDoc,
+    "NOTIFY_PENDING_EXPIRATION",
+    "PENDING_EXPIRATION"
+  );
 };
 
 // Both revoked events mean item is donezo, so handle the same way
-const plaidItemWebhookOnRevoked = async (body) => {
-
+// On revoked, delete the linked account doc and its secret subcollection
+const plaidItemWebhookOnRevoked = async (
+  linkedAccountDoc,
+  linkedAccountSecretDoc
+) => {
+  await deleteLinkedAccountSecret(
+    linkedAccountDoc.id,
+    linkedAccountSecretDoc.id
+  );
+  await deleteLinkedAccount(
+    linkedAccountDoc.id
+  );
 };

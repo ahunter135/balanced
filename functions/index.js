@@ -14,6 +14,15 @@ const {
   PlaidEnvironments,
 } = require("plaid");
 
+const {
+  addLinkedAccount,
+  addLinkedAccountSecret,
+  deleteLinkedAccount,
+  deleteLinkedAccountSecret,
+  getLinkedAccountSecret,
+  updateLinkedAccount,
+} = require("./crud/linked-accounts");
+
 require("dotenv").config();
 
 // PLAID_PRODUCTS is a comma-separated list of products to use when initializing
@@ -48,6 +57,7 @@ const {
   LINKED_ACCOUNT_SUBCOLLECTION_NAME,
   LINKED_ACCOUNT_SECRET_SUBCOLLECTION_NAME,
 } = require("./constants");
+const { plaidItemWebhook } = require("./webhooks/item");
 admin.initializeApp();
 
 const configuration = getPlaidConfig();
@@ -129,9 +139,6 @@ exports.exchangePublicToken = onRequest({ cors: true }, async (req, res) => {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setUTCHours(0, 0, 0, 0);
-    console.log(added);
-    console.log(modified);
-    console.log(removed);
     added = filterPlaidTransactions(added, today, tomorrow);
     modified = filterPlaidTransactions(modified, today, tomorrow);
     removed = filterPlaidTransactions(removed, today, tomorrow);
@@ -148,6 +155,50 @@ exports.exchangePublicToken = onRequest({ cors: true }, async (req, res) => {
     return;
   }
 });
+
+exports.relinkPlaidLinkToken = onRequest(
+  { cors: true },
+  async (req, res) => {
+    if(!req.body.user_id ||
+      !req.body.linked_account_id) {
+      res.status(400).send({ message: "Missing required parameters" });
+    }
+    if (!(await isUserPremium(req.body.user_id))) {
+      res.status(403).send({ message: "This feature is only available to premium users" });
+      return;
+    }
+    try {
+      const linkedAccountSecret = await getLinkedAccountSecret(
+        req.body.user_id,
+        req.body.linked_account_id
+      );
+      if (linkedAccountSecret.empty) {
+        res.status(404).send("Linked account not found");
+        return;
+      }
+      const accessToken = linkedAccountSecret.docs[0].data().access_token;
+
+      const configs = {
+        user: {
+          // This should correspond to a unique id for the current user.
+          client_user_id: req.body.user_id,
+        },
+        client_name: "WiseWallets",
+        country_codes: PLAID_COUNTRY_CODES,
+        language: "en",
+        access_token: accessToken,
+      };
+
+      const createTokenResponse = await client.linkTokenCreate(configs);
+      res.status(200).send(createTokenResponse.data);
+      return;
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+      return;
+    }
+  }
+);
 
 exports.getTransactionData = onRequest({ cors: true }, async (req, res) => {
   if (!(await isUserPremium(req.body.userId))) {
@@ -170,7 +221,6 @@ exports.getTransactionData = onRequest({ cors: true }, async (req, res) => {
       req.body.linkedAccountId,
       req.body.linkedAccount
     );
-
     res.status(200).send({
       added,
       modified,
@@ -348,93 +398,6 @@ const syncPlaidTransactions = async (
   };
 };
 
-const addLinkedAccount = async (userId, linkedAccount) => {
-  return admin
-    .firestore()
-    .collection(USER_COLLECTION_NAME)
-    .doc(userId)
-    .collection(LINKED_ACCOUNT_SUBCOLLECTION_NAME)
-    .add(linkedAccount);
-};
-
-const updateLinkedAccount = async (userId, linkedAccountId, linkedAccount) => {
-  return admin
-    .firestore()
-    .collection(USER_COLLECTION_NAME)
-    .doc(userId)
-    .collection(LINKED_ACCOUNT_SUBCOLLECTION_NAME)
-    .doc(linkedAccountId)
-    .set(linkedAccount);
-};
-
-const deleteLinkedAccount = async (userId, linkedAccountId) => {
-  return admin
-    .firestore()
-    .collection(USER_COLLECTION_NAME)
-    .doc(userId)
-    .collection(LINKED_ACCOUNT_SUBCOLLECTION_NAME)
-    .doc(linkedAccountId)
-    .delete();
-};
-
-const addLinkedAccountSecret = async (
-  userId,
-  linkedAccountId,
-  linkedAccountSecret
-) => {
-  return admin
-    .firestore()
-    .collection(USER_COLLECTION_NAME)
-    .doc(userId)
-    .collection(LINKED_ACCOUNT_SUBCOLLECTION_NAME)
-    .doc(linkedAccountId)
-    .collection(LINKED_ACCOUNT_SECRET_SUBCOLLECTION_NAME)
-    .add(linkedAccountSecret);
-};
-
-const updateLinkedAccountSecret = async (
-  userId,
-  linkedAccountId,
-  linkedAccountSecretId,
-  linkedAccountSecret
-) => {
-  return admin
-    .firestore()
-    .collection(USER_COLLECTION_NAME)
-    .doc(userId)
-    .collection(LINKED_ACCOUNT_SUBCOLLECTION_NAME)
-    .doc(linkedAccountId)
-    .collection(LINKED_ACCOUNT_SECRET_SUBCOLLECTION_NAME)
-    .doc(linkedAccountSecretId)
-    .set(linkedAccountSecret);
-};
-
-const getLinkedAccountSecret = async (userId, linkedAccountId) => {
-  return admin
-    .firestore()
-    .collection(USER_COLLECTION_NAME)
-    .doc(userId)
-    .collection(LINKED_ACCOUNT_SUBCOLLECTION_NAME)
-    .doc(linkedAccountId)
-    .collection(LINKED_ACCOUNT_SECRET_SUBCOLLECTION_NAME)
-    .get();
-};
-
-const deleteLinkedAccountSecret = async (
-  userId,
-  linkedAccountId,
-  linkedAccountSecretId
-) => {
-  return admin
-    .firestore()
-    .collection(USER_COLLECTION_NAME)
-    .doc(userId)
-    .collection(LINKED_ACCOUNT_SUBCOLLECTION_NAME)
-    .doc(linkedAccountId)
-    .collection(LINKED_ACCOUNT_SECRET_SUBCOLLECTION_NAME)
-    .doc(linkedAccountSecretId)
-    .delete();
-}
 
 const getUser = async (userId) => {
   return admin
@@ -489,3 +452,7 @@ function getPlaidConfig() {
     },
   });
 }
+
+
+// WEBHOOK EXPORTS
+exports.plaidItemWebhook = plaidItemWebhook;
