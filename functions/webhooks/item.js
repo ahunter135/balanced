@@ -7,6 +7,8 @@ const {
   deleteLinkedAccountSecret
 } = require("../crud/linked-accounts");
 
+exports.ITEM_WEBHOOK_URL = "https://plaiditemwebhook-x7msx3awhq-uc.a.run.app";
+
 
 /** Plaid webhook for item events. Docs: https://plaid.com/docs/api/items/
   * This webhook is responsible for handling events related to items (access tokens).
