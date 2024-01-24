@@ -1,21 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
-        android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+    android:allowBackup="true"
+    android:icon="@mipmap/ic_launcher"
+    android:label="@string/app_name"
+    android:roundIcon="@mipmap/ic_launcher_round"
+    android:supportsRtl="true"
+    android:theme="@style/AppTheme"
+  >
 
         <activity
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
-            android:name=".MainActivity"
-            android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBarLaunch"
-            android:launchMode="singleTask"
-            android:exported="true">
+      android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
+      android:name=".MainActivity"
+      android:label="@string/title_activity_main"
+      android:theme="@style/AppTheme.NoActionBarLaunch"
+      android:launchMode="singleTask"
+      android:exported="true"
+    >
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -24,14 +26,297 @@
 
         </activity>
 
+    <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo0"
+      android:roundIcon="@drawable/logo0"
+      android:name=".logo0"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity-alias>
+    <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo1"
+      android:roundIcon="@drawable/logo1"
+      android:name=".logo1"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity-alias>
+    <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo2"
+      android:roundIcon="@drawable/logo2"
+      android:name=".logo2"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity-alias>
+    <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo3"
+      android:roundIcon="@drawable/logo3"
+      android:name=".logo3"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity-alias>
+    <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo4"
+      android:roundIcon="@drawable/logo4"
+      android:name=".logo4"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity-alias>
+    <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo5"
+      android:roundIcon="@drawable/logo5"
+      android:name=".logo5"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity-alias>
+    <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo6"
+      android:roundIcon="@drawable/logo6"
+      android:name=".logo6"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity-alias>
+    <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo7"
+      android:roundIcon="@drawable/logo7"
+      android:name=".logo7"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo8"
+      android:roundIcon="@drawable/logo8"
+      android:name=".logo8"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo9"
+      android:roundIcon="@drawable/logo9"
+      android:name=".logo9"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo10"
+      android:roundIcon="@drawable/logo10"
+      android:name=".logo10"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo11"
+      android:roundIcon="@drawable/logo11"
+      android:name=".logo11"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo12"
+      android:roundIcon="@drawable/logo12"
+      android:name=".logo12"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo13"
+      android:roundIcon="@drawable/logo13"
+      android:name=".logo13"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo14"
+      android:roundIcon="@drawable/logo14"
+      android:name=".logo14"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo15"
+      android:roundIcon="@drawable/logo15"
+      android:name=".logo15"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo16"
+      android:roundIcon="@drawable/logo16"
+      android:name=".logo16"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+    <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo17"
+      android:roundIcon="@drawable/logo17"
+      android:name=".logo17"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity-alias>
+    <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo18"
+      android:roundIcon="@drawable/logo18"
+      android:name=".logo18"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity-alias>
+    <activity-alias
+      android:label="@string/app_name"
+      android:icon="@drawable/logo19"
+      android:roundIcon="@drawable/logo19"
+      android:name=".logo19"
+      android:enabled="false"
+      android:exported="true"
+      android:targetActivity=".MainActivity"
+    >
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity-alias>
+
         <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
+      android:name="androidx.core.content.FileProvider"
+      android:authorities="${applicationId}.fileprovider"
+      android:exported="false"
+      android:grantUriPermissions="true"
+    >
             <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"></meta-data>
+        android:name="android.support.FILE_PROVIDER_PATHS"
+        android:resource="@xml/file_paths"
+      />
         </provider>
     </application>
 

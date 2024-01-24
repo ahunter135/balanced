@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "51779442445",
+    "project_id": "balanced-budget-90f1f",
+    "storage_bucket": "balanced-budget-90f1f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:51779442445:android:289d3aa55a777bcdd1c244",
+        "android_client_info": {
+          "package_name": "com.austinhunter.balanced"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "51779442445-nve3gng7ub5d38sbmh5artoqk2mj67hv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMNUc2JNEwB35nR6ylIw7aDlIFId2B7XA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "51779442445-nve3gng7ub5d38sbmh5artoqk2mj67hv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

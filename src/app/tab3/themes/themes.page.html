@@ -31,7 +31,7 @@
       </div>
     </ion-card-content>
   </ion-card>
-  <ion-card>
+  <ion-card *ngIf="!isAndroid">
     <ion-card-header color="primary">
       <ion-card-subtitle>Tap to Change App Icon</ion-card-subtitle>
     </ion-card-header>
