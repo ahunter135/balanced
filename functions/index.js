@@ -189,6 +189,7 @@ exports.relinkPlaidLinkToken = onRequest(
         country_codes: PLAID_COUNTRY_CODES,
         language: "en",
         access_token: accessToken,
+        webhook: ITEM_WEBHOOK_URL,
       };
 
       const createTokenResponse = await client.linkTokenCreate(configs);
