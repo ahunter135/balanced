@@ -34,39 +34,6 @@ export class ViewLinkedAccountsComponent  implements OnInit {
       .then((linkedAccounts) => {
         this.loading = false;
         this.linkedAccounts = linkedAccounts.docs;
-        this.linkedAccounts.push({
-          id: "test",
-          institution: "test",
-          institution_name: "test ok",
-          last_transaction_retrieval: new Date(),
-          transaction_sync_cursor: "test",
-          link_status: {
-            required_action: "NONE",
-            last_webhook: "ERROR",
-          },
-        });
-        this.linkedAccounts.push({
-          id: "test",
-          institution: "test",
-          institution_name: "test relink",
-          last_transaction_retrieval: new Date(),
-          transaction_sync_cursor: "test",
-          link_status: {
-            required_action: "RELINK",
-            last_webhook: "ERROR",
-          },
-        });
-        this.linkedAccounts.push({
-          id: "test",
-          institution: "test",
-          institution_name: "test pending exp",
-          last_transaction_retrieval: new Date(),
-          transaction_sync_cursor: "test",
-          link_status: {
-            required_action: "NOTIFY_PENDING_EXPIRATION",
-            last_webhook: "ERROR",
-          },
-        });
       }
     );
   }
@@ -77,6 +44,9 @@ export class ViewLinkedAccountsComponent  implements OnInit {
   }
 
   async handleLinkedAccountAction(linkedAccount: LinkedAccount) {
+    if (!linkedAccount.link_status) {
+      return; // Same as NONE
+    }
     switch (linkedAccount.link_status.required_action) {
       case "RELINK":
       case "NOTIFY_PENDING_EXPIRATION":
@@ -89,8 +59,13 @@ export class ViewLinkedAccountsComponent  implements OnInit {
     }
   }
 
+  async link() {
+    this.modalController.dismiss();
+    this.plaidService.linkPlaidToUser();
+  }
+
   private async relinkLinkedAccount(linkedAccount: LinkedAccount) {
-    console.log("relinking linked account");
+    this.plaidService.relinkPlaidLinkedAccount(linkedAccount);
   }
 
 }

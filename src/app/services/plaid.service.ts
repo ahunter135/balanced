@@ -9,6 +9,7 @@ import {
   GET_TRANSACTION_DATA_URL,
   EXCHANGE_PLAID_PUBLIC_TOKEN_URL,
   REMOVE_LINKED_ACCOUNT_URL,
+  CREATE_PLAID_UPDATE_LINK_TOKEN_URL,
 } from '../constants/http/urls';
 import { PlaidHandler, PlaidOnSuccessMetadata, PlaidTransaction } from '../types/plaid/plaid';
 import { plaidTransactionToFirestoreTransaction } from '../helpers/mappers/transactions';
@@ -52,7 +53,7 @@ export class PlaidService {
       return err;
     })).subscribe((resp) => {
       console.log(resp);
-      const handler = this.createPlaidHandler(resp.link_token);
+      const handler = this.createPlaidHandlerLink(resp.link_token);
       loader.dismiss();
       handler.open();
     });
@@ -129,10 +130,44 @@ export class PlaidService {
     });
   }
 
-  private createPlaidHandler(token: string): PlaidHandler {
+  async relinkPlaidLinkedAccount(linkedAccount: LinkedAccount):
+    Promise<void> {
+    if (!this.plaidAvailable) return;
+    const loader = await this.loadingController.create();
+    await loader.present();
+    this.http.post(
+      CREATE_PLAID_UPDATE_LINK_TOKEN_URL,
+      {
+        user_id: this.userRepository.getCurrentUserId()!,
+        linked_account_id: linkedAccount.id!,
+      }
+    ).pipe(catchError((err) => {
+      console.log(err);
+      loader.dismiss();
+      return err;
+    })).subscribe((resp) => {
+      console.log(resp);
+      const handler = this.createPlaidHandlerRelink(resp.link_token);
+      loader.dismiss();
+      handler.open();
+    });
+  }
+
+  private createPlaidHandlerLink(token: string): PlaidHandler {
     return Plaid.create({
       token,
       onSuccess: this.plaidHandlerOnSuccessCallback.bind(this),
+      onExit: this.plaidHandlerOnExitCallback.bind(this),
+      onLoad: this.plaidHandlerOnLoadCallback.bind(this),
+      onEvent: this.plaidHandlerOnEventCallback.bind(this),
+      receivedRedirectUri: null,
+    });
+  }
+
+  private createPlaidHandlerRelink(token: string): PlaidHandler {
+    return Plaid.create({
+      token,
+      onSuccess: (publicToken: string, metadata: PlaidOnSuccessMetadata) => { },
       onExit: this.plaidHandlerOnExitCallback.bind(this),
       onLoad: this.plaidHandlerOnLoadCallback.bind(this),
       onEvent: this.plaidHandlerOnEventCallback.bind(this),

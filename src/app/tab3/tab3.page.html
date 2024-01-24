@@ -72,9 +72,9 @@
         <ion-item button (click)="link()" [disabled]="!userService.isPremium">
           <ion-label>Link Account</ion-label>
         </ion-item>
-        <!-- <ion-item button (click)="viewLinkedAccounts()" *ngIf="userService.isPremium">
+        <ion-item button (click)="viewLinkedAccounts()" *ngIf="userService.isPremium">
           <ion-label>View Linked Accounts</ion-label>
-        </ion-item> -->
+        </ion-item>
         <ion-item
           button
           (click)="goToThemes()"
