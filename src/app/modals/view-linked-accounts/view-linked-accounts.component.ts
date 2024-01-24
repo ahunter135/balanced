@@ -64,8 +64,26 @@ export class ViewLinkedAccountsComponent  implements OnInit {
     this.plaidService.linkPlaidToUser();
   }
 
+  // On successful relink, change the local linked account's status
+  async onRelinkSuccessCallback(linkedAccountId: string) {
+    const linkedAccount = this.linkedAccounts.find((la) => la.id === linkedAccountId);
+    if (!linkedAccount) {
+      return;  // What?
+    }
+    if (!linkedAccount.link_status) {
+      return; // No way this should happen
+    }
+    linkedAccount.link_status = {
+      required_action: "NONE",
+      last_webhook: linkedAccount.link_status.last_webhook
+    };
+  }
+
   private async relinkLinkedAccount(linkedAccount: LinkedAccount) {
-    this.plaidService.relinkPlaidLinkedAccount(linkedAccount);
+    this.plaidService.relinkPlaidLinkedAccount(
+      linkedAccount,
+      this.onRelinkSuccessCallback.bind(this)
+    );
   }
 
 }

@@ -52,7 +52,8 @@ exports.plaidItemWebhook = onRequest(
       res.status(400).send("Yo bro, we don't have that :(");
       return;
     }
-    const linkedAccountDoc = linkedAccountSecretDoc.ref.parent.doc();
+    // The linked account doc is the parent of the linked account secret doc
+    const linkedAccountDoc = linkedAccountSecretDoc.ref.parent.parent;
 
     try {
       switch (req.body.webhook_code) {
@@ -78,8 +79,12 @@ exports.plaidItemWebhook = onRequest(
         default:
           throw new Error("Invalid webhook code");
       }
+      res.status(200).send("OK");
+      return;
     } catch (err) {
-
+      console.log(err);
+      res.status(500).send("Something went wrong");
+      return;
     }
   }
 );

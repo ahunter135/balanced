@@ -130,7 +130,7 @@ export class PlaidService {
     });
   }
 
-  async relinkPlaidLinkedAccount(linkedAccount: LinkedAccount):
+  async relinkPlaidLinkedAccount(linkedAccount: LinkedAccount, successCallback?: (linkedAccountId: string) => void):
     Promise<void> {
     if (!this.plaidAvailable) return;
     const loader = await this.loadingController.create();
@@ -147,7 +147,12 @@ export class PlaidService {
       return err;
     })).subscribe((resp) => {
       console.log(resp);
-      const handler = this.createPlaidHandlerRelink(resp.link_token);
+      const handler = this.createPlaidHandlerRelink(
+        resp.link_token,
+        this.userRepository.getCurrentUserId()!,
+        linkedAccount.id!,
+        successCallback,
+      );
       loader.dismiss();
       handler.open();
     });
@@ -164,10 +169,31 @@ export class PlaidService {
     });
   }
 
-  private createPlaidHandlerRelink(token: string): PlaidHandler {
+  private createPlaidHandlerRelink(
+    token: string,
+    userId: string,
+    linkedAccountId?: string,
+    successCallback?: (linkedAccountId: string) => void,
+  ): PlaidHandler {
     return Plaid.create({
       token,
-      onSuccess: (publicToken: string, metadata: PlaidOnSuccessMetadata) => { },
+      // On success, change the required action to NONE
+      onSuccess: (publicToken: string, metadata: PlaidOnSuccessMetadata) => {
+        if (!linkedAccountId)
+          return;
+        this.linkedAccountsRepository.update(
+          userId,
+          linkedAccountId,
+          {
+            link_status: {
+              required_action: 'NONE',
+            },
+          }
+        ).then((success: boolean) => {
+          if (success && successCallback)
+            successCallback(linkedAccountId);
+        });
+      },
       onExit: this.plaidHandlerOnExitCallback.bind(this),
       onLoad: this.plaidHandlerOnLoadCallback.bind(this),
       onEvent: this.plaidHandlerOnEventCallback.bind(this),
