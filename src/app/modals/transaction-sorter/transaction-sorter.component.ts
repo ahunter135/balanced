@@ -1,11 +1,7 @@
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
-import {
-  User,
-  Transaction,
-  Category,
-} from 'src/app/types/firestore/user';
+import { User, Transaction, Category } from 'src/app/types/firestore/user';
 import { FormGroup } from '@angular/forms';
-import { IonDatetime, ModalController } from '@ionic/angular';
+import { AlertController, IonDatetime, ModalController } from '@ionic/angular';
 import { TransactionPublisherService } from 'src/app/services/transaction-publisher.service';
 
 @Component({
@@ -33,6 +29,7 @@ export class TransactionSorterComponent implements AfterViewInit {
   constructor(
     public modalCtrl: ModalController,
     private transactionPublisher: TransactionPublisherService,
+    private alertCtrl: AlertController
   ) {
     this.transactionAmountUserView = 0;
   }
@@ -44,7 +41,7 @@ export class TransactionSorterComponent implements AfterViewInit {
 
   async ngAfterViewInit() {
     const off = this.transaction.date.getTimezoneOffset();
-    const date = new Date(this.transaction.date.getTime() - (off * 60 * 1000));
+    const date = new Date(this.transaction.date.getTime() - off * 60 * 1000);
     /* Cheat by putting into local time but spoofing as UTC to get format */
     this.ionDatetime.value = date.toISOString();
   }
@@ -84,8 +81,35 @@ export class TransactionSorterComponent implements AfterViewInit {
   }
 
   getAmount() {
-    return this.transaction.amount >= 0 ?
-      this.transaction.amount :
-      -this.transaction.amount;
+    return this.transaction.amount >= 0
+      ? this.transaction.amount
+      : -this.transaction.amount;
+  }
+
+  async deleteTransaction() {
+    const alrt = await this.alertCtrl.create({
+      message: 'Are You Sure?',
+      buttons: [
+        {
+          text: 'Yes',
+          role: 'destructive',
+          handler: () => {
+            this.transactionPublisher.publishEvent({
+              from: 'manual',
+              addedTransactions: [],
+              modifiedTransactions: [],
+              removedTransactions: [this.transaction],
+            });
+            this.modalCtrl.dismiss();
+          },
+        },
+        {
+          text: 'No',
+          role: 'cancel',
+        },
+      ],
+    });
+
+    alrt.present();
   }
 }

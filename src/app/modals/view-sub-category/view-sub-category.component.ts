@@ -1,6 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { ModalController } from '@ionic/angular';
-import { User, Transaction, Category, Subcategory } from 'src/app/types/firestore/user';
+import { AlertController, ModalController } from '@ionic/angular';
+import {
+  User,
+  Transaction,
+  Category,
+  Subcategory,
+} from 'src/app/types/firestore/user';
 import { SubcategoryRepositoryService } from 'src/app/repositories/subcategory-repository.service';
 import { dateTransactionSort } from 'src/app/helpers/sorters/user-related-sorters';
 import { AlertService } from 'src/app/services/alert.service';
@@ -21,12 +26,12 @@ export class ViewSubCategoryComponent implements OnInit {
   planned_amount: any;
   subcategoryEditName?: string;
 
-
   constructor(
     public modalController: ModalController,
     private subCategoryRepository: SubcategoryRepositoryService,
     private alertService: AlertService,
     private transactionPublisher: TransactionPublisherService,
+    private alertCtrl: AlertController
   ) {}
 
   ngOnInit() {
@@ -66,11 +71,11 @@ export class ViewSubCategoryComponent implements OnInit {
   async saveNewName() {
     if (!this.user || !this.user.id) return;
     if (this.category.id === undefined) return;
-    if (this.subcategoryEditName == undefined ||
-       this.subcategoryEditName == '') {
-      this.alertService.createAndShowToast(
-        'Please enter a valid name'
-      );
+    if (
+      this.subcategoryEditName == undefined ||
+      this.subcategoryEditName == ''
+    ) {
+      this.alertService.createAndShowToast('Please enter a valid name');
       this.subcategoryEditName = this.subcategory.text;
       return;
     }
@@ -86,13 +91,30 @@ export class ViewSubCategoryComponent implements OnInit {
   }
 
   async deleteTransaction(item: Transaction) {
-    this.transactions.splice(this.transactions.indexOf(item), 1);
-    this.transactionPublisher.publishEvent({
-      from: 'manual',
-      addedTransactions: [],
-      modifiedTransactions: [],
-      removedTransactions: [item],
+    const alrt = await this.alertCtrl.create({
+      message: 'Are You Sure?',
+      buttons: [
+        {
+          text: 'Yes',
+          role: 'destructive',
+          handler: () => {
+            this.transactions.splice(this.transactions.indexOf(item), 1);
+            this.transactionPublisher.publishEvent({
+              from: 'manual',
+              addedTransactions: [],
+              modifiedTransactions: [],
+              removedTransactions: [item],
+            });
+          },
+        },
+        {
+          text: 'No',
+          role: 'cancel',
+        },
+      ],
     });
+
+    alrt.present();
   }
 
   async openEditTransaction(item: Transaction) {
