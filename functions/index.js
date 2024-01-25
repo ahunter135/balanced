@@ -57,7 +57,7 @@ const {
   LINKED_ACCOUNT_SUBCOLLECTION_NAME,
   LINKED_ACCOUNT_SECRET_SUBCOLLECTION_NAME,
 } = require("./constants");
-const { plaidItemWebhook } = require("./webhooks/item");
+const { plaidItemWebhook, ITEM_WEBHOOK_URL } = require("./webhooks/item");
 admin.initializeApp();
 
 const configuration = getPlaidConfig();
@@ -70,6 +70,7 @@ exports.createPlaidLinkToken = onRequest({ cors: true }, async (req, res) => {
     return;
   }
   try {
+    // Note: Webhooks specified per item here
     const configs = {
       user: {
         // This should correspond to a unique id for the current user.
@@ -79,6 +80,7 @@ exports.createPlaidLinkToken = onRequest({ cors: true }, async (req, res) => {
       products: PLAID_PRODUCTS,
       country_codes: PLAID_COUNTRY_CODES,
       language: "en",
+      webhook: ITEM_WEBHOOK_URL,
     };
 
     const createTokenResponse = await client.linkTokenCreate(configs);
@@ -187,6 +189,7 @@ exports.relinkPlaidLinkToken = onRequest(
         country_codes: PLAID_COUNTRY_CODES,
         language: "en",
         access_token: accessToken,
+        webhook: ITEM_WEBHOOK_URL,
       };
 
       const createTokenResponse = await client.linkTokenCreate(configs);
