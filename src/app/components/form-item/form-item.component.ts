@@ -1,5 +1,12 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { animate, state, style, transition, trigger } from '@angular/animations';
+import {
+  animate,
+  state,
+  style,
+  transition,
+  trigger,
+} from '@angular/animations';
+import { Keyboard } from '@capacitor/keyboard';
 
 @Component({
   selector: 'app-form-item',
@@ -7,15 +14,13 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
   styleUrls: ['./form-item.component.scss'],
   animations: [
     trigger('icon', [
-      state('focused', style({color: '#00eabb'})),
-      state('blurred', style({color: 'black'})),
-      transition('focused <=> blurred', [
-        animate('0.1s'),
-      ]),
+      state('focused', style({ color: '#00eabb' })),
+      state('blurred', style({ color: 'black' })),
+      transition('focused <=> blurred', [animate('0.1s')]),
     ]),
   ],
 })
-export class FormItemComponent  implements OnInit {
+export class FormItemComponent implements OnInit {
   @Input() label: string;
   @Input() model: any;
   @Input() property: string;
@@ -25,8 +30,13 @@ export class FormItemComponent  implements OnInit {
 
   isFocused: boolean = false;
 
-  constructor() { }
+  constructor() {}
 
   ngOnInit() {}
 
+  hideKeyboard(ev: any) {
+    if (ev.key == 'Enter' || ev.key == 'enter') {
+      Keyboard.hide();
+    }
+  }
 }

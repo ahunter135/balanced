@@ -17,6 +17,8 @@
     (ionBlur)="isFocused = false"
     (ionFocus)="isFocused = true"
     [(ngModel)]="model[property]"
+    enterkeyhint="done"
+    (keydown)="hideKeyboard($event)"
   >
   </ion-input>
 </ion-item>

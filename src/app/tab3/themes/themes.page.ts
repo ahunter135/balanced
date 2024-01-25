@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
 import { AppIcon } from '@capacitor-community/app-icon';
+import { Platform } from '@ionic/angular';
 
 @Component({
   selector: 'app-themes',
@@ -11,6 +12,7 @@ export class ThemesPage implements OnInit {
   logos: Array<number> = [];
   activeIcon: number = 0;
   logoCount = 20;
+  isAndroid = false;
   themes = [
     { value: '#00eabb', darkText: false },
     { value: '#9aecc2', darkText: true },
@@ -31,9 +33,10 @@ export class ThemesPage implements OnInit {
     { value: '#FFD4DD', darkText: true },
   ];
   activeTheme: string;
-  constructor() {}
+  constructor(private platform: Platform) {}
 
   ngOnInit() {
+    this.isAndroid = this.platform.is('android');
     for (let i = 0; i < this.logoCount; i++) {
       this.logos.push(i);
     }
@@ -93,7 +96,13 @@ export class ThemesPage implements OnInit {
   }
 
   changeIcon = async (iconName: string) => {
-    await AppIcon.change({ name: iconName, suppressNotification: true });
+    const disable: string[] = ['logo' + this.activeIcon]; // all added aliaces names
+
+    await AppIcon.change({
+      name: iconName,
+      suppressNotification: true,
+      disable,
+    });
   };
 
   getName = async () => {

@@ -5,6 +5,9 @@
     </ion-buttons>
     <ion-title>Update Transaction</ion-title>
     <ion-buttons slot="end">
+      <ion-button (click)="deleteTransaction()"
+        ><ion-icon name="trash-outline"></ion-icon
+      ></ion-button>
       <ion-button (click)="save()">Save</ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -98,7 +101,7 @@
               [isChecklist]="true"
               [subcategories]="cat.subcategories ?? []"
               (subcategorySelected)="subcategorySelected($event, cat)"
-              ></app-category>
+            ></app-category>
           </span>
           <span id="no-category">
             <ion-card style="margin: 0 0 28px 0">
@@ -112,7 +115,8 @@
                   class="target"
                   button
                   lines="none"
-                  (click)="selectedNoSub()">
+                  (click)="selectedNoSub()"
+                >
                   <ion-label>Uncategorized</ion-label>
                 </ion-item>
               </ion-card-content>
