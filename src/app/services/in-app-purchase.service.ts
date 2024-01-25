@@ -96,6 +96,7 @@ export class InAppPurchaseService {
   async startPurchase(flag: string) {
     let foundProduct;
     for (let i = 0; i < this.products.length; i++) {
+      console.log(this.products);
       if (this.products[i].id == flag) {
         foundProduct = this.products[i];
         break;
@@ -111,6 +112,7 @@ export class InAppPurchaseService {
     });
 
     await this.loader.present();
+    console.log(product);
     let offer = product.getOffer()!;
     if (offer) {
       this.store
