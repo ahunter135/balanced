@@ -49,7 +49,7 @@ export class AuthService {
     private userRepository: UserRepositoryService,
     private categoryRepository: CategoryRepositoryService,
     private cryptoService: CryptoService,
-    private alertService: AlertService,
+    private alertService: AlertService
   ) {}
 
   async login(email: string, password: string): Promise<void> {
@@ -72,17 +72,20 @@ export class AuthService {
   }
 
   /** Used for existing accounts that have not been migrated to the new
-    * encryption scheme. This will be removed once all accounts have
-    * been migrated.
-    * @deprecated
-    */
-  async loginGetSurrogateFromPasswordDeprecated(user: FirestoreUser, password: string): Promise<void> {
+   * encryption scheme. This will be removed once all accounts have
+   * been migrated.
+   * @deprecated
+   */
+  async loginGetSurrogateFromPasswordDeprecated(
+    user: FirestoreUser,
+    password: string
+  ): Promise<void> {
     const surrogateKeyPassword =
       await this.cryptoService.getSurrogateFromKDFProvider(
         password,
         user.encryption_data!.surrogate_key_password, // we know this exists from caller
         user.encryption_data!.password_kdf_salt
-    );
+      );
     this.cryptoService.surrogateKey = surrogateKeyPassword;
     /* Migration code */
     let passwordHash: string;
@@ -93,10 +96,11 @@ export class AuthService {
 
       const base64PasswordHashKDFKey: string =
         await this.cryptoService.exportKeyToString(passwordHashKDFKey);
-      const newSurrogateKeyPasswordHash: string = await this.cryptoService.encrypt(
-        base64PasswordHashKDFKey,
-        surrogateKeyPassword
-      );
+      const newSurrogateKeyPasswordHash: string =
+        await this.cryptoService.encrypt(
+          base64PasswordHashKDFKey,
+          surrogateKeyPassword
+        );
 
       await this.userRepository.update(user.id!, {
         encryption_data: {
@@ -108,8 +112,10 @@ export class AuthService {
       const freshUser = await this.userRepository.getCurrentFirestoreUser();
       if (!freshUser || !freshUser.encryption_data)
         throw new Error('Something went wrong');
-      if (!freshUser.encryption_data.surrogate_key_hashed_password ||
-          !freshUser.encryption_data.hashed_password_salt) {
+      if (
+        !freshUser.encryption_data.surrogate_key_hashed_password ||
+        !freshUser.encryption_data.hashed_password_salt
+      ) {
       } else {
         break;
       }
@@ -124,9 +130,12 @@ export class AuthService {
       },
     });
     /* Save password has to secure storage */
-    const success = await this.secureStore(USER_SECURE_STORAGE_KEY, passwordHash);
+    const success = await this.secureStore(
+      USER_SECURE_STORAGE_KEY,
+      passwordHash
+    );
     if (success.value) {
-      console.log("Saved password hash to secure storage");
+      console.log('Saved password hash to secure storage');
     }
 
     return;
@@ -142,7 +151,7 @@ export class AuthService {
         passwordHash,
         user.encryption_data!.surrogate_key_hashed_password, // we know this exists from caller
         user.encryption_data!.hashed_password_salt
-    );
+      );
     this.cryptoService.surrogateKey = surrogateKeyPassword;
     /* Check if the password hash is in secure storage */
     try {
@@ -150,7 +159,7 @@ export class AuthService {
       const passwordHashSecure = await this.secureGet(USER_SECURE_STORAGE_KEY);
     } catch (error) {
       await this.secureStore(USER_SECURE_STORAGE_KEY, passwordHash);
-      console.log("Saved password hash to secure storage");
+      console.log('Saved password hash to secure storage');
     }
   }
 
@@ -167,8 +176,11 @@ export class AuthService {
     );
 
     /* Set up encryption keys */
-    const { base64SurrogateKey, base64PasswordHashKDFKey, base64PasswordKDFSalt } =
-      await this.createUserSurrogateKeyAndPasswordKDFKey(password);
+    const {
+      base64SurrogateKey,
+      base64PasswordHashKDFKey,
+      base64PasswordKDFSalt,
+    } = await this.createUserSurrogateKeyAndPasswordKDFKey(password);
 
     /* Encrypt the surrogate key with the password KDF key */
     const surrogateKeyPasswordHash: string = await this.cryptoService.encrypt(
@@ -216,14 +228,17 @@ export class AuthService {
     }
   }
 
-  private async secureStore(key: string, value: string): Promise<{ value: boolean }> {
+  private async secureStore(
+    key: string,
+    value: string
+  ): Promise<{ value: boolean }> {
     return SecureStoragePlugin.set({
       key,
       value,
     });
   }
 
-  private async secureGet(key: string): Promise<{ value: string}> {
+  private async secureGet(key: string): Promise<{ value: string }> {
     return SecureStoragePlugin.get({
       key,
     });
@@ -258,6 +273,7 @@ export class AuthService {
       subscribed: false,
       name: other.name,
       token: this.userToken,
+      freePremium: false,
     };
 
     let tmp: FirestoreUser | undefined;

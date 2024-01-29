@@ -7,26 +7,24 @@ import { UserRepositoryService } from '../repositories/user-repository.service';
 })
 export class UserService {
   isPremium: boolean;
-
+  freePremium: boolean = false;
   constructor(
     private authService: AuthService,
-    private userRepository: UserRepositoryService,
+    private userRepository: UserRepositoryService
   ) {
     this.userRepository.currentFirestoreUser.subscribe((user) => {
-      if (user)
-        this.isPremium = user.subscribed;
+      if (user) this.isPremium = user.subscribed;
+      if (user) this.freePremium = user.freePremium;
     });
   }
 
   public async updatePremiumStatus(isPremium: boolean) {
     const user = await this.authService.getCurrentAuthUser();
-    if(!user || !user.uid)
-      return;
+    if (!user || !user.uid) return;
     this.isPremium = isPremium;
     this.userRepository.update(user.uid, {
-      subscribed: isPremium,
+      subscribed: this.freePremium ? true : isPremium,
       token: this.authService.userToken,
     });
   }
-
 }

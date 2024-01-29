@@ -12,6 +12,7 @@ import { ViewLinkedAccountsComponent } from '../modals/view-linked-accounts/view
 import { NgxCurrencyDirective } from 'ngx-currency';
 import { LoginButtonComponent } from './login-button/login-button.component';
 import { FormItemComponent } from './form-item/form-item.component';
+import { AccountPickerComponent } from '../modals/account-picker/account-picker.component';
 
 @NgModule({
   declarations: [
@@ -24,6 +25,7 @@ import { FormItemComponent } from './form-item/form-item.component';
     TransactionSorterComponent,
     LoginButtonComponent,
     FormItemComponent,
+    AccountPickerComponent,
   ],
   exports: [
     HeaderComponent,
@@ -35,6 +37,7 @@ import { FormItemComponent } from './form-item/form-item.component';
     TransactionSorterComponent,
     LoginButtonComponent,
     FormItemComponent,
+    AccountPickerComponent,
   ],
   imports: [
     CommonModule,

@@ -9,6 +9,8 @@ import { AlertController, ModalController } from '@ionic/angular';
 import { User, deleteUser } from '@angular/fire/auth';
 import { ViewLinkedAccountsComponent } from '../modals/view-linked-accounts/view-linked-accounts.component';
 import { UserRepositoryService } from '../repositories/user-repository.service';
+import { AccountPickerComponent } from '../modals/account-picker/account-picker.component';
+import { FinicityService } from '../services/finicity.service';
 
 @Component({
   selector: 'app-tab3',
@@ -27,13 +29,26 @@ export class Tab3Page {
     private alertService: AlertService,
     private plaidService: PlaidService,
     private alertCtrl: AlertController,
-    private userRepository: UserRepositoryService
+    private userRepository: UserRepositoryService,
+    private finicityService: FinicityService
   ) {}
 
   ngOnInit() {}
 
   async link() {
-    this.plaidService.linkPlaidToUser();
+    const modal = await this.modalController.create({
+      component: AccountPickerComponent,
+    });
+
+    modal.present();
+
+    const { data } = await modal.onDidDismiss();
+
+    if (data === 1) {
+      this.plaidService.linkPlaidToUser();
+    } else if (data === 2) {
+      this.finicityService.linkFinicityToUser();
+    }
   }
 
   async signOut() {
@@ -91,5 +106,10 @@ export class Tab3Page {
     });
 
     modal.present();
+
+    const { data } = await modal.onDidDismiss();
+    if (data) {
+      this.link();
+    }
   }
 }

@@ -31,40 +31,11 @@ export class Tab2Page {
     private http: HttpService,
     private modalCtrl: ModalController,
     private userRepository: UserRepositoryService,
-    private plaidService: PlaidService,
+    private plaidService: PlaidService
   ) {}
 
-  ngOnInit() {
-    this.getInstitutions();
-  }
+  ngOnInit() {}
 
-  async retrieveTransactions() {
-    this.http
-      .post(
-        'https://us-central1-balanced-budget-90f1f.cloudfunctions.net/getTransactionData',
-        {
-          accessToken: this.selectedInstitute.access_token,
-        }
-      )
-      .subscribe((resp) => {
-        console.log(resp);
-        this.transactions = resp.added;
-        this.sortTransactions();
-        this.user.last_transaction_retrieval = new Date().toISOString();
-        updateDoc(
-          doc(
-            getFirestore(),
-            'users/',
-            this.userRepository.getCurrentUserId()!,
-            'linked_accounts',
-            this.selectedInstitute.id
-          ),
-          {
-            last_transaction_retrieval: new Date().toISOString(),
-          }
-        );
-      });
-  }
   async sortTransactions() {
     this.transactions.sort((a: any, b: any) => {
       const dateA = new Date(a.date);
@@ -88,26 +59,5 @@ export class Tab2Page {
 
   async link() {
     this.plaidService.linkPlaidToUser();
-  }
-
-  async getInstitutions() {
-    const linked_accounts = await getDocs(
-      collection(
-        getFirestore(),
-        'users',
-        this.userRepository.getCurrentUserId()!,
-        'linked_accounts'
-      )
-    );
-    if (!linked_accounts.empty) {
-      linked_accounts.forEach((acc) => {
-        this.institutions.push(acc.data());
-      });
-
-      this.selectedInstitute = this.institutions[0];
-      if (this.selectedInstitute) {
-        this.retrieveTransactions();
-      }
-    }
   }
 }

@@ -13,7 +13,7 @@ const {
   Products,
   PlaidEnvironments,
 } = require("plaid");
-
+const axios = require("axios");
 const {
   addLinkedAccount,
   addLinkedAccountSecret,
@@ -93,6 +93,200 @@ exports.createPlaidLinkToken = onRequest({ cors: true }, async (req, res) => {
   }
 });
 
+exports.createFinicityLinkToken = onRequest(
+  { cors: true },
+  async (req, res) => {
+    let finicityToken = null;
+    if (!(await isUserPremium(req.body.user_id))) {
+      res.status(403).send("This feature is only available to premium users");
+      return;
+    }
+    try {
+      let data = JSON.stringify({
+        partnerId: process.env.FINICITY_PARTNER_ID,
+        partnerSecret: process.env.FINICITY_SECRET,
+      });
+      let response = await axios.request({
+        url: "https://api.finicity.com/aggregation/v2/partners/authentication",
+        headers: {
+          "Finicity-App-Key": process.env.FINICITY_APP_KEY,
+          "Content-Type": "application/json",
+        },
+        data: data,
+        method: "POST",
+      });
+
+      if (response.status === 200 && response.data && response.data.token) {
+        finicityToken = response.data.token;
+        const doesExist = await checkIfCustomerExists(
+          req.body.user_id,
+          finicityToken
+        );
+
+        let customer;
+        if (doesExist.found === 0) {
+          // Got the token, now add a customer
+          response = await axios.request({
+            url: "https://api.finicity.com/aggregation/v2/customers/active",
+            headers: {
+              "Finicity-App-Key": process.env.FINICITY_APP_KEY,
+              "Finicity-App-Token": finicityToken,
+              "Content-Type": "application/json",
+            },
+            data: {
+              username: req.body.user_id,
+            },
+            method: "POST",
+          });
+          if (response.status === 201 && response.data) {
+            customer = {
+              username: response.data.username,
+              id: response.data.id,
+            };
+          }
+        } else {
+          customer = {
+            username: doesExist.customers[0].username,
+            id: doesExist.customers[0].id,
+          };
+        }
+
+        response = await axios.request({
+          url: "https://api.finicity.com/connect/v2/generate",
+          headers: {
+            "Finicity-App-Key": process.env.FINICITY_APP_KEY,
+            "Finicity-App-Token": finicityToken,
+            "Content-Type": "application/json",
+          },
+          data: {
+            partnerId: process.env.FINICITY_PARTNER_ID,
+            customerId: customer.id,
+          },
+          method: "POST",
+        });
+
+        if (response.status === 200 && response.data && response.data.link) {
+          res.status(200).send({
+            url: response.data.link,
+            customerId: customer.id,
+            token: finicityToken,
+          });
+        } else {
+          throw new Error("Failed to get Finicity Link");
+        }
+      } else {
+        throw new Error("Failed to add Finicity customer");
+      }
+    } catch (error) {
+      res.status(500).send("Something Went Wrong");
+    }
+  }
+);
+
+async function checkIfCustomerExists(customer_id, finicityToken) {
+  try {
+    const response = await axios.request({
+      url:
+        "https://api.finicity.com/aggregation/v1/customers?username=" +
+        customer_id,
+      headers: {
+        "Finicity-App-Key": process.env.FINICITY_APP_KEY,
+        "Finicity-App-Token": finicityToken,
+      },
+      method: "GET",
+    });
+    if (response.status == 200) {
+      return response.data;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+exports.getFinicityAcccountsByUser = onRequest(
+  { cors: true },
+  async (req, res) => {
+    try {
+      let token = req.body.token;
+      if (!token) {
+        let data = JSON.stringify({
+          partnerId: process.env.FINICITY_PARTNER_ID,
+          partnerSecret: process.env.FINICITY_SECRET,
+        });
+        let response = await axios.request({
+          url: "https://api.finicity.com/aggregation/v2/partners/authentication",
+          headers: {
+            "Finicity-App-Key": process.env.FINICITY_APP_KEY,
+            "Content-Type": "application/json",
+          },
+          data: data,
+          method: "POST",
+        });
+
+        if (response.status === 200 && response.data && response.data.token) {
+          token = response.data.token;
+        }
+      }
+      const customerId = req.body.user_id;
+      response = await axios.request({
+        url:
+          "https://api.finicity.com/aggregation/v1/customers/" +
+          customerId +
+          "/accounts",
+        headers: {
+          "Finicity-App-Key": process.env.FINICITY_APP_KEY,
+          "Finicity-App-Token": token,
+          "Content-Type": "application/json",
+        },
+        data: {},
+        method: "POST",
+      });
+
+      if (response.status === 200 && response.data) {
+        res.status(200).send(response.data);
+      } else {
+        throw new Error("Can't Get Customer Accoutns");
+      }
+    } catch (e) {
+      console.log(e);
+      res.status(500).send("Something Went Wrong");
+    }
+  }
+);
+
+exports.getFinicityCustomerId = onRequest({ cors: true }, async (req, res) => {
+  let finicityToken = null;
+  if (!(await isUserPremium(req.body.user_id))) {
+    res.status(403).send("This feature is only available to premium users");
+    return;
+  }
+  try {
+    let data = JSON.stringify({
+      partnerId: process.env.FINICITY_PARTNER_ID,
+      partnerSecret: process.env.FINICITY_SECRET,
+    });
+    let response = await axios.request({
+      url: "https://api.finicity.com/aggregation/v2/partners/authentication",
+      headers: {
+        "Finicity-App-Key": process.env.FINICITY_APP_KEY,
+        "Content-Type": "application/json",
+      },
+      data: data,
+      method: "POST",
+    });
+
+    if (response.status === 200 && response.data && response.data.token) {
+      finicityToken = response.data.token;
+      const doesExist = await checkIfCustomerExists(
+        req.body.user_id,
+        finicityToken
+      );
+
+      res.status(200).send(doesExist.customers);
+    }
+  } catch (e) {}
+});
+
 exports.exchangePublicToken = onRequest({ cors: true }, async (req, res) => {
   if (!(await isUserPremium(req.body.userId))) {
     res.status(403).send("This feature is only available to premium users");
@@ -110,6 +304,8 @@ exports.exchangePublicToken = onRequest({ cors: true }, async (req, res) => {
     const linkedAccount = {
       institution_name: institutionName,
       institution: institutionId,
+      isPlaid: true,
+      isFinicity: false,
     };
     const linkedAccountRef = await addLinkedAccount(
       req.body.userId,
@@ -158,50 +354,48 @@ exports.exchangePublicToken = onRequest({ cors: true }, async (req, res) => {
   }
 });
 
-exports.relinkPlaidLinkToken = onRequest(
-  { cors: true },
-  async (req, res) => {
-    if(!req.body.user_id ||
-      !req.body.linked_account_id) {
-      res.status(400).send({ message: "Missing required parameters" });
-    }
-    if (!(await isUserPremium(req.body.user_id))) {
-      res.status(403).send({ message: "This feature is only available to premium users" });
-      return;
-    }
-    try {
-      const linkedAccountSecret = await getLinkedAccountSecret(
-        req.body.user_id,
-        req.body.linked_account_id
-      );
-      if (linkedAccountSecret.empty) {
-        res.status(404).send("Linked account not found");
-        return;
-      }
-      const accessToken = linkedAccountSecret.docs[0].data().access_token;
-
-      const configs = {
-        user: {
-          // This should correspond to a unique id for the current user.
-          client_user_id: req.body.user_id,
-        },
-        client_name: "WiseWallets",
-        country_codes: PLAID_COUNTRY_CODES,
-        language: "en",
-        access_token: accessToken,
-        webhook: ITEM_WEBHOOK_URL,
-      };
-
-      const createTokenResponse = await client.linkTokenCreate(configs);
-      res.status(200).send(createTokenResponse.data);
-      return;
-    } catch (error) {
-      console.log(error);
-      res.status(500).send(error);
-      return;
-    }
+exports.relinkPlaidLinkToken = onRequest({ cors: true }, async (req, res) => {
+  if (!req.body.user_id || !req.body.linked_account_id) {
+    res.status(400).send({ message: "Missing required parameters" });
   }
-);
+  if (!(await isUserPremium(req.body.user_id))) {
+    res
+      .status(403)
+      .send({ message: "This feature is only available to premium users" });
+    return;
+  }
+  try {
+    const linkedAccountSecret = await getLinkedAccountSecret(
+      req.body.user_id,
+      req.body.linked_account_id
+    );
+    if (linkedAccountSecret.empty) {
+      res.status(404).send("Linked account not found");
+      return;
+    }
+    const accessToken = linkedAccountSecret.docs[0].data().access_token;
+
+    const configs = {
+      user: {
+        // This should correspond to a unique id for the current user.
+        client_user_id: req.body.user_id,
+      },
+      client_name: "WiseWallets",
+      country_codes: PLAID_COUNTRY_CODES,
+      language: "en",
+      access_token: accessToken,
+      webhook: ITEM_WEBHOOK_URL,
+    };
+
+    const createTokenResponse = await client.linkTokenCreate(configs);
+    res.status(200).send(createTokenResponse.data);
+    return;
+  } catch (error) {
+    console.log(error);
+    res.status(500).send(error);
+    return;
+  }
+});
 
 exports.getTransactionData = onRequest({ cors: true }, async (req, res) => {
   if (!(await isUserPremium(req.body.userId))) {
@@ -267,45 +461,128 @@ exports.getInstitutionName = onRequest({ cors: true }, async (req, res) => {
 });
 
 /* Removes a linked account from a user, called when user initiates */
-exports.removeLinkedAccount = onRequest(
+exports.removeLinkedAccount = onRequest({ cors: true }, async (req, res) => {
+  if (!req.body.linked_account_id || !req.body.user_id) {
+    res.status(400).send({ message: "Missing required parameters" });
+    return;
+  }
+
+  const linkedAccountSecret = await getLinkedAccountSecret(
+    req.body.user_id,
+    req.body.linked_account_id
+  );
+  if (linkedAccountSecret.empty) {
+    res.status(404).send("Linked account not found");
+    return;
+  }
+  const accessToken = linkedAccountSecret.docs[0].data().access_token;
+  const request = {
+    access_token: accessToken,
+  };
+  try {
+    const response = await client.itemRemove(request);
+    /* Success, delete linked account doc */
+    await deleteLinkedAccountSecret(
+      req.body.user_id,
+      req.body.linked_account_id,
+      linkedAccountSecret.docs[0].id
+    );
+    await deleteLinkedAccount(req.body.user_id, req.body.linked_account_id);
+    res.status(200).send({ message: "Linked account removed" });
+    return;
+  } catch (error) {
+    console.log(error);
+    res.status(500).send(error);
+    return;
+  }
+});
+
+exports.getFinicityInstitutionById = onRequest(
   { cors: true },
   async (req, res) => {
-    if(!req.body.linked_account_id ||
-       !req.body.user_id) {
-      res.status(400).send({ message: "Missing required parameters" });
-      return;
-    }
-
-    const linkedAccountSecret = await getLinkedAccountSecret(
-      req.body.user_id,
-      req.body.linked_account_id
-    );
-    if (linkedAccountSecret.empty) {
-      res.status(404).send("Linked account not found");
-      return;
-    }
-    const accessToken = linkedAccountSecret.docs[0].data().access_token;
-    const request = {
-      access_token: accessToken,
-    };
+    let institutionId = req.body.id;
     try {
-      const response = await client.itemRemove(request);
-      /* Success, delete linked account doc */
-      await deleteLinkedAccountSecret(
-        req.body.user_id,
-        req.body.linked_account_id,
-        linkedAccountSecret.docs[0].id
-      );
-      await deleteLinkedAccount(
-        req.body.user_id,
-        req.body.linked_account_id
-      );
-      res.status(200).send({ message: "Linked account removed" });
-      return;
+      let data = JSON.stringify({
+        partnerId: process.env.FINICITY_PARTNER_ID,
+        partnerSecret: process.env.FINICITY_SECRET,
+      });
+      let response = await axios.request({
+        url: "https://api.finicity.com/aggregation/v2/partners/authentication",
+        headers: {
+          "Finicity-App-Key": process.env.FINICITY_APP_KEY,
+          "Content-Type": "application/json",
+        },
+        data: data,
+        method: "POST",
+      });
+
+      if (response.status === 200 && response.data && response.data.token) {
+        finicityToken = response.data.token;
+        response = await axios.request({
+          url:
+            "https://api.finicity.com/institution/v2/institutions/" +
+            institutionId,
+          headers: {
+            "Finicity-App-Key": process.env.FINICITY_APP_KEY,
+            "Finicity-App-Token": finicityToken,
+          },
+          method: "GET",
+        });
+        if (response.status == 200) {
+          res.status(200).send(response.data.institution);
+        }
+      }
     } catch (error) {
       console.log(error);
-      res.status(500).send(error);
-      return;
+    }
+  }
+);
+
+exports.getFinicityTransactions = onRequest(
+  { cors: true },
+  async (req, res) => {
+    try {
+      let data = JSON.stringify({
+        partnerId: process.env.FINICITY_PARTNER_ID,
+        partnerSecret: process.env.FINICITY_SECRET,
+      });
+      let response = await axios.request({
+        url: "https://api.finicity.com/aggregation/v2/partners/authentication",
+        headers: {
+          "Finicity-App-Key": process.env.FINICITY_APP_KEY,
+          "Content-Type": "application/json",
+        },
+        data: data,
+        method: "POST",
+      });
+
+      if (response.status === 200 && response.data && response.data.token) {
+        const token = response.data.token;
+        console.log(token);
+        console.log(req.body);
+        response = await axios.request({
+          url:
+            "https://api.finicity.com/aggregation/v3/customers/" +
+            req.body.customerId +
+            "/transactions?fromDate=" +
+            req.body.fromDate +
+            "&toDate=" +
+            req.body.toDate,
+          headers: {
+            "Finicity-App-Key": process.env.FINICITY_APP_KEY,
+            "Finicity-App-Token": token,
+            Accept: "application/json",
+          },
+          method: "GET",
+        });
+        if (response.status == 200) {
+          res.status(200).send(response.data.transactions);
+        } else {
+          console.log(response);
+        }
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 );
@@ -401,13 +678,8 @@ const syncPlaidTransactions = async (
   };
 };
 
-
 const getUser = async (userId) => {
-  return admin
-    .firestore()
-    .collection(USER_COLLECTION_NAME)
-    .doc(userId)
-    .get();
+  return admin.firestore().collection(USER_COLLECTION_NAME).doc(userId).get();
 };
 
 const filterPlaidTransactions = (transactions, beginDate, endDate) => {
@@ -455,7 +727,6 @@ function getPlaidConfig() {
     },
   });
 }
-
 
 // WEBHOOK EXPORTS
 exports.plaidItemWebhook = plaidItemWebhook;
