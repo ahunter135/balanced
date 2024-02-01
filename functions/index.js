@@ -124,7 +124,7 @@ exports.createFinicityLinkToken = onRequest(
         );
 
         let customer;
-        if (doesExist.found === 0) {
+        if (doesExist.customers.length === 0) {
           // Got the token, now add a customer
           response = await axios.request({
             url: "https://api.finicity.com/aggregation/v2/customers/active",
@@ -139,6 +139,7 @@ exports.createFinicityLinkToken = onRequest(
             method: "POST",
           });
           if (response.status === 201 && response.data) {
+            console.log(response.data);
             customer = {
               username: response.data.username,
               id: response.data.id,
@@ -178,6 +179,7 @@ exports.createFinicityLinkToken = onRequest(
         throw new Error("Failed to add Finicity customer");
       }
     } catch (error) {
+      console.log(error);
       res.status(500).send("Something Went Wrong");
     }
   }

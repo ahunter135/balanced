@@ -29,7 +29,11 @@
       </p>
       <br />
       <ion-list lines="none">
-        <ion-item button (click)="modalCtrl.dismiss(1)">
+        <ion-item
+          button
+          (click)="modalCtrl.dismiss(1)"
+          [disabled]="!flags['plaid'].enabled"
+        >
           <svg
             height="48"
             viewBox="0 0 126 48"
@@ -46,7 +50,11 @@
             </g>
           </svg>
         </ion-item>
-        <ion-item button (click)="modalCtrl.dismiss(2)">
+        <ion-item
+          button
+          (click)="modalCtrl.dismiss(2)"
+          [disabled]="!flags['finicity'].enabled"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             xmlns:xlink="http://www.w3.org/1999/xlink"

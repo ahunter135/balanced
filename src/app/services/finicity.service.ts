@@ -217,7 +217,6 @@ export class FinicityService {
   }
 
   async syncTransactions(endDate: Date | null) {
-    const customer: any = await this.getCustomerId();
     const userId = this.userRepository.getCurrentUserId();
     if (!userId) throw new Error('User is not logged in');
     console.log(userId);
@@ -226,6 +225,16 @@ export class FinicityService {
       await this.linkedAccountsRepository.getAllFromParent(userId)
     ).docs;
     if (linkedAccounts.length === 0) return;
+    let foundFinicity = false;
+    for (let i = 0; i < linkedAccounts.length; i++) {
+      if (linkedAccounts[i].isFinicity) {
+        foundFinicity = true;
+        break;
+      }
+    }
+
+    if (!foundFinicity) return;
+    const customer: any = await this.getCustomerId();
     // Get the current date
     const now = new Date();
 

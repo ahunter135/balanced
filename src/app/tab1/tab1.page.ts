@@ -6,7 +6,12 @@ import {
 } from 'src/app/types/firestore/user';
 import { Component, ViewEncapsulation } from '@angular/core';
 import { generateRandomId } from '../utils/generation';
-import { AlertController, LoadingController, ModalController, PickerController } from '@ionic/angular';
+import {
+  AlertController,
+  LoadingController,
+  ModalController,
+  PickerController,
+} from '@ionic/angular';
 import { TransactionSorterComponent } from '../modals/transaction-sorter/transaction-sorter.component';
 import { ViewSubCategoryComponent } from '../modals/view-sub-category/view-sub-category.component';
 import { LocaleStringMonthYear, NumberMonthYear } from '../types/dates/dates';
@@ -39,6 +44,7 @@ import { Subscription } from 'rxjs';
 import { UserService } from '../services/user.service';
 import { TransactionsRepositoryService } from '../repositories/transactions-repository.service';
 import { allSubcategoryTransactions } from '../helpers/queries/transactions';
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 
 @Component({
   selector: 'app-tab1',
@@ -82,7 +88,7 @@ export class Tab1Page implements ITransactionSubscriber {
     private transactionPublisher: TransactionPublisherService,
     private userService: UserService,
     private alertController: AlertController,
-    private loadingController: LoadingController,
+    private loadingController: LoadingController
   ) {
     // Set the app to load the current month
     // Storing as a number to easily compare
@@ -149,6 +155,7 @@ export class Tab1Page implements ITransactionSubscriber {
     promises.push(this.grabTransactionsForSelectedMonth());
     promises.push(this.grabUserCategoriesForSelectedMonth());
     Promise.all(promises).then((results) => {
+      Haptics.notification({ type: NotificationType.Success });
       const transactions: Array<Transaction> = results[0];
       const categories: Array<Category> = results[1];
       transactions.sort(dateTransactionSort);
@@ -195,10 +202,10 @@ export class Tab1Page implements ITransactionSubscriber {
     if (!this.user) return [];
     const { start, end } = this.startAndEndOfMonth;
     return this.transactionService.getTransactions(
-      true,                       // includePending
+      true, // includePending
       this.userService.isPremium, // syncPlaid (only sync if premium)
-      start,                      // startDate
-      end                         // endDate
+      start, // startDate
+      end // endDate
     );
   }
 
@@ -389,10 +396,12 @@ export class Tab1Page implements ITransactionSubscriber {
   }
 
   revealUnsortedTransactions() {
+    Haptics.impact({ style: ImpactStyle.Light });
     this.isCardContainerVisible = !this.isCardContainerVisible;
   }
 
   async openTransactionSorter(transaction: Transaction) {
+    await Haptics.impact({ style: ImpactStyle.Light });
     const modal = await this.modalCtrl.create({
       component: TransactionSorterComponent,
       componentProps: {
@@ -421,9 +430,12 @@ export class Tab1Page implements ITransactionSubscriber {
     });
 
     modal.onDidDismiss().then((event: any) => {
-      if (event && event.data &&
-          event.data.action == 'edit' &&
-          event.data.transaction) {
+      if (
+        event &&
+        event.data &&
+        event.data.action == 'edit' &&
+        event.data.transaction
+      ) {
         this.openTransactionSorter(event.data.transaction);
       }
       this.calculatePlannedAndBudget(this.categoriesArray);
@@ -493,9 +505,10 @@ export class Tab1Page implements ITransactionSubscriber {
       const transactionMonthYear = getNumberMonthYearFromDate(transaction.date);
       if (this.transactions.has(transactionMonthYear)) {
         const transactionsArray = this.transactions.get(transactionMonthYear)!;
-        const index = transactionsArray.findIndex((t) => t.id == transaction.id);
-        if (index >= 0)
-          transactionsArray.splice(index, 1);
+        const index = transactionsArray.findIndex(
+          (t) => t.id == transaction.id
+        );
+        if (index >= 0) transactionsArray.splice(index, 1);
       }
     }
   }
@@ -508,7 +521,9 @@ export class Tab1Page implements ITransactionSubscriber {
       const transactionMonthYear = getNumberMonthYearFromDate(transaction.date);
       if (this.transactions.has(transactionMonthYear)) {
         const transactionsArray = this.transactions.get(transactionMonthYear)!;
-        const index = transactionsArray.findIndex((t) => t.id == transaction.id);
+        const index = transactionsArray.findIndex(
+          (t) => t.id == transaction.id
+        );
         if (index >= 0) {
           transactionsArray[index] = transaction;
         }
@@ -575,13 +590,14 @@ export class Tab1Page implements ITransactionSubscriber {
   }
 
   /** Bad naming, but this will be used for category and
-    * subcategory removal.
-    */
+   * subcategory removal.
+   */
   async deleteCategory(ev: any) {
     const headerCustomText = ev.cat && ev.sub ? ev.sub.text : ev.cat.id;
     let message = 'Are you sure you want to delete this?';
     if (ev.cat && !ev.sub) {
-      message += ' All subcategories, even past ones, will be permanently deleted too.';
+      message +=
+        ' All subcategories, even past ones, will be permanently deleted too.';
     }
     const initialAlert = await this.alertController.create({
       header: 'Delete ' + headerCustomText + '?',
@@ -594,12 +610,12 @@ export class Tab1Page implements ITransactionSubscriber {
         {
           text: 'Delete',
           handler: () => {
+            Haptics.notification({ type: NotificationType.Success });
             /* Case 1: Just subcategory, no category */
             if (ev.cat && ev.sub) {
               this.handleDeleteOnlySubcategory(ev.cat, ev.sub);
-            }
-            /* Case 2: Just category and all subcategories by extension */
-            else if (ev.cat && !ev.sub) {
+            } else if (ev.cat && !ev.sub) {
+              /* Case 2: Just category and all subcategories by extension */
               this.handleDeleteWholeCategory(ev.cat);
             }
           },
@@ -610,12 +626,16 @@ export class Tab1Page implements ITransactionSubscriber {
     await initialAlert.present();
   }
 
-  async handleDeleteOnlySubcategory(category: Category, subcategory: Subcategory) {
+  async handleDeleteOnlySubcategory(
+    category: Category,
+    subcategory: Subcategory
+  ) {
     const loader = await this.loadingController.create();
     await loader.present();
     console.log(`Deleting subcategory ${subcategory.text} in ${category.id}`);
-    const transactionsInSubcategory = this.transactionsArray
-      .filter((t) => t.subcategoryId == subcategory.id);
+    const transactionsInSubcategory = this.transactionsArray.filter(
+      (t) => t.subcategoryId == subcategory.id
+    );
     const length = transactionsInSubcategory.length;
 
     /* Handle differently if no transactions */
@@ -627,8 +647,12 @@ export class Tab1Page implements ITransactionSubscriber {
     /* Handle when there are transactions */
     const handleTransactionsAlert = await this.alertController.create({
       header: 'Where should the transactions go?',
-      message: `There ${length > 1 ? 'are' : 'is'} ${length} transaction${length > 1 ? 's' : ''}
-        in this category. What would you like to do with ${length > 1 ? 'them' : 'it'}?`,
+      message: `There ${length > 1 ? 'are' : 'is'} ${length} transaction${
+        length > 1 ? 's' : ''
+      }
+        in this category. What would you like to do with ${
+          length > 1 ? 'them' : 'it'
+        }?`,
       buttons: [
         {
           text: 'Cancel',
@@ -686,10 +710,7 @@ export class Tab1Page implements ITransactionSubscriber {
     /* Get all transactions in all subcategories */
     for (let i = 0; i < allSubcategories.size; i++) {
       const promise = this.transactionRepository.getByQuery(
-        allSubcategoryTransactions(
-          this.user!.id!,
-          allSubcategories.docs[i].id!,
-        )
+        allSubcategoryTransactions(this.user!.id!, allSubcategories.docs[i].id!)
       );
       promises.push(promise);
     }
@@ -704,8 +725,12 @@ export class Tab1Page implements ITransactionSubscriber {
     const length = transactions.length;
     const handleTransactionsAlert = await this.alertController.create({
       header: 'Where should the transactions go?',
-      message: `There ${length > 1 ? 'are' : 'is'} ${length} transaction${length > 1 ? 's' : ''}
-        in this category. What would you like to do with ${length > 1 ? 'them' : 'it'}?`,
+      message: `There ${length > 1 ? 'are' : 'is'} ${length} transaction${
+        length > 1 ? 's' : ''
+      }
+        in this category. What would you like to do with ${
+          length > 1 ? 'them' : 'it'
+        }?`,
       buttons: [
         {
           text: 'Cancel',
@@ -723,7 +748,10 @@ export class Tab1Page implements ITransactionSubscriber {
               modifiedTransactions: transactions,
               removedTransactions: [],
             });
-            this.removeCategoryFromDatabaseAndArray(category, allSubcategories.docs);
+            this.removeCategoryFromDatabaseAndArray(
+              category,
+              allSubcategories.docs
+            );
           },
         },
         {
@@ -735,7 +763,10 @@ export class Tab1Page implements ITransactionSubscriber {
               modifiedTransactions: [],
               removedTransactions: transactions,
             });
-            this.removeCategoryFromDatabaseAndArray(category, allSubcategories.docs);
+            this.removeCategoryFromDatabaseAndArray(
+              category,
+              allSubcategories.docs
+            );
           },
         },
       ],
@@ -811,7 +842,10 @@ export class Tab1Page implements ITransactionSubscriber {
     ev.detail.complete();
   }
 
-  private async removeCategoryFromDatabaseAndArray(category: Category, subcategories: Array<Subcategory>) {
+  private async removeCategoryFromDatabaseAndArray(
+    category: Category,
+    subcategories: Array<Subcategory>
+  ) {
     let promises: Array<Promise<any>> = [];
     /* Delete all subcategories */
     subcategories.forEach((subcategory) => {
@@ -820,25 +854,24 @@ export class Tab1Page implements ITransactionSubscriber {
       );
     });
     await Promise.all(promises);
-    this.categoryRepository.delete(
-      this.user!.id!,
-      category.id!,
-      true
-    );
+    this.categoryRepository.delete(this.user!.id!, category.id!, true);
     const index = this.categoriesArray.findIndex((c) => c.id == category.id);
-    if (index >= 0)
-      this.categoriesArray.splice(index, 1);
+    if (index >= 0) this.categoriesArray.splice(index, 1);
   }
 
-  private async removeSubcategoryFromDatabaseAndArray(category: Category, subcategory: Subcategory) {
+  private async removeSubcategoryFromDatabaseAndArray(
+    category: Category,
+    subcategory: Subcategory
+  ) {
     this.subcategoryRepository.delete(
       this.user!.id!,
       category.id!,
       subcategory.id!,
       true
     );
-    const index = category.subcategories!.findIndex((s) => s.id == subcategory.id);
-    if (index >= 0)
-      category.subcategories!.splice(index, 1);
+    const index = category.subcategories!.findIndex(
+      (s) => s.id == subcategory.id
+    );
+    if (index >= 0) category.subcategories!.splice(index, 1);
   }
 }
