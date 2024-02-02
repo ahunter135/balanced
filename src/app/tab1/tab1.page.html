@@ -15,6 +15,21 @@
       {{ leftToBudget < 0 ? 'over budget' : 'left to budget' }}
     </span>
   </div>
+  <div
+    style="
+      display: grid;
+      align-items: center;
+      justify-items: center;
+      margin-top: 15px;
+      margin-bottom: 15px;
+    "
+    shape="block"
+    *ngIf="showCopyBudget"
+  >
+    <ion-button (click)="copyOverBudget()"
+      >Copy Previous Month Budget</ion-button
+    >
+  </div>
   <div id="planned-income-container">
     <span id="planned-income"
       ><span class="title">Budget Balance</span>

@@ -56,7 +56,7 @@ export class Tab1Page implements ITransactionSubscriber {
   /* Chosen year and month to display and budget for */
   private _chosenDate: LocaleStringMonthYear;
   private _chosenDateNumber: NumberMonthYear;
-
+  showCopyBudget: boolean = false;
   user?: User;
   userSubscription?: Subscription;
   /* Map of transactions by month and year to easily separate them */
@@ -165,17 +165,37 @@ export class Tab1Page implements ITransactionSubscriber {
         (t) => !t.subcategoryId || t.subcategoryId == ''
       );
       this.categories.set(this.chosenDateNumber, categories);
+
+      this.shouldShowCopyBudget();
       this.calculatePlannedAndBudget(categories);
     });
   }
 
-  async grabUserCategoriesForSelectedMonth(): Promise<Array<Category>> {
+  async grabUserCategoriesForSelectedMonth(
+    shouldUsePreviousMonth = false
+  ): Promise<Array<Category>> {
     if (!this.user) return [];
     const queryResult = await this.categoryRepository.getAllFromParent(
       this.user!.id!
     );
     const categories: Array<Category> = queryResult.docs;
     const promises: Array<Promise<any>> = [];
+    let overrideDate: NumberMonthYear;
+    if (shouldUsePreviousMonth) {
+      let currentMonth = this.chosenDateNumber.month;
+      let currentYear = this.chosenDateNumber.year;
+      if (currentMonth === 0) {
+        currentMonth = 11;
+        currentYear--;
+      } else {
+        currentMonth--;
+      }
+
+      overrideDate = {
+        month: currentMonth,
+        year: currentYear,
+      };
+    }
     /* Grab all subcategories for each category for chosen date */
     for (let i = 0; i < categories.length; i++) {
       promises.push(
@@ -184,7 +204,7 @@ export class Tab1Page implements ITransactionSubscriber {
             buildSubcategoryByDateQuery(
               this.user!.id!,
               queryResult.docs[i].id!,
-              this.chosenDateNumber
+              shouldUsePreviousMonth ? overrideDate! : this.chosenDateNumber
             )
           )
           .then((subQueryResult) => {
@@ -196,6 +216,34 @@ export class Tab1Page implements ITransactionSubscriber {
     }
     await Promise.all(promises);
     return categories;
+  }
+
+  async shouldShowCopyBudget() {
+    if (!this.user) return [];
+    const queryResult = await this.categoryRepository.getAllFromParent(
+      this.user!.id!
+    );
+    const categories: Array<Category> = queryResult.docs;
+    let subcategories: Array<Subcategory> = [];
+    const promises: Array<Promise<any>> = [];
+    /* Grab all subcategories for each category for chosen date */
+    for (let i = 0; i < categories.length; i++) {
+      await this.subcategoryRepository
+        .getByQuery(
+          buildSubcategoryByDateQuery(
+            this.user!.id!,
+            queryResult.docs[i].id!,
+            this.chosenDateNumber
+          )
+        )
+        .then((subQueryResult) => {
+          if (subQueryResult.size == 0) return;
+          else subcategories = subQueryResult.docs;
+          subcategories.sort(defaultCategorySort);
+        });
+    }
+    this.showCopyBudget = subcategories.length == 0;
+    return;
   }
 
   async grabTransactionsForSelectedMonth(): Promise<Array<Transaction>> {
@@ -873,5 +921,49 @@ export class Tab1Page implements ITransactionSubscriber {
       (s) => s.id == subcategory.id
     );
     if (index >= 0) category.subcategories!.splice(index, 1);
+
+    this.shouldShowCopyBudget();
+  }
+
+  async copyOverBudget() {
+    const alert = await this.alertController.create({
+      header: 'Are you sure you want to copy last months budget?',
+
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+        },
+        {
+          text: 'Yes',
+          handler: async () => {
+            const categories = await this.grabUserCategoriesForSelectedMonth(
+              true
+            );
+
+            categories.sort(defaultCategorySort);
+
+            this.categories.set(this.chosenDateNumber, categories);
+
+            this.calculatePlannedAndBudget(categories);
+            categories.forEach((cat) => {
+              cat.subcategories?.forEach((sub) => {
+                console.log(sub);
+                sub.date.month = this.chosenDateNumber.month;
+                sub.date.year = this.chosenDateNumber.year;
+                this.subcategoryRepository.add(
+                  this.user?.id as string,
+                  cat.id!,
+                  sub
+                );
+              });
+            });
+
+            this.shouldShowCopyBudget();
+          },
+        },
+      ],
+    });
+    alert.present();
   }
 }
