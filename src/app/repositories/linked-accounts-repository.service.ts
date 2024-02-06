@@ -115,7 +115,6 @@ export class LinkedAccountsRepositoryService
   }
 
   static makeCollectionRef(userId: string): CollectionReference<DocumentData> {
-    console.log(LINKED_ACCOUNTS_SUBCOLLECTION_NAME);
     return collection(
       getFirestore(),
       USER_COLLECTION_NAME,

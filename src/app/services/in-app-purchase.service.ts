@@ -39,6 +39,7 @@ export class InAppPurchaseService {
         ]);
         this.store.ready(() => {
           this.products = this.store.products;
+          console.log(this.products);
         });
       } else if (this.platform.is('desktop')) {
         // Eventually will want to add stripe as a web purchase

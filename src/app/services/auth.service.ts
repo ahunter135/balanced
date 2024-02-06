@@ -274,6 +274,7 @@ export class AuthService {
       name: other.name,
       token: this.userToken,
       freePremium: false,
+      budgetReminders: [true, true, true, true, true, true, true],
     };
 
     let tmp: FirestoreUser | undefined;

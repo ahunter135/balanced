@@ -8,6 +8,7 @@ export type User = FirestoreDocument & {
   categories?: Array<Category>; // optional because these may or may not be attached to the user at all times
   encryption_data?: UserEncryptionData;
   freePremium: boolean;
+  budgetReminders: Array<boolean>;
 };
 
 export type UserEncryptionData = {

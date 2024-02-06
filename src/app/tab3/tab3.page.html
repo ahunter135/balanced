@@ -28,6 +28,7 @@
           <ul>
             <li>🚀 Automatic Transaction Imports</li>
             <li>🕒 Save Time with No More Manual Entries</li>
+            <li>⏰ Schedule daily reminders to budget</li>
             <li>🎨 Change the app's overall theme</li>
           </ul>
         </section>
@@ -36,16 +37,34 @@
           <span class="row">
             <div class="plan" id="monthly">
               <h3>Monthly Plan</h3>
-              <p class="price" *ngIf="inapp.products.length > 0">
+              <p
+                class="price"
+                *ngIf="platform.is('ios') && inapp.products.length > 0"
+              >
                 {{inapp.products[0].raw.price}}/month
+              </p>
+              <p
+                class="price"
+                *ngIf="!platform.is('ios') && inapp.products.length > 0"
+              >
+                {{inapp.products[0].offers[1].pricingPhases[0].price}}/month
               </p>
               <p>After 7-day Free Trial</p>
               <button (click)="purchase('premium_sub')">Go Monthly</button>
             </div>
             <div class="plan" id="yearly">
               <h3>Yearly Plan</h3>
-              <p class="price" *ngIf="inapp.products.length > 0">
+              <p
+                class="price"
+                *ngIf="platform.is('ios') && inapp.products.length > 0"
+              >
                 {{inapp.products[1].raw.price}}/year
+              </p>
+              <p
+                class="price"
+                *ngIf="!platform.is('ios') && inapp.products.length > 0"
+              >
+                {{inapp.products[1].offers[1].pricingPhases[0].price}}/month
               </p>
               <p>After 7-day Free Trial</p>
               <button (click)="purchase('premium_yearly')">Go Yearly</button>
@@ -72,7 +91,11 @@
         <ion-item button (click)="link()" [disabled]="!userService.isPremium">
           <ion-label>Link Account</ion-label>
         </ion-item>
-        <ion-item button (click)="viewLinkedAccounts()" *ngIf="userService.isPremium">
+        <ion-item
+          button
+          (click)="viewLinkedAccounts()"
+          *ngIf="userService.isPremium"
+        >
           <ion-label>View Linked Accounts</ion-label>
         </ion-item>
         <ion-item
@@ -82,6 +105,79 @@
         >
           <ion-label>Change App Theme</ion-label>
         </ion-item>
+        <div
+          style="margin-top: 8px"
+          [ngClass]="userService.isPremium ? 'budget-active' : 'budget-inactive'"
+        >
+          <ion-label style="color: black; margin-left: 18px"
+            >Budget Reminders</ion-label
+          >
+          <span class="notifications-row">
+            <span
+              class="day"
+              [ngClass]="
+            dayIsActive(0) ? 'active' : 'inactive'
+            "
+              (click)="addNotificationDay(0)"
+              >S</span
+            >
+            <span
+              class="day"
+              [ngClass]="
+            dayIsActive(1) ? 'active' : 'inactive'
+            "
+              (click)="addNotificationDay(1)"
+              >M</span
+            >
+            <span
+              class="day"
+              [ngClass]="
+            dayIsActive(2) ? 'active' : 'inactive'
+            "
+              (click)="addNotificationDay(2)"
+              >T</span
+            >
+            <span
+              class="day"
+              [ngClass]="
+            dayIsActive(3) ? 'active' : 'inactive'
+            "
+              (click)="addNotificationDay(3)"
+              >W</span
+            >
+            <span
+              class="day"
+              [ngClass]="
+            dayIsActive(4) ? 'active' : 'inactive'
+            "
+              (click)="addNotificationDay(4)"
+              >T</span
+            >
+            <span
+              class="day"
+              [ngClass]="
+            dayIsActive(5) ? 'active' : 'inactive'
+            "
+              (click)="addNotificationDay(5)"
+              >F</span
+            >
+            <span
+              class="day"
+              [ngClass]="
+            dayIsActive(6) ? 'active' : 'inactive'
+            "
+              (click)="addNotificationDay(6)"
+              >S</span
+            >
+          </span>
+        </div>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-content>
+      <ion-list>
         <ion-item button (click)="deleteAccount()">
           <ion-label>Delete Account</ion-label>
         </ion-item>

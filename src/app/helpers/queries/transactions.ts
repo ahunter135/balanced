@@ -6,7 +6,7 @@ export function buildTransactionsQuery(
   includePending: boolean,
   startDate: Date | null,
   endDate: Date | null,
-  category: string | null = null,
+  category: string | null = null
 ): Query {
   let wheres: any[] = [];
   if (!includePending) {
@@ -23,18 +23,16 @@ export function buildTransactionsQuery(
   }
   return query(
     TransactionsRepositoryService.makeCollectionRef(userId),
-    and(
-      ...wheres
-    )
+    and(...wheres)
   );
 }
 
 export function allSubcategoryTransactions(
   userId: string,
-  subcategoryId: string,
+  subcategoryId: string
 ): Query {
   return query(
     TransactionsRepositoryService.makeCollectionRef(userId),
-    where('subcategoryId', '==', subcategoryId),
+    where('subcategoryId', '==', subcategoryId)
   );
 }

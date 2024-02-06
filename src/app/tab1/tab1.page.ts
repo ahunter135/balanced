@@ -252,7 +252,7 @@ export class Tab1Page implements ITransactionSubscriber {
     return this.transactionService.getTransactions(
       true, // includePending
       this.userService.isPremium, // syncPlaid (only sync if premium)
-      start, // startDate
+      null, //start, // startDate
       end // endDate
     );
   }
@@ -960,6 +960,37 @@ export class Tab1Page implements ITransactionSubscriber {
             });
 
             this.shouldShowCopyBudget();
+          },
+        },
+      ],
+    });
+    alert.present();
+  }
+
+  async deleteAllPending() {
+    Haptics.impact({ style: ImpactStyle.Heavy });
+    const alert = await this.alertController.create({
+      header: 'Are you sure you want to delete ALL uncategorized transactions?',
+
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+        },
+        {
+          text: 'Yes',
+          handler: async () => {
+            console.log(this.unsortedTransactions);
+            this.unsortedTransactions.forEach((transaction) => {
+              this.transactionPublisher.publishEvent({
+                from: 'manual',
+                addedTransactions: [],
+                modifiedTransactions: [],
+                removedTransactions: [transaction],
+              });
+            });
+
+            this.loadMonthData();
           },
         },
       ],

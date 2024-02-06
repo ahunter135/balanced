@@ -39,6 +39,9 @@
     >
   </div>
   <div id="options-container">
+    <div *ngIf="unsortedTransactions.length > 0" (click)="deleteAllPending()">
+      <ion-icon name="trash" style="font-size: 26px"></ion-icon>
+    </div>
     <div
       (click)="toggleReorder()"
       [ngClass]="isUserReorderingCategories ? 'sort-active' : ''"
